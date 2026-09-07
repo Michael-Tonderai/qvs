@@ -42,7 +42,14 @@ whole census:
 
 It writes `dev_reports\session_open.txt`, which Claude reads. It reports HEAD read
 directly from `.git\refs`, the current branch, the working tree, whether the venv
-exists and which Python it holds, and the tail of the session log.
+exists and which Python it holds, whether the session log is current, and the tail of
+the session log.
+
+**Log currency (D-025).** The census measures it in commits, not dates: it takes the
+newest `HEAD` sha named in `docs/SESSION_LOG.md` and counts how far HEAD sits above
+it. Nought or one is current, one being the close commit described in Section 1.3.
+Two or more is the Section 0.5 stop condition below - work exists that no block
+describes. The verdict is printed on the console beside the tree verdict.
 
 **HEAD is confirmed by reading the refs file, never by trusting a summary.**
 

@@ -9,12 +9,20 @@
 #
 # It is READ ONLY. It changes nothing and fixes nothing - it reports drift.
 #
-# Four families of check:
+# Three families of check:
 #   A  VERSION DRIFT   - tool versions asserted in CLAUDE.md vs what is installed
 #   B  DOCUMENT MAP    - every file listed in CLAUDE.md Section 9 exists, and every .md in
 #                        docs\ is listed there
-#   C  LOG CURRENCY    - are there commits newer than the last SESSION_LOG block
-#   D  DECISION REFS   - every D-nnn referenced anywhere is registered in DECISIONS.md
+#   C  DECISION REFS   - every D-nnn referenced anywhere is registered in DECISIONS.md
+#
+# LOG CURRENCY USED TO BE HERE and moved to tools\Session-Open.ps1 in session 005
+# (D-025). It compared the newest date written inside SESSION_LOG.md against git's
+# committer date, which fails in two ways: the block's date is typed by hand minutes
+# before the commit that carries it, so a close crossing midnight reported a current
+# log as stale; and the block for the session in progress cannot be written until that
+# session closes, so every second commit of a session would have tripped it. It is a
+# session-open question and it is now asked there, against commit distance rather than
+# dates.
 #
 # Run it with:
 #   .\tools\Check-Docs.ps1
@@ -53,7 +61,7 @@ Add-Line ('-' * 78)
 $ClaudeMd = Join-Path $RepoRoot 'CLAUDE.md'
 if (-not (Test-Path $ClaudeMd)) {
     Add-Line 'FATAL: CLAUDE.md not found. Nothing can be checked against it.'
-    Set-Content -Path $OutFile -Value $L.ToArray() -Encoding UTF8
+    Set-Content -Path $OutFile -Value $L.ToArray() -Encoding ASCII
     Write-Host 'FATAL  CLAUDE.md missing'
     Write-Host '  -> dev_reports\check_docs.txt'
     exit 1
@@ -152,59 +160,10 @@ if (Test-Path $docsDir) {
     }
 }
 
-# ============================================================= C: LOG CURRENCY ===
-# The check that matters most. If commits exist that are newer than the newest
-# SESSION_LOG block, the log has fallen behind the repository - which is exactly the
-# condition that becomes expensive to recover from.
-Add-Head 'C. SESSION LOG CURRENCY'
-
-$LogFile = Join-Path $RepoRoot 'docs\SESSION_LOG.md'
-if (-not (Test-Path $LogFile)) {
-    Fail 'docs\SESSION_LOG.md does not exist'
-}
-elseif (-not (Test-Path (Join-Path $RepoRoot '.git'))) {
-    Skip 'not a git repository yet - cannot compare against commit dates'
-}
-else {
-    $logText = Get-Content -Path $LogFile -Raw
-    $dates = [regex]::Matches($logText, '(\d{4}-\d{2}-\d{2})') |
-             ForEach-Object { [datetime]::ParseExact($_.Groups[1].Value, 'yyyy-MM-dd', $null) }
-
-    if ($dates.Count -eq 0) {
-        Fail 'no dated block found in SESSION_LOG.md'
-    }
-    else {
-        $newestLog = ($dates | Sort-Object)[-1]
-        Add-Line "  newest log block  : $($newestLog.ToString('yyyy-MM-dd'))"
-
-        Push-Location $RepoRoot
-        try {
-            $lastCommitRaw = (git log -1 --format=%cs 2>&1 | Out-String).Trim()
-        }
-        catch { $lastCommitRaw = '' }
-        finally { Pop-Location }
-
-        if ($lastCommitRaw -match '^\d{4}-\d{2}-\d{2}$') {
-            $newestCommit = [datetime]::ParseExact($lastCommitRaw, 'yyyy-MM-dd', $null)
-            Add-Line "  newest commit     : $lastCommitRaw"
-            if ($newestCommit -gt $newestLog) {
-                $gap = ($newestCommit - $newestLog).Days
-                Fail "SESSION_LOG is $gap day(s) behind the newest commit - the log is STALE"
-            }
-            else {
-                Pass 'SESSION_LOG is level with or ahead of the newest commit'
-            }
-        }
-        else {
-            Skip 'no commits yet - nothing to compare against'
-        }
-    }
-}
-
-# =========================================================== D: DECISION REFS ===
+# =========================================================== C: DECISION REFS ===
 # A decision cited in the log but missing from the register cannot be found later,
 # and the report's design-decisions section is assembled from that register.
-Add-Head 'D. DECISION REFERENCES'
+Add-Head 'C. DECISION REFERENCES'
 
 $DecFile = Join-Path $RepoRoot 'docs\DECISIONS.md'
 if (-not (Test-Path $DecFile)) {
@@ -258,7 +217,10 @@ Add-Line "WARNINGS : $script:Warns"
 if ($script:Fails -eq 0) { Add-Line 'VERDICT  : DOCUMENTS CURRENT' }
 else { Add-Line 'VERDICT  : STALE - fix before committing' }
 
-Set-Content -Path $OutFile -Value $L.ToArray() -Encoding UTF8
+# ASCII, not UTF8: PowerShell 5.1's -Encoding UTF8 emits a byte order mark, which put
+# an invisible character at the head of this script's own artefact - the corruption
+# class D-018 exists to remove, inside the tool that enforces D-018's neighbours.
+Set-Content -Path $OutFile -Value $L.ToArray() -Encoding ASCII
 
 if ($script:Fails -eq 0) { Write-Host "DOCUMENTS CURRENT  ($script:Warns warning(s))" }
 else { Write-Host "STALE  $script:Fails failure(s), $script:Warns warning(s)" }

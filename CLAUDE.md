@@ -156,6 +156,9 @@ only when you want to watch a long install progress live.
   `git commit -F dev_reports\commit_message.txt`, and the file is removed by an
   explicit PowerShell command in the same sequence. Never `-m` for a message carrying
   a body. See D-020.
+- **`gh` issue and pull-request bodies follow the same rule**, written to
+  `dev_reports\issue_body.txt` and passed with `--body-file`. Same quoting problem,
+  same clean-up. See D-024.
 
 ---
 
@@ -259,19 +262,23 @@ Discipline alone is what failed on TaCRAS, so the rule is backed by a command:
 .\tools\Check-Docs.ps1
 ```
 
-It is read-only and reports drift in four families:
+It is read-only and reports drift in three families:
 
 - **Version drift** - every tool version and path asserted in Section 2 above, checked
   against the machine. If Python, git, gh, docker, Claude Code or the repo root has
   moved and this file has not, it fails.
 - **Document map** - every file listed in Section 9 exists, and every `.md` in `docs\` is
   listed in Section 9. A document nobody listed is a document nobody maintains.
-- **Log currency** - compares the newest date in `docs/SESSION_LOG.md` against the
-  newest commit date. **Commits newer than the newest log block means the log is
-  stale**, and it reports by how many days. This is the check that matters most.
 - **Decision references** - every `D-nnn` cited anywhere must exist in
   `docs/DECISIONS.md`. A decision cited but unregistered cannot be found when the
   report is written.
+
+**Log currency is checked at session open, not here** (D-025). Whether the log has
+fallen behind the repository is measured by `tools\Session-Open.ps1`, in commits
+rather than in dates: the newest block names the commit its session left behind, and
+HEAD should be that commit or the close commit above it. It cannot be a pre-commit
+gate, because the block describing the session in progress is not written until that
+session closes.
 
 ### When it runs
 
