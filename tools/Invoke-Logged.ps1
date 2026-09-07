@@ -18,6 +18,35 @@
 # showing what was attempted and how far it got. STATUS in the header tells Claude
 # whether the run COMPLETED, FAILED, or is still RUNNING.
 #
+# STDERR (fixed 2026-09-08, issue #5): the redirection must sit INSIDE the string
+# that Invoke-Expression evaluates, not on the Invoke-Expression call. Written as
+# `Invoke-Expression $Command 2>&1` the redirection binds to the cmdlet, while the
+# native process spawned inside the evaluated string writes its stderr straight past
+# it to the console - so a FAILING git command left a non-zero exit code beside a
+# silent file, which is the least useful state this runner could be in. Written as
+# `Invoke-Expression "$Command 2>&1"` the redirection is parsed as part of the native
+# command's own pipeline and stderr is merged at the point it is produced.
+#
+# CONSTRAINT that follows from that: $Command must be a single command, not a
+# pipeline. Appending 2>&1 to a string ending in a pipeline binds the redirection to
+# the last element rather than to the command whose stderr is wanted. Every wrapped
+# command in this project is a single git, gh or python invocation. If a pipeline is
+# ever genuinely needed, wrap the producing command in its own call to this script.
+#
+# Merged stderr arrives as ErrorRecord objects, which is why they are rendered with
+# ToString() rather than Out-String - Out-String wraps each line in the full
+# PowerShell error apparatus (+ CategoryInfo, + FullyQualifiedErrorId), turning a
+# one-line git message into six lines of formatting. Capturing the output and making
+# it unreadable would not be a fix.
+#
+# ENCODING: artefacts are written as ASCII. PowerShell 5.1's -Encoding UTF8 emits a
+# byte order mark, which put an invisible character at the head of every artefact -
+# the exact class of corruption D-018 exists to remove, sitting inside the tooling
+# that D-018's own checks read. Non-ASCII bytes in command output degrade to '?'.
+# That is the intended trade: this repository is ASCII by rule, and a legible
+# artefact matters more than faithfully reproducing a character that should not be
+# there.
+#
 # Why $PSScriptRoot rather than a hard-coded path: the repo root is derived at run
 # time, so the tooling survives the folder being renamed or moved, and the absolute
 # path appears nowhere inside it.
@@ -55,7 +84,7 @@ if ($Artefact -notmatch '\.txt$') { $Artefact = "$Artefact.txt" }
 $OutFile = Join-Path $ReportDir $Artefact
 
 # Header written immediately, so the artefact exists from the first second
-Set-Content -Path $OutFile -Encoding UTF8 -Value @(
+Set-Content -Path $OutFile -Encoding ASCII -Value @(
     "COMMAND  : $Command",
     "WHEN     : $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')",
     "REPOROOT : $RepoRoot",
@@ -70,22 +99,29 @@ Push-Location $RepoRoot
 try {
     $global:LASTEXITCODE = 0
 
-    # 2>&1 folds stderr into the stream so failures are captured, not lost
-    Invoke-Expression $Command 2>&1 | ForEach-Object {
-        $text = ($_ | Out-String).TrimEnd()
+    # The redirection sits inside the evaluated string so that it binds to the native
+    # command rather than to Invoke-Expression. See the STDERR note in the header.
+    Invoke-Expression "$Command 2>&1" | ForEach-Object {
+        $text = if ($_ -is [System.Management.Automation.ErrorRecord]) {
+            $_.ToString().TrimEnd()
+        }
+        else {
+            ($_ | Out-String).TrimEnd()
+        }
+
         if ($text.Length -gt 0) {
-            Add-Content -Path $OutFile -Value $text -Encoding UTF8
+            Add-Content -Path $OutFile -Value $text -Encoding ASCII
             if ($Echo) { Write-Host $text }
             $script:produced = $true
         }
     }
 
     if (-not $script:produced) {
-        Add-Content -Path $OutFile -Value '(no output)' -Encoding UTF8
+        Add-Content -Path $OutFile -Value '(no output)' -Encoding ASCII
     }
 
     $code = $LASTEXITCODE
-    Add-Content -Path $OutFile -Encoding UTF8 -Value @(
+    Add-Content -Path $OutFile -Encoding ASCII -Value @(
         ('-' * 78),
         "EXITCODE : $code",
         'STATUS   : COMPLETED'
@@ -93,7 +129,7 @@ try {
     $verdict = if ($code -eq 0) { 'OK' } else { "NON-ZERO EXIT ($code)" }
 }
 catch {
-    Add-Content -Path $OutFile -Encoding UTF8 -Value @(
+    Add-Content -Path $OutFile -Encoding ASCII -Value @(
         ('-' * 78),
         "EXCEPTION: $($_.Exception.Message)",
         'STATUS   : FAILED (terminating error - command did not complete)'

@@ -173,6 +173,8 @@ from memory in Sprint D.
 - **Rejected:** A periodic manual review pass. That is what failed before.
 - **Consequence:** Staleness is caught within one commit of occurring, when it costs
   minutes, rather than at a review, when it costs a session.
+- **REFINED BY D-025.** The log-currency check named here moved out of the pre-commit
+  gate and into the session-open census. The other three checks are unchanged.
 
 ## D-016 - Dependency ranges, not a lockfile
 
@@ -325,3 +327,50 @@ from memory in Sprint D.
   that the log block reaches `develop` unreviewed - acceptable, because it is a record
   of what happened rather than a change to how the system behaves, and because the
   next session's Section 0.5 reconciles it against the repository anyway.
+
+## D-024 - `gh` issue and PR bodies use `--body-file`, like commit messages
+
+- **Context:** D-020 routes commit messages through a file because PowerShell 5.1
+  mangles embedded quotes and newlines in `-m`. A `gh issue create` or `gh pr create`
+  body is the same shape of text with the same quoting problem, and it is read by an
+  assessor rather than by a machine.
+- **Decision:** Bodies are written to `dev_reports\issue_body.txt` through the
+  Filesystem connector, passed with `--body-file`, and deleted afterwards. Same
+  mechanism, same gitignored location, same clean-up as D-020.
+- **Rejected:** Inline `--body` with escaped newlines, which is unreadable before it
+  is used and unreviewable after; and a heredoc, which PowerShell 5.1 handles but
+  cannot be handed over as a single-command block.
+- **Consequence:** Issue and pull-request text can be read on disk before it reaches
+  GitHub, where it becomes part of the assessed Git deliverable. The cost is one
+  extra file write and one deletion per issue or PR.
+
+## D-025 - Log currency is checked at session open, not before every commit
+
+- **Context:** D-015 put a log-currency check in `tools\Check-Docs.ps1`, comparing the
+  newest date written inside `SESSION_LOG.md` against git's committer date. It failed
+  for the first time on 2026-09-08 and it failed twice over. Session 004's block is
+  headed 22:35 and the commit carrying it was made at 00:05 - the block's date is
+  typed by hand, the commit's is not, and the ninety minutes between them crossed
+  midnight, so a log that described the newest commit exactly was reported one day
+  stale. Underneath that sat a worse problem: the block describing a session cannot
+  be written until that session closes (Section 1.4), so every second commit of every
+  session would have tripped the same gate. The rule that a STALE verdict is fixed
+  before committing and the rule that the log is written at close cannot both hold.
+- **Decision:** The check moves to `tools\Session-Open.ps1` and is measured in
+  commits rather than dates. The newest block names the commit its session left
+  behind; HEAD should be that commit or the close commit one above it, per
+  `docs/HANDOVER.md` Section 1.3. Two or more ahead means work exists that no block
+  describes. `Check-Docs.ps1` keeps version drift, the document map and decision
+  references as its pre-commit gate.
+- **Rejected:** A one-day tolerance on the date comparison. It would have cleared the
+  midnight case and left the mid-session case to fire the following day - a snooze
+  rather than a fix, and the second false positive would have arrived with the gate's
+  credibility already spent. Also rejected: writing a log block mid-session to satisfy
+  the gate, which would make the log a record of what was needed to pass a check.
+- **Consequence:** The question is asked where it is answerable, against the same
+  evidence Section 0.5 already asks a human to check by eye, and the census now
+  reports a LOG VERDICT beside its TREE VERDICT. The check no longer runs before
+  every commit, so a session that ends without logging is caught at the next session
+  open rather than at its own next commit - which is the same moment in practice,
+  because the failure it detects can only be created by a session that has already
+  ended.
