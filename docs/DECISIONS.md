@@ -374,3 +374,53 @@ from memory in Sprint D.
   open rather than at its own next commit - which is the same moment in practice,
   because the failure it detects can only be created by a session that has already
   ended.
+
+## D-026 - REQ-N-003 means one command to start, after one-time configuration
+
+- **Context:** REQ-N-002 forbids committing any secret. REQ-N-003 requires the system
+  to start from a single `docker compose up` with no manual steps. The container runs
+  with `QVS_DEBUG=0`, under which `config/settings.py` treats a missing
+  `QVS_SECRET_KEY` as a start-up error by design. The two requirements cannot both be
+  satisfied literally: the container needs a key it is forbidden to carry.
+- **Decision:** `docker-compose.yml` reads `env_file: .env`, which is gitignored and
+  excluded from the image build context. `.env` is generated once by
+  `tools\New-DotEnv.ps1`, which produces both keys with `secrets.token_urlsafe(50)`
+  and refuses to overwrite an existing file unless forced. REQ-N-003 therefore means
+  one command to start, after one-time configuration.
+- **Rejected:** Committing throwaway keys into `docker-compose.yml` to make the
+  literal reading true. It would satisfy the wording of the weaker requirement by
+  breaching the stronger one, and a committed key is the string that ends up in
+  production - the same argument that kept a fallback out of `settings.py`. Also
+  rejected: generating a key inside the entrypoint, which would produce a signing key
+  that changes on every container start and so invalidates every signature already
+  issued (D-003).
+- **Consequence:** Configuration is a command rather than a paragraph, so it is done
+  the same way every time. The cost is that `docker compose up` fails on a fresh
+  clone until `New-DotEnv.ps1` has been run once, and that this reading of REQ-N-003
+  is an interpretation rather than the requirement's literal text - which is why it is
+  registered here rather than assumed, and why it belongs in the report's critical
+  evaluation as a case of two requirements in genuine tension.
+
+## D-027 - WhiteNoise serves static files, not a second container
+
+- **Context:** Django stops serving static files when `DEBUG` is off, and the
+  container runs with `QVS_DEBUG=0`. Without something serving them, the Django admin
+  renders with no stylesheet - which is what an assessor sees in the demonstration
+  video, worth 15%.
+- **Decision:** WhiteNoise, added to `requirements.txt` with no platform marker and
+  wired in directly below `SecurityMiddleware`. `STORAGES` uses
+  `CompressedStaticFilesStorage`, deliberately not the manifest variant: the manifest
+  backend raises at render time for any `{% static %}` reference it cannot find, which
+  would make the test suite depend on `collectstatic` having run first.
+- **Rejected:** An nginx sidecar container. It is the correct answer for a production
+  deployment and the wrong one here - it doubles the compose file, adds a service to
+  explain on camera, and buys far-future cache headers on a system demonstrated at
+  localhost. Also rejected: leaving the admin unstyled and calling it scoped-out under
+  the Section 8 fence. That fence excludes styled UI of our own; it does not excuse a
+  framework's own interface arriving broken.
+- **Consequence:** One dependency and two settings changes, and the container serves
+  a complete admin. The trade against nginx is a sentence in the report's critical
+  evaluation. One visible cost locally: WhiteNoise warns `No directory at:
+  staticfiles\` on any run where `collectstatic` has not been run, which includes the
+  test suite and CI. Harmless - the entrypoint collects before gunicorn starts - but
+  it is a warning that will be seen and should not be mistaken for a defect.

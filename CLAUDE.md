@@ -52,6 +52,22 @@ verify authenticity; maintain an auditable history of verification activity.
 restriction. Do not carry any of that reasoning over from the TaCRAS project. If
 `git push` ever fails on this machine it is an ordinary problem, diagnosed normally.
 
+**Docker Desktop is a per-user install, and its engine does not currently run.** The
+application is at `%LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe`, not
+under `C:\Program Files` - session 006 lost time guessing the default path. The
+`docker` CLI on `PATH` comes from that same install's `resources\bin`, which is why
+every version check passes: those checks only ever prove the client exists.
+
+**WSL is not installed.** `wsl -l -v` reports it absent, and Docker Desktop's Linux
+engine runs inside WSL2, so the daemon cannot start and `docker` fails with a 500 from
+the engine pipe. `wsl --install` from an elevated shell plus a reboot is the
+prerequisite. Until that is done no image can be built and REQ-N-003 cannot be
+verified.
+
+`wsl.exe` writes UTF-16, unlike everything else here. Its output arrives in an
+artefact as spaced-out characters. That is the encoding, not corruption, and not a
+D-018 violation - the rule governs repository text, and `wsl` is not ours to fix.
+
 PowerShell 5.1 constraints: no `&&` chaining, multi-line logic goes in a script under
 `tools\`, and paths containing spaces must be quoted.
 

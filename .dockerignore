@@ -1,0 +1,60 @@
+# .dockerignore
+#
+# What never enters the build context.
+#
+# A smaller context builds faster, but the reason this file matters more than that is
+# REQ-N-002: a populated local .env is excluded here as well as in .gitignore, so it
+# cannot be baked into an image layer even by accident. A secret in a layer survives
+# deletion of the file, which is exactly the failure mode that requirement exists to
+# prevent.
+#
+# This duplicates part of .gitignore, and a second list can drift from the first. The
+# alternative is not available - the Docker daemon does not read .gitignore.
+
+# Version control, CI configuration and governance documents. None are needed at
+# runtime; the image serves the application, not the repository.
+.git/
+.gitattributes
+.gitignore
+.github/
+docs/
+
+# D-011: the local virtual environment. The image installs its own dependencies from
+# requirements.txt, and a Windows .venv is unusable on Linux in any case.
+.venv/
+
+# REQ-N-002. .env.example holds no values, but it is not needed at runtime either.
+.env
+.env.*
+
+# Claude working artefacts. Never a deliverable, never needed in an image.
+dev_reports/
+
+# Local database. The container's database lives on a mounted volume (D-002), never
+# in a layer, so copying one in would only shadow the real thing confusingly.
+*.sqlite3
+db.sqlite3
+
+# Tests and quality caches. The suite runs in CI and locally, not in the runtime
+# image.
+tests/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Static files collected by a local run. The container collects its own at start-up.
+staticfiles/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# OS and editor
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/

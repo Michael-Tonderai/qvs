@@ -67,6 +67,14 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise serves collected static files from the application process. It sits
+    # directly below SecurityMiddleware and above everything else, which is what its
+    # documentation requires: high enough that a static file is returned without
+    # running session, auth and message middleware for it, low enough that security
+    # headers still apply. Without it the container - which runs QVS_DEBUG=0 - serves
+    # the admin with no stylesheet, because Django stops serving static files itself
+    # when DEBUG is off.
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -144,3 +152,24 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# WhiteNoise's compressing backend, deliberately not its manifest variant.
+#
+# CompressedManifestStaticFilesStorage hashes every file name and then raises at
+# render time for any {% static %} reference it cannot find in the manifest - which
+# means the test suite fails unless collectstatic has been run first. That couples the
+# tests to a build step for no benefit this project can name: the manifest exists to
+# support far-future cache headers on a public site, and this system is demonstrated
+# on localhost.
+#
+# CompressedStaticFilesStorage still gzips, still serves through WhiteNoise, and has
+# no manifest to be missing. The trade is named here rather than discovered later by
+# a red suite.
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
