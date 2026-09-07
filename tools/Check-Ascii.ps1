@@ -67,8 +67,14 @@ function Get-RepoTextFiles {
 
     Get-ChildItem -Path $Root -Recurse -File -Force -ErrorAction SilentlyContinue |
         Where-Object {
-            $rel   = $_.FullName.Substring($Root.Length).TrimStart('\')
-            $parts = $rel -split '\\'
+            # Both separators, because this script also runs on the Linux CI runner
+            # under pwsh, where paths are '/'-separated. Splitting on backslash alone
+            # returned the whole relative path as a single element there, so no
+            # element ever matched $SkipDirs and .git was scanned. It passed only
+            # because nothing inside .git happens to carry an extension in $TextExt -
+            # which is luck, and D-018 exists to remove exactly that kind of reliance.
+            $rel   = $_.FullName.Substring($Root.Length).TrimStart('\', '/')
+            $parts = $rel -split '[\\/]'
             $blocked = $false
             foreach ($p in $parts) { if ($SkipDirs -contains $p) { $blocked = $true } }
             $isText = ($TextExt -contains $_.Extension.ToLower()) -or ($TextNames -contains $_.Name)
@@ -116,7 +122,8 @@ $truncated     = $false
 Add-Head 'FINDINGS'
 
 foreach ($f in $files) {
-    $rel = $f.FullName.Substring($RepoRoot.Length).TrimStart('\')
+    # Separator-agnostic for the same reason as the filter above.
+    $rel = $f.FullName.Substring($RepoRoot.Length).TrimStart('\', '/')
 
     # BOM is checked on the raw bytes, because by the time the file has been decoded
     # the mark has already been consumed and is no longer visible as content.

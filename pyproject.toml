@@ -92,7 +92,9 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 
-# REQ-N-004: statement coverage meets the configured threshold. 80 is set as a
+# REQ-N-004: coverage meets the configured threshold, measured with branch coverage
+# enabled above - so the figure counts decision outcomes, not only executed lines.
+# 80 is set as a
 # standing floor rather than as today's number - a threshold pinned to whatever the
 # scaffold happens to achieve is a threshold that gets lowered the first time real
 # code lands, and a lowered threshold is worth nothing in the report.
