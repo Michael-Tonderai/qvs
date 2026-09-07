@@ -285,3 +285,22 @@ from memory in Sprint D.
 - **Consequence:** Exactly one commit in the repository's history sits outside the
   pull-request workflow, and it is the one that made the workflow possible. That
   sentence is the report's answer if anybody asks.
+
+## D-022 - `git` and `gh` output goes to an artefact, never to the terminal
+
+- **Context:** `CLAUDE.md` Section 4 routed a command through `Invoke-Logged.ps1` only
+  when Claude needed the output. Git and gh were therefore run bare, and the first
+  commit sequence in session 003 put status listings, push progress and commit
+  summaries straight into the terminal - the noisiest output in the project, in the
+  one place nobody reads carefully.
+- **Decision:** Every `git` and `gh` command is wrapped in `Invoke-Logged.ps1`,
+  whether or not Claude needs the output. The console keeps its two-line contract:
+  a verdict and an artefact path.
+- **Rejected:** Wrapping only the verbose commands and leaving quiet ones such as
+  `git switch` bare. That is an exception list, and an exception list is a second rule
+  that drifts out of sync with the first - the same argument that removed the
+  PowerShell carve-out in D-012 and the per-read encoding flag in D-018.
+- **Consequence:** The terminal stays legible, and every git operation leaves a dated
+  artefact showing exactly what was run and what it returned. That record is evidence
+  for the DevOps workflow section of the report, which the terminal scrollback was
+  never going to be.

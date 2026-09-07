@@ -83,7 +83,8 @@ Never `python`, never `py manage.py`, never an activated-shell assumption. Reaso
 
 ## 4. Running commands
 
-**Every command whose output Claude needs goes through `Invoke-Logged.ps1`:**
+**Every command whose output Claude needs goes through `Invoke-Logged.ps1` - and every
+`git` and `gh` command goes through it whether Claude needs the output or not:**
 
 ```powershell
 .\tools\Invoke-Logged.ps1 '<command>' '<artefact_name>'
@@ -104,6 +105,11 @@ only when you want to watch a long install progress live.
   is a script to fix.
 - **Commands are given in separate labelled blocks**, one command per block, never
   stacked into a single paste.
+- **`git` and `gh` output belongs in an artefact, never in the terminal.** Both are
+  verbose, and their output is exactly the kind that is scrolled past rather than
+  read. Wrapped in `Invoke-Logged.ps1` the console keeps the two-line contract and
+  Claude reads the detail from disk. No exceptions for quiet commands - an exception
+  list is a second rule to keep in sync. See D-022.
 - **Provenance on every claim.** Read it, ran it, inferred it, or were told it. "The
   coverage artefact shows 74%" is honest; asserting 74% without opening the file is
   not.
