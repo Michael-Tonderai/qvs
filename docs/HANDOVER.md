@@ -143,6 +143,13 @@ the Section 0.5 stop condition.
 sessions closed in that state and both were correct to. It is not a mismatch, and the
 receiving session should not treat it as one.
 
+**The direction letters record intent, not fact.** `B2A` means the closing session ran
+on AccountB and expected AccountA to pick up. If the same account continues instead,
+the token still reads `B2A` and the opening block still reads `AccountB`. That is a
+naming artefact, not a divergence - the token's job is to prove the receiving session
+is standing on the right commit, and the sha7 does that regardless of which account
+holds the keyboard.
+
 ### Section 1.4 Appending
 
 `docs/SESSION_LOG.md` is **appended to, never rewritten**. Blocks accumulate in
@@ -176,7 +183,12 @@ to reconstruct it is asking him to do work Claude is better placed to do.
 
 #### What it must contain
 
-- **Session number and account** for the session being opened, not the one closing.
+- **Session number for the session being opened, and the account the closing
+  session actually ran on.** The prompt must **not** assert which account will open
+  the next session. A closing session cannot know that - it can only state an
+  intention - and asserting it is what made session 004 open under a prompt naming
+  AccountA while it ran on AccountB. **The opening session states the account it is
+  actually signed into at Section 0.6, and that statement wins over the prompt.**
 - **An instruction to read the repository documents and run Section 0 in full.** The prompt
   never substitutes for the protocol - it points at it.
 - **Anything Section 0.5 must reconcile**, named explicitly: unverified claims, expected-but
@@ -190,7 +202,9 @@ to reconstruct it is asking him to do work Claude is better placed to do.
 #### Template
 
 ```
-Session NNN, AccountA | AccountB. Sprint X.
+Session NNN. Sprint X.
+Closing session ran on: AccountA | AccountB. State at Section 0.6 which account
+you are actually on - it may not be the one this prompt expected.
 
 Read the repository documents in the order given in the project instructions
 before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this

@@ -449,3 +449,205 @@ messages are written to a file, used with -F, and deleted afterwards (D-020).
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+---
+
+## Session 004 - ACCOUNT HANDOVER - AccountB -> AccountA - 2026-09-07 22:35
+
+Token   : QVS-S004-B2A-44e1cfb
+Sprint  : A
+Branch  : develop
+
+Done    :
+  - .github/workflows/ci.yml added - the project's first pipeline. One job,
+    quality, on ubuntu-latest and Python 3.12, running five named steps: the ASCII
+    guard under pwsh (D-018), ruff check and ruff format --check (D-005), bandit
+    -ll (D-006), and pytest with branch coverage (D-004, REQ-N-004). Triggers are
+    push to main and develop, and pull_request into either.
+  - REQ-N-001 now has a mechanism. It was unsatisfiable for three sessions because
+    no workflow existed and no pipeline had ever run.
+  - The pipeline was GREEN on its first ever run - completed success in 27 seconds,
+    run 34159059800, pull_request trigger. No runner-versus-local difference
+    surfaced.
+  - tools/Check-Ascii.ps1 made separator-agnostic. It trimmed and split relative
+    paths on backslash only, so under pwsh on Linux the path came back as one
+    element, nothing matched $SkipDirs, and .git was scanned. It would have passed
+    regardless - but only because no file inside .git happens to carry an extension
+    in $TextExt.
+  - pyproject.toml no longer describes REQ-N-004 as statement coverage. Session 003
+    reworded the requirement to branch coverage and branch = true sits two lines
+    below the comment, so it contradicted both.
+  - docs/evidence/ created with an empty .gitkeep. Session 003 open item 3 closed as
+    to its symptom; the underlying Check-Docs gap is not fixed and is carried below.
+  - Issue #3 opened, PR #4 opened with a full self-review comment, squash-merged
+    into develop, branch deleted. The second exercise of D-009.
+  - Session 003 open item 1 answered with fact rather than assumption: gh repo view
+    reports the repository is PUBLIC, owner Michael-Tonderai, default branch main.
+    Classic branch protection is therefore available, and after the first pipeline
+    run GitHub now knows the check name to require. Protecting main is an
+    actionable task, not a constraint to document.
+  - docs/HANDOVER.md Section 1.3 and Section 1.5 amended - see Decided below.
+
+HEAD    : 44e1cfb  PUSHED  (develop)
+          main is at 06ab3dc, now THREE commits behind develop by design - main
+          moves by release PR, not by drift.
+Tree    : clean
+Issues  : #1 closed by PR #2. #3 closed by PR #4. No issues open.
+
+Decided :
+  - CI was built before Docker, reversing the order session 003 left behind. The two
+    do not depend on each other, and going CI-first meant every subsequent pull
+    request carries a check rather than the Docker PR merging unchecked; the CI PR
+    validated its own workflow because GitHub runs pull_request workflows from the
+    PR head; the check name needed for branch protection now exists; and the
+    riskiest piece was front-loaded while session time remained.
+  - No docker build step in ci.yml. REQ-N-001 names lint, security scan and tests.
+    A build step would have coupled the CI PR to a Dockerfile that did not exist.
+  - One job with named steps rather than four parallel jobs. Four jobs would each
+    pay for a checkout, a Python setup and a dependency install to run one command.
+    Revisit only if the report wants four separate ticks in a screenshot.
+  - Ubuntu, not Windows, despite Windows development. The deployment target is a
+    Linux container (D-008); testing on Windows would leave the container's platform
+    untested while proving something about a platform nothing ships on.
+  - CI runs with QVS_DEBUG=0 and keys generated inside the step. Under QVS_DEBUG=1
+    the settings.py fallback generates an ephemeral SECRET_KEY, which would mask a
+    missing key rather than prove the start-up error works. No key is committed, so
+    REQ-N-002 holds.
+  - tools/Check-Docs.ps1 deliberately NOT in CI. It asserts the tool versions and
+    paths in CLAUDE.md Section 2 against the machine it runs on, and a runner has no
+    Docker Desktop, no gh at the pinned version and no .venv. It would fail for
+    being correct. It stays a pre-commit gate.
+  - docs/evidence/.gitkeep is deliberately empty. CLAUDE.md Section 9 already states
+    what the directory holds, and a second copy of that sentence is how one of them
+    goes stale.
+  - The three issues this session identified were NOT opened, to conserve a nearly
+    exhausted account budget. They are recorded under Open below and lose nothing by
+    being opened by the session that fixes them.
+  - docs/HANDOVER.md Section 1.5 amended so the opening prompt no longer asserts
+    which account will open the next session. A closing session can state an
+    intention, not a fact. The opening session states the account it is actually
+    signed into at Section 0.6, and that statement wins over the prompt.
+  - docs/HANDOVER.md Section 1.3 amended to say the token's direction letters record
+    intent, not fact. B2A with the same account continuing is a naming artefact; the
+    sha7 does the token's actual job regardless of who holds the keyboard.
+
+Open    :
+  1. **tools/Invoke-Logged.ps1 does not capture stderr from native commands.** The
+     most important item in this block. The 2>&1 applies to the Invoke-Expression
+     cmdlet, not to the native process inside the string it evaluates, so git's
+     stderr reaches the console and never the artefact. Evidence: git fetch --prune
+     demonstrably deleted a stale remote ref and git switch -c demonstrably created
+     a branch, and both artefacts recorded "(no output)". The push artefact splits
+     exactly on stream boundaries - the "set up to track" line is present (stdout)
+     while the remote: lines and the To https://... summary are absent (stderr).
+     Reproducible, not flaky. WHY IT MATTERS: when a git command FAILS, the error
+     text is exactly what will be missing, leaving a non-zero exit code and a silent
+     file. D-022 exists so git detail is read from disk, and it currently delivers a
+     filtered half. Likely fix is to apply the redirection inside the evaluated
+     string rather than to the cmdlet. Should be the next session's first action.
+  2. main is not protected - now a task, not an unknown. The repository is public
+     and the CI check has run, so the check name is selectable.
+  3. Nothing enforces D-022. Carried from session 003 and from PR #2's self-review,
+     still unbuilt. A guard belongs in tools\Check.ps1 once that exists.
+  4. Check-Docs.ps1 Section B cannot see a mapped DIRECTORY. It verifies named .md
+     files in one direction and enumerates docs\*.md in the other. Creating
+     docs/evidence/ fixed the instance and left the hole for the next one.
+  5. The census log tail is still not useful - Session-Open.ps1 reads the last 40
+     lines and every block ends with a long opening prompt. Carried from session
+     003. Read the log file directly.
+  6. Sprint A is not finished. No Dockerfile, no docker-compose.yml. REQ-N-003 is
+     unsatisfiable until they exist.
+
+Watch   :
+  - **Coverage under CI parity is 87.50%, not the 93.75% an older artefact reports.**
+    The gap is config/settings.py lines 36-41, the ephemeral SECRET_KEY fallback,
+    which only executes when QVS_DEBUG=1 and no key is supplied. The deployed
+    configuration has materially less headroom above the REQ-N-004 floor of 80 than
+    the development one. Read the number from a QVS_DEBUG=0 run or it flatters
+    itself.
+  - **The Filesystem connector's edit_file matches the FIRST occurrence of the text
+    it is given, not the last.** This block was initially appended after session 001
+    instead of at the end of the file, because the anchor used was the closing line
+    of an opening prompt - which is identical at the end of every block. Caught by
+    reading the returned diff, which showed "## Session 002" immediately after the
+    inserted text. Reverted and re-applied against an anchor unique to the last
+    block. When appending to this file, anchor on something only the newest block
+    contains, and read the diff before trusting the edit.
+  - The session 003 Watch note about gh pr merge --delete-branch was correct and
+    fired again: it leaves you on main, not develop. Switching back explicitly is
+    the whole fix, now confirmed twice.
+  - Session 004's opening prompt said AccountA; the session actually ran on
+    AccountB, because session 003 wrote the prompt expecting a handover that did not
+    happen. The Section 0.6 block repeated the prompt instead of the reality, which
+    is the wrong way round. Fixed at the cause by the Section 1.5 amendment.
+  - Running the suite under QVS_DEBUG=1 exercises a configuration that is never
+    deployed. Local runs should set QVS_DEBUG=0 to match CI.
+
+Next    : Fix the Invoke-Logged.ps1 stderr defect first, through the D-009 workflow -
+          it is small, and until it lands every git command is logged blind. Then the
+          Dockerfile and docker-compose.yml pinning name: qvs (REQ-N-003, D-008,
+          D-013), also through D-009. Then protect main and open a release PR from
+          develop to main, which will be the first change to reach main since the
+          root commit.
+
+Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 005:
+
+```
+Session 005. Sprint A.
+Closing session ran on: AccountB. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects. Session 004 opened under
+a prompt naming the wrong account precisely because the closing session guessed.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any
+edit.
+
+Token: QVS-S004-B2A-44e1cfb
+
+To reconcile at Section 0.5:
+  1. The token names 44e1cfb, the commit session 004's WORK left behind. HEAD will
+     be ONE commit ahead of it - the session 004 close commit carrying the log
+     block. HANDOVER.md Section 1.3 defines this. Expected, not a divergence. HEAD
+     more than one ahead is not.
+  2. The token reads B2A. Per Section 1.3 as amended in session 004, the direction
+     letters record intent, not fact. If you are on AccountB, say so at Section 0.6
+     and carry on - the sha7 is what the token is actually for.
+  3. develop is THREE commits ahead of main, which sits at 06ab3dc. main moves by
+     release PR only. Expected.
+  4. main is not protected. Open item 2, now a task rather than an unknown - the
+     repository is public and the CI check has run, so the check name is selectable.
+  5. The census log tail shows only the tail of this prompt, not the Sprint, HEAD,
+     Tree and Next fields. Open item 5. Read the log file directly.
+
+Already run:  Everything in Sprint A except Docker. Django scaffold, root commit
+              06ab3dc on main, develop branched, issue #1 / PR #2 delivering D-022,
+              and issue #3 / PR #4 delivering .github/workflows/ci.yml - which ran
+              GREEN on its first execution. gh auth login, gh repo create, and all
+              of Bootstrap, Install-Toolchain, Add-LocalBinToPath, Setup-Repo,
+              Setup-Venv, Session-Open, Check-Ascii, Check-Docs, Fix-Encoding.
+Not yet run:  Anything Docker. No Dockerfile, no docker-compose.yml, no container
+              has ever been built. main has never been protected.
+
+Next action: fix the tools\Invoke-Logged.ps1 stderr defect FIRST - see Open item 1
+in the session 004 block for the evidence and the likely fix. It is small, and
+until it lands every git command is logged blind: a FAILING git command writes its
+error to stderr, which the artefact currently discards, leaving a non-zero exit
+code and a silent file. Through the D-009 workflow. Then the Dockerfile and
+docker-compose.yml pinning name: qvs (REQ-N-003, D-008, D-013), also through
+D-009. Then protect main and open a release PR from develop.
+
+Also still open and unopened as issues, deliberately: the D-022 enforcement gap
+(nothing checks that git and gh commands are wrapped) and the Check-Docs gap on
+mapped directories. Open them when you fix them.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages are written to a file, used with -F, and deleted afterwards (D-020).
+Run the suite with QVS_DEBUG=0 to match CI.
+
+Give me commands in separate labelled blocks, one command per block.
+```
