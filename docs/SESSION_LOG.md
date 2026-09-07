@@ -651,3 +651,160 @@ Run the suite with QVS_DEBUG=0 to match CI.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+---
+
+## Session 005 - SESSION CLOSE - AccountA - 2026-09-08 00:45
+
+Sprint  : A
+Branch  : develop (work committed on fix/invoke-logged-stderr, PR #7 open)
+
+Done    :
+  - tools/Invoke-Logged.ps1 stderr defect fixed - issue #5. The 2>&1 was applied to
+    the Invoke-Expression cmdlet rather than to the native process inside the string
+    it evaluated. Redirection moved inside the evaluated string; merged stderr now
+    rendered with ToString() rather than Out-String, which would have wrapped each
+    one-line git message in the full PowerShell error apparatus. The resulting
+    single-command constraint is written into the script header.
+  - Log currency moved from tools/Check-Docs.ps1 to tools/Session-Open.ps1 - issue #6,
+    D-025. It now measures commits rather than dates: the newest block names the
+    commit its session left behind, and HEAD should be that commit or the close
+    commit one above it. Check-Docs keeps version drift, document map and decision
+    references and is now three families, not four.
+  - Artefact encoding changed from UTF8 to ASCII in both scripts. PowerShell 5.1
+    emits a byte order mark for -Encoding UTF8, which had been sitting at the head of
+    every artefact - the corruption class D-018 exists to remove, inside the tooling.
+  - Stale remotes/origin/ci/REQ-N-001-github-actions tracking ref pruned. Session 004
+    deleted the remote branch; the local tracking ref had survived.
+  - Documents updated in the same session as the change: CLAUDE.md Sections 6 and 10,
+    docs/HANDOVER.md Section 0.4, docs/DECISIONS.md (D-024, D-025, and D-015 marked
+    REFINED BY D-025 rather than edited).
+  - Issues #5 and #6 opened, commit 5f14db1 pushed, PR #7 opened against develop.
+
+HEAD    : ea98a11  PUSHED  (develop - unchanged by this session's work)
+Work    : 5f14db1 on fix/invoke-logged-stderr, PUSHED, PR #7 open and unmerged
+          main remains at 06ab3dc.
+Tree    : clean
+Issues  : #1, #3 closed previously. #5 and #6 OPEN - both close on PR #7 merging.
+
+Decided :
+  - One pull request closes two issues. #6's check failed on every commit including
+    the commit fixing #5, so the alternatives were to park a verified fix or to argue
+    past a gate. Arguing past a gate is how it stops being one. Recorded in D-025.
+  - Log currency measured in commits, not dates (D-025). The date in a block is typed
+    by hand; the commit carrying it is made minutes later. Session 004's block is
+    headed 22:35 and its commit landed 00:05, so the gap crossed midnight and a
+    current log was reported one day stale. Beneath that, a block cannot be written
+    until its session closes, so every second commit of every session would have
+    tripped the same gate. A one-day tolerance was rejected as a snooze.
+  - gh issue and PR bodies use --body-file, as commit messages do under D-020 (D-024).
+  - Artefact encoding treated as D-018 applied rather than as a new decision.
+
+Open    :
+  1. **PR #7 is open and unmerged.** The D-009 self-review comment has NOT been
+     posted; its text is written and waiting at dev_reports\pr_review.txt. The CI run
+     that the pull request triggered was never checked this session. Merging is the
+     first action next session.
+  2. **Section 1.3 and the new currency check both assume the session's work commit
+     is on the branch the log is committed to.** Closing with an open PR breaks that,
+     which is why this block records develop's sha under HEAD and the work commit
+     under Work. Decide properly next session whether the HEAD field means the branch
+     being logged or the work being handed over - do not leave it implicit.
+  3. main is not protected. Repository is public and the CI check name is selectable.
+  4. Nothing enforces D-022. Carried from session 003. Belongs in tools\Check.ps1.
+  5. Check-Docs.ps1 Section B cannot see a mapped DIRECTORY. Carried from session 004.
+  6. Sprint A is not finished. No Dockerfile, no docker-compose.yml. REQ-N-003 is
+     unsatisfiable until they exist.
+  7. Session-Open.ps1 prints "a dirty tree at session open means the other account is
+     mid-session" whenever the tree is dirty. Correct at session open, misleading when
+     the script is re-run mid-session as an acceptance test. Cosmetic.
+
+Watch   :
+  - **Three times this session Claude stated that a file had been written to disk
+    when no write call had been issued** - the commit message file twice, and the PR
+    body once. One of those compounded it by claiming a read-back that never happened.
+    Each failed loudly and cheaply because the command was wrapped and the artefact
+    carried git's own explanation. Composing a document inside a reply and writing it
+    to disk are two acts that feel like one. The ordering that prevents it: write
+    call, read-back, THEN the sentence describing the file. Never the sentence first.
+  - The third of those failures is the best evidence in the change. An unplanned git
+    failure produced "fatal: could not read log file ... No such file or directory" in
+    the artefact where the old runner would have left a bare exit code.
+  - Coverage under CI parity is 87.50%, not 93.75%. Carried from session 004. Read it
+    from a QVS_DEBUG=0 run.
+  - The Filesystem connector's edit_file matches the FIRST occurrence of its anchor.
+    Carried from session 004. Anchor on text unique to the newest block.
+  - Environment variables set in session 004's terminal (QVS_DEBUG=0 and two throwaway
+    keys) persist only until that terminal closes. A fresh terminal has neither, and
+    the suite will exercise the settings.py fallback the coverage note is about. Set
+    them explicitly rather than relying on inheritance.
+
+Next    : Post the self-review comment on PR #7 from dev_reports\pr_review.txt,
+          confirm the CI run is green, squash-merge with --delete-branch, then switch
+          back to develop and pull - gh pr merge leaves you on main, confirmed twice.
+          Then the Dockerfile and docker-compose.yml pinning name: qvs (REQ-N-003,
+          D-008, D-013) through D-009. Then protect main and open a release PR from
+          develop.
+
+Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 006:
+
+```
+Session 006. Sprint A.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any
+edit.
+
+No token: session 005 closed on the same account, so this is a SESSION CLOSE
+rather than an ACCOUNT HANDOVER and Section 1.3 does not apply.
+
+To reconcile at Section 0.5:
+  1. The census now reports a LOG VERDICT as well as a TREE VERDICT. This is new in
+     session 005 (D-025) and should read "current" with a distance of 1 - the
+     session 005 close commit sitting above ea98a11 on develop.
+  2. The session 005 block records HEAD as ea98a11, which is develop, and the
+     session's actual work commit 5f14db1 under a separate Work field, because that
+     commit is on an unmerged branch. Expected, and open item 2 in that block.
+  3. PR #7 is OPEN against develop and closes both #5 and #6. It has no self-review
+     comment yet. Its CI run has never been checked.
+  4. develop is FOUR commits ahead of main plus the session 005 close commit, so
+     five. main sits at 06ab3dc and moves by release PR only. Expected.
+  5. main is still not protected.
+
+Already run:  Everything in Sprint A except Docker. Issues #5 and #6 opened and
+              fixed; commit 5f14db1 pushed to fix/invoke-logged-stderr; PR #7
+              opened. Invoke-Logged.ps1 now captures stderr - verified four times,
+              once by an unplanned failure. Log currency moved to Session-Open.ps1.
+              Artefacts are ASCII with no byte order mark. The stale origin/ci
+              tracking ref is pruned.
+Not yet run:  The PR #7 self-review comment - its text is already written and
+              waiting at dev_reports\pr_review.txt, so write nothing new for it,
+              read that file. No CI check on PR #7. No merge. Anything Docker: no
+              Dockerfile, no docker-compose.yml, no container ever built. main has
+              never been protected.
+
+Next action: post the self-review comment on PR #7 from dev_reports\pr_review.txt,
+confirm the CI run is green, then squash-merge with --delete-branch and switch back
+to develop and pull - gh pr merge leaves you on main, which has now bitten twice.
+Then the Dockerfile and docker-compose.yml pinning name: qvs (REQ-N-003, D-008,
+D-013) through D-009. Then protect main and open a release PR from develop.
+
+Method note, from three failures in session 005: when a file is needed on disk,
+issue the write call, read it back, and only then describe it. Claude stated three
+times that a file was written when no write had been issued. The wrapped runner
+caught every one, which is the argument for D-022 made by its own author's errors.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies are written to a file, used with -F or --body-file, and
+deleted afterwards (D-020, D-024). Run the suite with QVS_DEBUG=0 to match CI, and
+set it explicitly - a fresh terminal has not inherited it.
+
+Give me commands in separate labelled blocks, one command per block.
+```
