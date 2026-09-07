@@ -1,0 +1,56 @@
+# .gitignore
+#
+# QVS. Note what is NOT ignored: docs/ is fully tracked, because the governance
+# documents, the requirements register, the decisions register and the evidence
+# folder are all either assessed deliverables or the raw material for one.
+
+# --- Python -----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# --- Virtual environment ----------------------------------------------------
+# D-011: .venv lives at the repo root and is never committed. It is reproduced
+# from requirements.txt and requirements-dev.txt, which are.
+.venv/
+
+# --- Django -----------------------------------------------------------------
+*.sqlite3
+*.sqlite3-journal
+db.sqlite3
+/staticfiles/
+/media/
+local_settings.py
+
+# --- Secrets ----------------------------------------------------------------
+# REQ-N-002: no secret, key or credential is committed. .env.example IS tracked,
+# so a fresh clone can see which variables are required without seeing any values.
+.env
+.env.*
+!.env.example
+
+# --- Testing and quality ----------------------------------------------------
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.ruff_cache/
+.mypy_cache/
+
+# --- Claude working artefacts -----------------------------------------------
+# Evidence for Claude to read while working, not a deliverable. Anything that
+# belongs in the submission is copied into docs/evidence/, which IS tracked.
+dev_reports/
+
+# --- OS and editor ----------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+*.swp
+*~

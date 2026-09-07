@@ -1,0 +1,16 @@
+# requirements.txt
+#
+# Runtime dependencies. Installed in the local .venv, in CI, and in the Docker image.
+#
+# Version ranges rather than exact pins: compatible-release ranges keep security
+# patches flowing without a dependency-update workflow that this project has no time
+# to run. A full lockfile (pip-tools, uv) was considered and rejected as
+# disproportionate for a six-week deliverable - see D-016.
+#
+# gunicorn carries an environment marker. It is the production WSGI server used
+# inside the Linux container, and it neither installs cleanly nor runs on Windows.
+# The marker means one requirements file serves all three environments rather than
+# splitting dependencies across files that then drift apart.
+
+Django>=5.2,<5.3
+gunicorn>=23.0,<24.0; sys_platform != "win32"

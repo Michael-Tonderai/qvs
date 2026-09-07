@@ -1,0 +1,22 @@
+# .gitattributes
+#
+# D-012: LF line endings everywhere, with no PowerShell exception.
+#
+# PowerShell 5.1 reads LF scripts without complaint, so the exception buys nothing,
+# and a single rule cannot drift out of sync with itself. This removes the entire
+# CRLF normalisation problem class that the TaCRAS repository carries.
+#
+# text=auto lets git detect text files; eol=lf forces LF in the working tree on every
+# platform, so what is committed and what is on disk are the same bytes.
+
+* text=auto eol=lf
+
+# Binary files must never be line-ending converted
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary
+*.sqlite3 binary

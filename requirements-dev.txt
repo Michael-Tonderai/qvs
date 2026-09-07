@@ -1,0 +1,27 @@
+# requirements-dev.txt
+#
+# Development and CI dependencies. Installs everything in requirements.txt as well,
+# so there is one command to reproduce a working environment from a fresh clone.
+#
+# The Docker image installs requirements.txt only - test and lint tooling has no
+# business in a runtime container.
+#
+# Each entry below maps to an assessed criterion:
+#   pytest, pytest-django  -> unit tests and integration tests
+#   pytest-cov             -> test coverage reporting  (REQ-N-004)
+#   ruff                   -> static code analysis and coding standards compliance
+#   bandit                 -> security-specific static analysis  (D-006)
+
+-r requirements.txt
+
+# Upper bounds on the toolchain as well as the runtime. Session 002 found pytest
+# bounded >=8.0 with no ceiling and resolving to 9.1.1 - a major version the project
+# had never been tested against, arriving silently. D-016 argued ranges over a
+# lockfile for the RUNTIME, where security patches are the point; the test toolchain
+# gets no security benefit from an unbounded major and can break a green suite for
+# reasons that have nothing to do with the code.
+pytest>=9.0,<10.0
+pytest-django>=4.9,<5.0
+pytest-cov>=7.0,<8.0
+ruff>=0.16,<0.17
+bandit>=1.9,<2.0

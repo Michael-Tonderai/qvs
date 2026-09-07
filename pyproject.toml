@@ -1,0 +1,105 @@
+# pyproject.toml
+#
+# One configuration file for ruff, pytest and coverage. D-005 chose ruff over
+# flake8 + isort + black precisely so that "coding standards compliance" and "static
+# code analysis" are satisfied by one tool with one config, and putting pytest and
+# coverage here too means a contributor has one file to read rather than four.
+#
+# Bandit is deliberately NOT configured here. Reading [tool.bandit] requires the
+# bandit[toml] extra, which requirements-dev.txt does not install; its options are
+# passed on the command line by the local gate instead, where they are visible.
+
+[project]
+name = "qvs"
+version = "0.1.0"
+description = "Qualification Verification System - MIM736 practical assignment"
+# D-010: 3.12 locally, in CI and in the container. Stated here as well as in
+# CLAUDE.md Section 2 because this is the copy a tool can read.
+requires-python = ">=3.12,<3.13"
+
+# --- Lint and format ---------------------------------------------------------------
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+extend-exclude = [".venv", "dev_reports", "*/migrations/*"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # import sorting - replaces isort (D-005)
+    "N",   # pep8-naming
+    "UP",  # pyupgrade - keeps syntax current with the pinned 3.12
+    "B",   # bugbear - the real-defect rules, not style
+    "C4",  # comprehension clarity
+    "DJ",  # Django-specific correctness
+]
+# Security rules (flake8-bandit, "S") are left off on purpose. D-006 makes bandit the
+# named security gate; running two overlapping analysers would produce two findings
+# lists for one problem and a report that has to explain why.
+ignore = []
+
+[tool.ruff.lint.per-file-ignores]
+# Settings modules are a flat list of module-level constants by design.
+"config/settings.py" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "qualifications", "tests"]
+
+# --- Tests -------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+# The repository root is not an installed package, so it is added to sys.path
+# explicitly rather than relying on rootdir inference.
+pythonpath = ["."]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+# --strict-markers turns a typo in a marker name into an error. Without it,
+# @pytest.mark.req("REQ-F-005") misspelled as @pytest.mark.rec silently registers
+# nothing, and the requirement quietly drops out of the traceability matrix with no
+# test failing to announce it.
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--cov=config",
+    "--cov=qualifications",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+]
+
+markers = [
+    "unit: exercises one unit in isolation, no request cycle and no database",
+    "integration: crosses a boundary - URL resolution, ORM, template or client",
+    "req(id): the requirement this test verifies, e.g. req('REQ-F-005')",
+]
+
+# --- Coverage ----------------------------------------------------------------------
+
+[tool.coverage.run]
+source = ["config", "qualifications"]
+branch = true
+omit = [
+    # Framework entry points. Exercised by running the server, not by the suite, and
+    # counting them would measure the framework rather than this project's code.
+    "config/wsgi.py",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+show_missing = true
+
+# REQ-N-004: statement coverage meets the configured threshold. 80 is set as a
+# standing floor rather than as today's number - a threshold pinned to whatever the
+# scaffold happens to achieve is a threshold that gets lowered the first time real
+# code lands, and a lowered threshold is worth nothing in the report.
+fail_under = 80
+
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
