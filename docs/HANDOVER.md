@@ -126,10 +126,22 @@ Watch   :
 Next    : <one sentence, specific enough to start from cold>
 ```
 
-**The token** is `QVS-S<NNN>-A2B|B2A-<sha7 of HEAD>`. The receiving session quotes it
-in its Section 0.6 opening block. Its only job is to prove the receiving session read the
+**The token** is `QVS-S<NNN>-A2B|B2A-<sha7>`. The receiving session quotes it in its
+Section 0.6 opening block. Its only job is to prove the receiving session read the
 right block and is standing on the right commit - a mismatched token means the log
 and the repo have diverged.
+
+**Which sha7.** The commit the session's work left behind - the last substantive
+commit, not the session-close commit that carries this block. The two cannot be the
+same: the token lives inside the block, so committing the block would change the sha
+the token names. A receiving session therefore expects the census to show HEAD **one
+commit ahead** of the token, and that commit to be the close commit itself. HEAD more
+than one commit ahead, or one commit ahead of something other than a close commit, is
+the Section 0.5 stop condition.
+
+**Before the first commit** the token carries `NOHEAD` in place of the sha7. Two
+sessions closed in that state and both were correct to. It is not a mismatch, and the
+receiving session should not treat it as one.
 
 ### Section 1.4 Appending
 

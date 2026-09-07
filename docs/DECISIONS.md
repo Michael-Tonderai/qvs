@@ -285,6 +285,8 @@ from memory in Sprint D.
 - **Consequence:** Exactly one commit in the repository's history sits outside the
   pull-request workflow, and it is the one that made the workflow possible. That
   sentence is the report's answer if anybody asks.
+- **REFINED BY D-023.** Session-close log commits are a second, standing exception.
+  This entry's claim of "exactly one" was true when written and is no longer.
 
 ## D-022 - `git` and `gh` output goes to an artefact, never to the terminal
 
@@ -304,3 +306,22 @@ from memory in Sprint D.
   artefact showing exactly what was run and what it returned. That record is evidence
   for the DevOps workflow section of the report, which the terminal scrollback was
   never going to be.
+
+## D-023 - Session-close log commits go straight to `develop`
+
+- **Context:** D-009 routes every change through an issue, a branch and a pull request
+  with a self-review. D-021 named the root commit as the single exception. Applying
+  the rule literally to a session close means roughly seven extra commands to land a
+  `SESSION_LOG` block, reviewed by the person who wrote it minutes earlier.
+- **Decision:** The session-close commit - `docs/SESSION_LOG.md` alone, plus any
+  document amended in the same session - commits directly to `develop` with a `docs:`
+  subject. Every other change follows D-009 without exception.
+- **Rejected:** A pull request per session close. It produces a review artefact with
+  no reviewer and no finding, on a project whose scope fence exists to keep process
+  from outgrowing the deadline. Also rejected: leaving the exception unwritten and
+  simply doing it, which is how a documented process quietly stops matching the
+  history.
+- **Consequence:** A session closes in three commands rather than ten. The cost is
+  that the log block reaches `develop` unreviewed - acceptable, because it is a record
+  of what happened rather than a change to how the system behaves, and because the
+  next session's Section 0.5 reconciles it against the repository anyway.

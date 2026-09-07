@@ -275,3 +275,177 @@ both run before it.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+## Session 003 - ACCOUNT HANDOVER - AccountB -> AccountA - 2026-09-07 21:20
+
+Token   : QVS-S003-B2A-06a7ad4
+          Per HANDOVER.md Section 1.3, the sha7 is the commit this session's WORK left
+          behind, not the close commit carrying this block. Expect the census to show
+          HEAD one commit ahead of the token, and that commit to be this close commit.
+
+Sprint  : A (foundation)
+Branch  : develop
+
+Done    :
+  - Section 0 run in full. No divergence. The census artefact on disk at open was
+    stale - written 18:36, thirteen minutes before Session-Open.ps1 was itself
+    rewritten - so it was re-run rather than trusted. An artefact older than the
+    script that produced it is not evidence.
+  - Open item 1 decided. D-019 registered: Claude Desktop is the default writer
+    through the Filesystem connector; Claude Code is for bulk edits, long command
+    sequences and gh. CLAUDE.md Section 7 amended to match, before any file was
+    written under the new rule.
+  - Django foundation scaffolded and committed. config project (settings, urls,
+    wsgi), qualifications app (apps, models, urls, views, migrations package),
+    tests package, manage.py, pyproject.toml, .env.example. Hand-written rather than
+    generated, because CLAUDE.md Section 5 requires a path comment on line 1 and
+    django-admin startproject does not produce one.
+  - pyproject.toml configures ruff (lint and format, Django rules on, security rules
+    left to bandit), pytest (pytest-django, strict markers, unit/integration/req) and
+    coverage (branch measurement, floor of 80).
+  - Root commit 06ab3dc on main, pushed. develop branched from it and pushed.
+  - D-020 registered and CLAUDE.md Section 6 amended: commit messages are written to
+    dev_reports\commit_message.txt, used with git commit -F, and deleted by an
+    explicit command afterwards.
+  - D-021 registered: the root commit lands directly on main because develop cannot
+    be branched from a commit that does not exist and GitHub cannot protect an
+    unborn ref. Later refined by D-023.
+  - D-022 registered and CLAUDE.md Section 4 amended: every git and gh command goes
+    through Invoke-Logged.ps1 whether or not Claude needs the output. Delivered
+    through the full workflow - issue #1, branch, PR #2 with a self-review comment,
+    squash merge into develop. The first exercise of D-009.
+  - HANDOVER.md Section 1.3 amended to define which sha7 the token carries, closing
+    session 002 open item 3. The token cannot name the commit that contains it.
+  - D-023 registered: session-close log commits go straight to develop.
+  - REQ-N-004 reworded - branch coverage is enabled, so the requirement said
+    "statement coverage" while the configuration measured more than that.
+  - Session 002 open item 4 closed. requirements-dev.txt now bounds the test
+    toolchain with upper bounds, with the runtime-versus-toolchain distinction
+    written into the file.
+
+HEAD    : 06a7ad4e9cd2c89a95696b7a5438e76e8e9ff50c  PUSHED  (develop)
+          main is at 06ab3dcc3ea27293b861ab6817ea5cc9a82a8d13, one commit behind by
+          design - main moves by release PR, not by drift.
+Tree    : clean
+Issues  : #1 closed by PR #2. No issues open.
+
+Decided :
+  - D-019 - Claude Desktop is the default writer; Claude Code for bulk and gh.
+  - D-020 - commit messages written to a file, used with -F, then deleted.
+  - D-021 - the root commit lands directly on main. Refined by D-023.
+  - D-022 - git and gh output goes to an artefact, never to the terminal.
+  - D-023 - session-close log commits go straight to develop.
+  - The scaffold carries no model. Putting a half-specified Qualification model in
+    the root commit would have put a migration into history before REQ-F-001 and
+    REQ-F-002 were designed, and a migration is the expensive thing to take back.
+  - Settings carry no committed SECRET_KEY fallback, not even a development one. A
+    missing key generates an ephemeral value under QVS_DEBUG=1 and is a start-up
+    error otherwise. A committed placeholder is the string that reaches production.
+  - TIME_ZONE is UTC, not Africa/Harare. REQ-F-007 writes an audit event per
+    verification attempt and an audit trail that moves with a server's local zone is
+    not evidence.
+
+Open    :
+  1. main is not protected. The command was deliberately not issued because it is
+     not known whether rule enforcement is available on this repository's plan and
+     visibility. Check what the repository supports before asserting a command.
+  2. Nothing enforces D-022. Check-Ascii and Check-Docs cannot see whether a command
+     was wrapped, so the rule holds by discipline alone - which is precisely what
+     D-015 exists because it failed before. A guard is possible in tools\Check.ps1
+     once that exists. Named in the PR #2 self-review and deliberately not built
+     there; it should become an issue.
+  3. docs/evidence/ is on the CLAUDE.md Section 9 document map and does not exist on
+     disk. Check-Docs section B passed because it checks the five .md files by name
+     and enumerates docs\*.md in the other direction - a mapped DIRECTORY is checked
+     by neither.
+  4. The census log tail has stopped being useful. Session-Open.ps1 reads the last 40
+     lines of SESSION_LOG.md, and since D-017 every block ends with a ~40-line
+     opening prompt, so the tail now shows only the previous session's prompt. Sprint,
+     HEAD, Tree and Next are all above the window.
+  5. Sprint A is not finished. No Dockerfile, no docker-compose.yml, no GitHub
+     Actions workflow. REQ-N-001 and REQ-N-003 are both unsatisfiable until they
+     exist, and D-007 commits the pipeline definition to the repository.
+
+Watch   :
+  - **A staging list written by hand omits what nobody is looking for.** tools\ was
+    left out of the first git add. Ten scripts - including the three gates whose
+    verdicts the commit message cited - sat untracked while the commit claimed to
+    carry the whole foundation. The pre-commit git status caught it, but only because
+    the artefact was read: the instruction given beforehand named what to forbid
+    (.venv, dev_reports, coverage.xml) and not what to expect. Absence is harder to
+    see than presence. Name the expected set, not the forbidden one. Fixed by
+    amending the root commit with --force-with-lease, which was cheap only because
+    nothing had been fetched by anyone.
+  - gh pr merge --delete-branch leaves you on the repository's DEFAULT branch, which
+    is main, not on develop. Switch back explicitly or the next piece of work starts
+    from the wrong branch, invisibly.
+  - Check-Docs.ps1 section C is live from this session. It skipped for three sessions
+    with "no commits yet - nothing to compare against" and now runs a real comparison.
+    It will fail the moment the session log falls behind a commit.
+  - ruff format and the E501 ignore on config/settings.py are load-bearing together.
+    The AUTH_PASSWORD_VALIDATORS entry is 90 characters even after the formatter
+    expands it, because a string literal cannot be split. Removing the per-file
+    ignore will fail lint; removing the expansion will fail format.
+  - The venv interpreter assertion in Check-Docs section A ran for the first time
+    this session. It could not run before because .venv did not exist when the check
+    was last executed.
+
+Next    : Finish Sprint A. Dockerfile and docker-compose.yml pinning name: qvs
+          (REQ-N-003, D-008, D-013), then .github/workflows/ci.yml running ruff,
+          bandit and pytest on push and pull request (REQ-N-001, D-007). Both through
+          the D-009 workflow - issue, branch, PR into develop, self-review. Then
+          protect main and open a release PR from develop.
+
+Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 004:
+
+```
+Session 004, AccountA. Sprint A.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any
+edit.
+
+Token: QVS-S003-B2A-06a7ad4
+
+To reconcile at Section 0.5:
+  1. The token names 06a7ad4, the commit session 003's WORK left behind. HEAD will
+     be ONE commit ahead of it - that commit is the session 003 close commit
+     carrying the log block. HANDOVER.md Section 1.3 now defines this. It is the
+     expected state, not a divergence. HEAD more than one ahead is not.
+  2. develop is the current branch and is AHEAD of main by the D-022 merge. main
+     moves by release PR only. Expected.
+  3. main is not protected yet. Open item 1, not an oversight.
+  4. The census log tail will show only the tail of this opening prompt, not the
+     Sprint, HEAD, Tree and Next fields. Open item 4. Read the log file directly
+     rather than relying on the census tail.
+
+Already run:  Everything in Sprint A up to and including the Django scaffold, the
+              root commit 06ab3dc on main, develop branched and pushed, and issue
+              #1 / PR #2 delivering D-022 through the full D-009 workflow.
+              Bootstrap.ps1, Install-Toolchain.ps1, Add-LocalBinToPath.ps1,
+              Setup-Repo.ps1, Setup-Venv.ps1, Session-Open.ps1, Check-Ascii.ps1,
+              Check-Docs.ps1, Fix-Encoding.ps1, gh auth login, gh repo create.
+Not yet run:  Anything Docker. Anything CI. No workflow file exists, so no pipeline
+              has ever run.
+
+Next action: finish Sprint A. Dockerfile and docker-compose.yml pinning name: qvs
+(REQ-N-003, D-008, D-013), then .github/workflows/ci.yml running ruff, bandit and
+pytest on push and pull request (REQ-N-001, D-007). Each through the D-009
+workflow - issue, branch, PR into develop, self-review comment. D-023 exempts only
+the session-close commit.
+
+Also worth doing early, both small: open an issue for the D-022 enforcement gap
+(open item 2 - nothing checks that git and gh commands are wrapped), and decide
+whether docs/evidence/ should be created or removed from the CLAUDE.md Section 9
+map (open item 3).
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages are written to a file, used with -F, and deleted afterwards (D-020).
+
+Give me commands in separate labelled blocks, one command per block.
+```
