@@ -87,6 +87,7 @@ from memory in Sprint D.
   for no additional marks.
 - **Consequence:** REQ-N-003 is satisfiable and demonstrable on camera. A live public
   URL becomes an optional stretch rather than a commitment.
+- **SUPERSEDED BY D-026.**
 
 ## D-009 - Pull-request workflow even when working alone
 
@@ -148,6 +149,7 @@ from memory in Sprint D.
   and restarting Claude Desktop mid-build, for friction the tooling design already
   removes.
 - **Consequence:** The path is typed once per terminal session and nowhere else.
+- **SUPERSEDED BY D-027.**
 
 ## D-014 - Governance limited to three documents
 
@@ -374,3 +376,60 @@ from memory in Sprint D.
   open rather than at its own next commit - which is the same moment in practice,
   because the failure it detects can only be created by a session that has already
   ended.
+
+## D-026 - Route B: deploy to a managed container service, not local Docker
+
+- **Context:** The assignment allows Docker or a cloud platform. D-008 chose Docker on
+  the reasoning that a cloud account was setup and billing for no additional marks.
+  Since then the only machine that could run Docker has been left unbootable twice by
+  Docker Desktop itself, and the corporate machine that replaced it must not have
+  Docker Desktop, WSL or any hypervisor component installed. Local Docker is therefore
+  not a route that exists any more, not merely one that is inconvenient.
+- **Decision:** Deploy to a managed container service returning a real HTTPS URL.
+  Cloud Run is the provisional pick on cost and speed; Azure is worth weighing if MSU
+  credit exists. The image defined by commit 4d1b1cb becomes the build artefact rather
+  than the deployment itself, so that work carries forward instead of being discarded.
+- **Rejected:** Staying with D-008. It now depends on a capability this project no
+  longer has, and acquiring it means putting Docker Desktop on a corporate machine that
+  also carries TaCRAS - risking a second dead machine to satisfy a wording choice.
+- **Consequence:** A live public URL moves from optional stretch to commitment, which
+  is stronger evidence for the deployment deliverable than a local run recorded on
+  camera. REQ-N-003's wording still describes a single `docker compose up` and needs
+  revisiting, since the assessed start command is no longer the local one.
+
+## D-027 - The repository folder is renamed to `qvs`
+
+- **Context:** D-013 kept the spaced folder name on the reasoning that renaming would
+  cost a connector reconfiguration and a Claude Desktop restart mid-build, for friction
+  the tooling design already removed. The laptop holding that checkout is gone. Session
+  008 cloned fresh onto the corporate machine and had to configure the connector from
+  nothing regardless, so the cost D-013 was avoiding had already been paid.
+- **Decision:** The repository root is `C:\Users\tmachimbira\Projects\Development\qvs`,
+  a sibling of the `tacras` checkout, with no spaces in the path.
+- **Rejected:** Recreating the spaced name on the new machine for continuity. It would
+  have preserved a path that only ever existed to avoid a rename that has now happened
+  anyway, and it keeps spaces in a path that reaches PowerShell arguments, build
+  contexts and coverage output.
+- **Consequence:** No script changed. Every tool derives the repository root from
+  `$PSScriptRoot` and `config/settings.py` derives `BASE_DIR` from its own location,
+  which is exactly the property D-013 was written to protect - so the rename cost
+  nothing beyond the connector entry. `config/settings.py` still cites D-013 for that
+  reasoning and the citation stays valid; a superseded decision is not a wrong one.
+
+## D-028 - The Docker branch merges on CI evidence, not on a local container run
+
+- **Context:** Session 006 deliberately held the pull request for
+  `feature/REQ-N-003-docker-deployment` because no container had ever been built and a
+  PR body would have had to describe a deployment nobody had run. Under D-026 no
+  container will ever run on this machine either, so holding the PR for a local run is
+  waiting for something that cannot now happen.
+- **Decision:** The merge gate becomes CI evidence: a workflow job that builds the
+  image and starts the container on the runner, with the run log cited in the PR body
+  and copied into `docs/evidence/`.
+- **Rejected:** Merging 4d1b1cb on nothing, on the grounds that the gate has become
+  impossible. The gate's purpose was never the locality of the run; it was that the
+  claim in the PR body be true.
+- **Consequence:** Commit 4d1b1cb is five files written from reasoning and executed
+  nowhere, on any machine, and it is the largest untested assumption in the repository.
+  The first CI build may well fail. That is the point of the gate, and a green suite on
+  `develop` is not evidence about it.

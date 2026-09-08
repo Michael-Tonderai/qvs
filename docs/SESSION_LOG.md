@@ -1001,3 +1001,183 @@ without a key is fatal by design.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+---
+
+## Session 007 - CLOSE - account not recorded - 2026-09-08 (written retrospectively)
+
+Session 007 crashed out and never closed. This block was reconstructed during session
+008 from the opening prompt session 008 was given, and from nothing else. Where a fact
+was not stated there, it is recorded as not stated rather than inferred.
+
+Sprint  : A
+Branch  : develop
+Done    :
+  - Ran a census at 14:03:03. Local and origin shas identical, nothing lost.
+  - Established, conclusively, that the personal laptop's boot loop is not held shut
+    by Docker's virtualization layer: hypervisorlaunchtype was verified Off in the BCD
+    store and Windows still would not boot.
+  - Took the Route B deployment decision. Could not register it - no repository access.
+HEAD    : c8df98a  (unchanged - session 007 made no commit)
+Tree    : clean
+
+Repository state as verified by that census:
+  - develop at c8df98a, clean, seven commits ahead of main.
+  - main at 06ab3dc, the root scaffold commit, not protected, no release PR.
+  - feature/REQ-N-003-docker-deployment at 4d1b1cb, pushed, all five Docker files
+    written, no pull request open. Issue #8 open for REQ-N-003.
+  - docs/DECISIONS.md on develop ended at D-025.
+  - Suite last green at 87.76%.
+
+What session 007 established about the laptop, for the record and for whenever it
+comes back:
+  - Docker Desktop's engine had never started. `docker desktop start` hung
+    provisioning the WSL distro, the machine hard-crashed, and it has not booted since.
+  - Second occurrence this year, same trigger point.
+  - Cleared: SSD SMART and component test; partition layout (EFI 100MB FAT32, 475GB
+    NTFS healthy, 904MB recovery); Windows present at C:\WINDOWS; Startup Repair
+    reporting zero root causes; memory quick check.
+  - CONCLUSIVE: hypervisorlaunchtype Off in the BCD store, Windows still would not
+    boot. The original crash may still have corrupted system files.
+  - Remaining fix: an in-place repair upgrade from Windows 11 install media, keeping
+    files and apps. Not attempted - media never built.
+  - Untested: extensive memory test, power tests, processor, system board.
+
+Watch   :
+  - The laptop holds no unique repository content. Local and origin were identical at
+    census time, so nothing is stranded on it.
+
+---
+
+## Session 008 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-08 22:45
+
+Token   : QVS-S008-A2B-9fbefa9
+Sprint  : A
+Branch  : develop
+Done    :
+  - Moved the project to the corporate machine. Cloned fresh to
+    C:\Users\tmachimbira\Projects\Development\qvs, rebuilt .venv on Python 3.12.6,
+    regenerated .env, installed gh 2.100.0 at user scope, authenticated it.
+  - Probed the network rather than assuming it: no proxy, no TLS interception on the
+    github.com path (Sectigo public CA), api.github.com and the release-asset host both
+    reachable, push exercised successfully.
+  - Rewrote CLAUDE.md Section 2 against the machine as probed. Check-Docs returns
+    DOCUMENTS CURRENT, one warning for Docker being absent.
+  - Registered D-026 (Route B), D-027 (folder rename to qvs), D-028 (the Docker
+    branch's merge gate becomes CI evidence). Marked D-008 and D-013 superseded.
+  - Issue #9, branch feature/REQ-F-001-certificate-signing, PR #10 with a self-review
+    comment, CI green in 29s, squash-merged to develop as 9fbefa9.
+  - REQ-F-001, REQ-F-002 and REQ-N-004 moved to BUILT.
+  - Wrote session 007's block retrospectively (above).
+HEAD    : 9fbefa97522cbbf07a40f1c85de3a47b56465bc2  PUSHED
+Tree    : clean
+Issues  : #8 open (REQ-N-003), #9 closed by PR #10
+Open    :
+  - main is still not protected. No release PR from develop.
+  - feature/REQ-N-003-docker-deployment has no PR. Under D-028 its gate is now a CI
+    job that builds the image and starts the container on a runner. That job does not
+    exist yet and must be written before the PR can be opened.
+  - git fetch --prune is needed: origin/fix/invoke-logged-stderr is gone from the fresh
+    clone as expected, but origin/feature/REQ-F-001-certificate-signing survives the
+    --delete-branch as a stale tracking ref.
+  - tools/traceability.py does not exist. REQUIREMENTS.md describes it as the generator
+    for the traceability matrix in docs/evidence/, which is the evidence for the
+    assignment's Automated Verification of Requirements section.
+  - REQUIREMENTS.md defines VERIFIED as browser-confirmed, which no non-functional
+    requirement can reach. REQ-N-001, REQ-N-002 and REQ-N-004 will sit at BUILT
+    permanently under the current wording. Settle before generating the matrix.
+  - REQ-N-003 still reads "starts from a single docker compose up". Under D-026 that is
+    no longer the assessed start command.
+  - canonical_payload uses default=str, which accepts any type silently. Revisit when
+    REQ-F-003 starts feeding it model fields.
+  - .vscode/ is untracked and not covered by .gitignore.
+Decided :
+  - D-026 Route B: deploy to a managed container service, superseding D-008.
+  - D-027 the repository folder is renamed to qvs, superseding D-013.
+  - D-028 the Docker branch merges on CI evidence, not on a local container run.
+  - Not registered, taken inline: certificate IDs use a 30-symbol alphabet formatted
+    QVS-XXXX-XXXX-XXXX-XXXX; the canonical payload is JSON with sorted keys; the
+    signing key has no development fallback. All three are argued in PR #10's body and
+    in the module's comments, which is where the report will draw them from.
+Watch   :
+  - DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+    It carries TaCRAS as well. CLAUDE.md Section 2 records this as a standing rule.
+  - Commit 4d1b1cb is five files written from reasoning and executed nowhere, on any
+    machine. It is the largest untested assumption in the repository and it may fail
+    its first CI build. A green suite on develop is not evidence about it.
+  - Invoke-WebRequest hangs indefinitely on this profile, with and without
+    -UseBasicParsing. Cause not established. Use curl.exe with --max-time for
+    downloads.
+  - Session-Open.ps1 reports "branch not on origin - nothing pushed yet" on a fresh
+    clone, because remote refs live in .git\packed-refs rather than as loose files.
+    Cosmetic, but it will misreport on every future clone.
+  - The old QVS_SIGNING_KEY died with the laptop and is unrecoverable, because .env is
+    gitignored under REQ-N-002. Nothing had been signed, so nothing was lost. The
+    tension between "no secret is committed" and "a signing key must outlive its
+    machine" belongs in the report's critical evaluation.
+  - tools/New-DotEnv.ps1 exists only on 4d1b1cb, not on develop. .env was hand-written
+    this session from .env.example. Retrieve or rewrite the script when that branch
+    merges.
+Next    : Open the issue for REQ-F-003, branch, and add the Qualification model with a
+          unique constraint on certificate_id, its signature field populated at issue
+          via qualifications/signing.py, its first migration, and the register view
+          behind login for REQ-F-004.
+
+Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 009:
+
+```
+Session 009. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S008-A2B-9fbefa9
+
+The environment changed in session 008 and CLAUDE.md Section 2 now describes it
+correctly. Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 9fbefa9, that commit being the session 008 close.
+     That is the shape Section 1.3 describes.
+  2. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  3. Session-Open.ps1 may report "branch not on origin" for a branch that is pushed.
+     That is a defect in how it reads refs after a fresh clone, not a real divergence.
+  4. main is still at 06ab3dc and still unprotected.
+
+Already run:  Machine move complete - fresh clone, .venv on 3.12.6, .env written,
+              gh 2.100.0 installed and authenticated as Michael-Tonderai. CLAUDE.md
+              Section 2 rewritten and Check-Docs green. D-026, D-027, D-028
+              registered. Issue #9 closed by PR #10, squash-merged as 9fbefa9.
+              REQ-F-001, REQ-F-002, REQ-N-004 at BUILT. Session 007's block written
+              retrospectively.
+Not yet run:  git fetch --prune. Anything Docker, anywhere. The CI job that D-028
+              requires before the Docker branch's PR can open. tools/traceability.py.
+              main has never been protected and there is no release PR.
+
+Next action: open the issue for REQ-F-003, branch, and add the Qualification model -
+unique constraint on certificate_id, signature populated at issue through
+qualifications/signing.py, first migration - then the register view behind login,
+which carries REQ-F-004 with it.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run the suite with QVS_DEBUG=0 and both throwaway keys set explicitly - a
+fresh terminal has inherited none of them. Use curl.exe with --max-time for any
+download; Invoke-WebRequest hangs on this profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
