@@ -808,3 +808,196 @@ set it explicitly - a fresh terminal has not inherited it.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+---
+
+## Session 006 - SESSION CLOSE - AccountA - 2026-09-08 13:40
+
+Sprint  : A
+Branch  : develop (session work on feature/REQ-N-003-docker-deployment, unmerged)
+
+Done    :
+  - PR #7 merged. Self-review comment posted from dev_reports\pr_review.txt, CI run
+    confirmed green ("Lint, security and tests", 19s), squash-merged with
+    --delete-branch. develop fast-forwarded 87aeaff..0bf7bd8 across six files.
+    Issues #5 and #6 closed with it, and Check-Docs.ps1 passes on develop again -
+    the D-024/D-025 citation failure is gone.
+  - The session 005 stderr fix verified on live commands rather than on its own diff:
+    `git switch` put "Switched to a new branch" into an artefact, and the Docker
+    daemon failure printed its entire message. The pre-merge runner discarded both,
+    and did so once in this session - `gh pr merge` logged "(no output)" beside exit
+    0 because its confirmation goes to stderr.
+  - Docker deployment written and committed as 4d1b1cb on
+    feature/REQ-N-003-docker-deployment, pushed: Dockerfile (single stage,
+    python:3.12-slim, non-root uid 10001, gunicorn), tools/docker-entrypoint.sh
+    (migrate, collectstatic, exec), docker-compose.yml (name: qvs per D-013, host
+    8020, named volume qvs-data), .dockerignore, and tools/New-DotEnv.ps1 which
+    generates .env with two keys and refuses to overwrite an existing file.
+  - WhiteNoise added to requirements.txt and wired into config/settings.py below
+    SecurityMiddleware, with the compressing storage backend rather than the manifest
+    variant.
+  - Issue #8 opened for REQ-N-003 and deliberately left OPEN.
+  - CLAUDE.md Section 2 now records Docker Desktop's per-user install path, that WSL
+    is absent, and that wsl.exe writes UTF-16.
+
+HEAD    : 0bf7bd8  PUSHED  (develop, before this block's close commit)
+Work    : 4d1b1cb on feature/REQ-N-003-docker-deployment, PUSHED, NO PR opened.
+          main remains at 06ab3dc, six behind develop.
+Tree    : clean
+Issues  : #5 and #6 closed by PR #7. #8 OPEN - REQ-N-003, and it stays open until a
+          container is confirmed serving.
+
+Decided :
+  - REQ-N-003 read as one command to start after one-time configuration. REQ-N-002
+    forbids committing the key the container cannot start without, so the two
+    requirements cannot both be satisfied literally. Resolved with env_file .env,
+    generated once by tools\New-DotEnv.ps1. Registered on the unmerged branch.
+  - WhiteNoise rather than an nginx sidecar, and the compressing static storage
+    backend rather than the manifest variant so the suite acquires no dependency on
+    collectstatic. Registered on the unmerged branch.
+  - **This block cites neither decision by number, deliberately.** Both are
+    registered in docs/DECISIONS.md on feature/REQ-N-003-docker-deployment only. A
+    numbered citation here would fail Check-Docs Section C on develop for exactly the
+    reason session 005's citations did. Session 005 committed against that stale
+    verdict in breach of CLAUDE.md Section 10; this session declines to repeat it.
+    The numbers go in when the branch merges.
+  - Session 005 open item 2 answered: **HEAD is the branch the log is committed to,
+    Work is the commit being handed over.** The currency check in Session-Open.ps1
+    measures develop, so HEAD must be develop or it measures nothing at all.
+  - No PR opened for the Docker branch. Its body would have to describe a deployment
+    nobody has run, and D-009 wants Closes #8 in it, which would close an unverified
+    issue on merge.
+
+Open    :
+  1. **WSL is installed but the machine has not rebooted, so Docker has still never
+     run.** Docker Desktop's Linux engine lives inside WSL2. `wsl --install
+     --no-distribution` COMPLETED during this session - WSL 2.7.13 installed and the
+     VirtualMachinePlatform optional component enabled - with DISM reporting that the
+     changes take effect only after a restart. That restart had not happened when this
+     block was written. Until it does, no image can be built, REQ-N-003 is unverified,
+     and #8 cannot close. Note also that CLAUDE.md Section 2 **on the Docker branch**
+     states that WSL is not installed. That was true when written and is now stale;
+     correct it on that branch once the reboot has proved the engine starts.
+  2. feature/REQ-N-003-docker-deployment is pushed with no pull request. Open it once
+     the container is verified, with Closes #8 in the body.
+  3. The HEAD/Work rule decided above belongs in docs/DECISIONS.md as a numbered
+     entry. It was answered in a log block, which is where it was asked, not where it
+     belongs. Register it when the Docker branch merges.
+  4. **Check-Ascii.ps1 does not scan every file.** It reported 34 files on develop
+     and 38 on feature/REQ-N-003-docker-deployment - a rise of four after five files
+     were added. So exactly one of Dockerfile, .dockerignore, docker-compose.yml,
+     tools/docker-entrypoint.sh and tools/New-DotEnv.ps1 is invisible to it. The
+     extensionless Dockerfile is the likeliest candidate. Confirm which, then decide
+     whether D-018's scope is what it should be - the verdict currently covers less
+     of the repository than its wording suggests.
+  5. main is not protected. Carried from session 003.
+  6. Nothing enforces D-022. Carried from session 003. Belongs in tools\Check.ps1.
+  7. Check-Docs.ps1 Section B cannot see a mapped DIRECTORY. Carried from session 004.
+  8. Session-Open.ps1's dirty-tree wording is misleading when re-run mid-session.
+     Cosmetic. Carried from session 005.
+
+Watch   :
+  - **Docker Desktop is a per-user install** at %LOCALAPPDATA%\Programs\DockerDesktop.
+    Claude guessed C:\Program Files from "Docker Desktop" in CLAUDE.md Section 2 and
+    lost a round trip. A version number is not an installation path. Now recorded.
+  - **"docker 29.7.2" passing in Check-Docs proves only that a client binary exists.**
+    It reported PASS on a machine whose engine cannot start at all. Every version
+    check in Section A has this shape; none of them probes a running service.
+  - **`docker info` returned EXIT CODE 0 while printing "Docker Desktop is unable to
+    start".** The exit code was not a verdict. Read the artefact body, not the code.
+  - wsl.exe writes UTF-16 while everything else here writes ANSI or ASCII, so its
+    output arrives in an artefact spaced out. Encoding, not corruption.
+  - WhiteNoise warns "No directory at: ...\staticfiles\" on any run where
+    collectstatic has not run, which includes the local suite and CI. Harmless - the
+    entrypoint collects before gunicorn starts - but it will be seen and is not a
+    defect.
+  - Coverage under CI parity is now 87.76%, threshold 80%. Read it from a QVS_DEBUG=0
+    run.
+  - Environment variables (QVS_DEBUG and the two throwaway keys) are shell-only and
+    die with the terminal. Carried from session 004. The container is unaffected - it
+    reads .env, which persists.
+  - The Filesystem connector's edit_file matches the FIRST occurrence of its anchor.
+    Carried from session 004. Anchor on text unique to the newest block.
+
+Next    : Reboot, then `docker compose up -d --build`,
+          browser-verify http://localhost:8020/admin/ serves with its stylesheet,
+          confirm the qvs-data volume survives a down and a second up, then open the
+          PR for feature/REQ-N-003-docker-deployment with Closes #8 in the body,
+          self-review it, and merge. Then protect main and open a release PR from
+          develop.
+
+Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 007:
+
+```
+Session 007. Sprint A.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any
+edit.
+
+No token: session 006 closed on the same account, so this is a SESSION CLOSE and
+Section 1.3 does not apply.
+
+To reconcile at Section 0.5:
+  1. develop does NOT contain the Docker work. It is committed as 4d1b1cb on
+     feature/REQ-N-003-docker-deployment, pushed, with NO pull request open. That is
+     deliberate - no container has ever been built, and a PR body would have had to
+     describe a deployment nobody has run.
+  2. docs/DECISIONS.md on develop ends at D-025. Two decisions from session 006 - the
+     REQ-N-003 configuration reading and the WhiteNoise choice - are registered only
+     on that branch. The session 006 log block describes both and cites neither by
+     number, on purpose, so that Check-Docs passes on develop. Do not add the numbers
+     to anything on develop before the branch merges.
+  3. Check-Docs.ps1 and Check-Ascii.ps1 both PASS on develop. Session-Open.ps1 now
+     prints a LOG VERDICT as well as a TREE VERDICT - PR #7 merged, so the
+     session-005 tooling is live. Expect currency "current" at a distance of 1.
+  4. develop is SIX commits ahead of main, which sits at 06ab3dc and moves by release
+     PR only. Expected.
+  5. main is still not protected.
+
+Already run:  PR #7 merged and its branch deleted; issues #5 and #6 closed. Issue #8
+              opened for REQ-N-003 and left OPEN on purpose. All five Docker files
+              written, committed as 4d1b1cb and pushed. WhiteNoise installed in the
+              local .venv and wired into settings. .env generated by
+              tools\New-DotEnv.ps1 and present on disk - do NOT regenerate it, the
+              script refuses for a reason. Suite green at 87.76%.
+Not yet run:  ANYTHING Docker at runtime. No image has been built, no container has
+              ever started. `wsl --install --no-distribution` COMPLETED in session
+              006 - WSL 2.7.13 plus VirtualMachinePlatform - but the reboot it
+              requires had NOT been done, so verify the daemon rather than assuming
+              it. CLAUDE.md Section 2 on the Docker branch still says WSL is not
+              installed and needs correcting there. No PR for the Docker branch. main
+              has never been protected. No release PR from develop.
+
+Next action: confirm WSL is installed and the daemon answers, then
+`docker compose up -d --build` from the feature branch. Browser-verify
+http://localhost:8020/admin/ renders WITH its stylesheet - that is the whole point of
+the WhiteNoise dependency, and a green suite does not test it. Confirm the qvs-data
+volume survives `docker compose down` and a second `up`. Only then open the PR for
+feature/REQ-N-003-docker-deployment with Closes #8, post a self-review comment, and
+squash-merge. Then protect main and open a release PR from develop.
+
+Three things session 006 learnt the hard way:
+  - A version number in Check-Docs is not a working service. "docker 29.7.2" passed
+    on a machine where the engine could not start, because the check reads the client
+    binary. Do not treat a green Check-Docs as evidence that anything runs.
+  - `docker info` exited 0 while printing that Docker Desktop could not start. Read
+    the artefact body; the exit code lied.
+  - Docker Desktop is at %LOCALAPPDATA%\Programs\DockerDesktop, not Program Files.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022) - now the
+fixed runner, so stderr reaches the artefact. Commit messages and gh bodies are
+written to a file, used with -F or --body-file, and deleted afterwards (D-020,
+D-024). Run the suite with QVS_DEBUG=0 to match CI, and set it and the two throwaway
+keys explicitly - a fresh terminal has inherited none of them, and QVS_DEBUG=0
+without a key is fatal by design.
+
+Give me commands in separate labelled blocks, one command per block.
+```
