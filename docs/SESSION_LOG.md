@@ -1319,8 +1319,12 @@ Not for verification, not for a quick check. Under D-026 the image is built and
 run on a CI runner or not at all.
 
 To reconcile at Section 0.5:
-  1. Expect HEAD one commit above fcca63f, that commit being the session 009 close.
-     That is the shape Section 1.3 describes.
+  1. Expect HEAD above fcca63f, which was PR #13's squash-merge. Session 009 closed
+     with docs-only commits stacked on it: 9892a87 wrote the close block, and at least
+     one further commit amended the Next line. Do not chase an exact count or an exact
+     sha - any HEAD on develop whose commits above fcca63f are all docs commits is the
+     shape Section 1.3 describes. A code commit above fcca63f would NOT be, and is
+     worth stopping for.
   2. Two session 006 decisions - the REQ-N-003 configuration reading and the
      WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
      are deliberately uncited by number on develop. Do not number them before merge.
