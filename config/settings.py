@@ -124,10 +124,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# REQ-F-004: unauthenticated users cannot register or edit records. These two settings
-# are where the redirect lands once the login view exists.
+# REQ-F-004: unauthenticated users cannot register or edit records. These are where
+# the redirect lands; the login and logout routes themselves are wired in config/urls.
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "/"
+
+# Was "/", which routes nowhere - the qualifications app is mounted at the root but
+# defines no index, so a successful login landed on a 404. Pointed at the register
+# view, which is the only thing an authenticated user can currently do. A real landing
+# page belongs with REQ-F-009 search and REQ-F-010 record detail, not here.
+LOGIN_REDIRECT_URL = "qualifications:register"
+LOGOUT_REDIRECT_URL = "login"
 
 # --- Internationalisation ---------------------------------------------------------
 

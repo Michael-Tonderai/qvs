@@ -52,5 +52,8 @@ dev_reports/
 Thumbs.db
 desktop.ini
 .idea/
+# Added session 009. It has been untracked since the machine move and would be swept
+# into the first `git add -A` that ran without noticing it.
+.vscode/
 *.swp
 *~
