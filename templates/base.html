@@ -1,0 +1,36 @@
+{% comment %}
+templates/base.html
+
+The shared shell. Deliberately plain: CLAUDE.md Section 8 fences styling, and a
+stylesheet is not a requirement any deliverable is assessed against. Semantic HTML with
+browser defaults is legible, accessible and costs nothing to maintain.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}QVS{% endblock %}</title>
+</head>
+<body>
+  <header>
+    <strong>Qualification Verification System</strong>
+    {% if user.is_authenticated %}
+      <p>Signed in as {{ user.get_username }}</p>
+      {% comment %}
+        Logout is a POST, not a link. Django requires it, and the reason is worth
+        knowing: a GET logout can be triggered by any image tag on any page, so a
+        third-party site could sign a user out at will.
+      {% endcomment %}
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Sign out</button>
+      </form>
+    {% endif %}
+  </header>
+  <hr>
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
