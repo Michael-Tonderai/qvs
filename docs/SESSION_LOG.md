@@ -1181,3 +1181,170 @@ download; Invoke-WebRequest hangs on this profile.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+---
+
+## Session 009 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-10 21:30
+
+Token   : QVS-S009-A2B-fcca63f
+Sprint  : B
+Branch  : develop
+Done    :
+  - Issues #11 (REQ-F-003) and #12 (REQ-F-004), branch
+    feature/REQ-F-003-register-qualification, PR #13 squash-merged to develop as
+    fcca63f. Two commits on the branch: 65200e5 the feature, d139468 the root redirect.
+  - Qualification model, first migration, QualificationForm with a future-date
+    validation rule, register view behind login_required, confirmation page also behind
+    login, login and logout routes on Django's own auth views, four templates.
+  - 24 new tests across four modules plus tests/conftest.py. Suite 41 passing,
+    coverage 96.32% branch. models.py, forms.py, views.py, urls.py and signing.py all
+    at 100%.
+  - CI green twice on PR #13, 22s and 24s.
+  - REQ-F-003 and REQ-F-004 moved to VERIFIED on browser evidence: all five steps in
+    the PR body plus two follow-ups - a clean login with no `next` parameter, and a
+    future award date rejected with the submitted fields preserved on re-render.
+  - Fixed LOGIN_REDIRECT_URL, which was "/" and routed nowhere, so a successful login
+    landed on a 404.
+  - Routed the root to the register view. It had answered 404 since the project was
+    scaffolded.
+  - .vscode/ added to .gitignore.
+  - Registered D-029 and D-030.
+HEAD    : fcca63f  PUSHED
+Tree    : clean
+Issues  : #8 open (REQ-N-003), #11 and #12 closed by PR #13
+Open    :
+  - main is still at 06ab3dc, still not protected, still no release PR. This is now the
+    oldest outstanding item in the project and REQ-N-001 cannot leave OPEN until it
+    changes.
+  - feature/REQ-N-003-docker-deployment has no PR. Under D-028 its gate is a CI job
+    that builds the image and starts the container on a runner. That job does not exist.
+  - tools/Set-Env.ps1 does not exist. D-030 registers the decision, not the script.
+  - tools/traceability.py does not exist.
+  - REQUIREMENTS.md defines VERIFIED as browser-confirmed, which no non-functional
+    requirement can reach. REQ-N-001, REQ-N-002 and REQ-N-004 will sit at BUILT
+    permanently under the current wording. Settle before generating the matrix.
+  - REQ-N-003 still reads "starts from a single docker compose up". Under D-026 that is
+    no longer the assessed start command.
+  - canonical_payload still carries default=str. D-029 records why the model-side fix
+    was taken instead and why tightening the function needs its own branch.
+  - REQ-F-006 has four tests carrying its marker and a status of OPEN. The signature
+    does break on tampering and those tests prove it, but the requirement is about
+    verification behaviour and there is no verification path until REQ-F-005. The
+    traceability matrix will show a requirement with tests and an OPEN status. That is
+    honest, not a defect - but decide before the matrix is generated whether the
+    generator should flag it.
+  - The root redirect is temporary (302) and points at a login wall. REQ-F-005 gives
+    the public an actual destination; revisit then.
+Decided :
+  - D-029 issued_at is inside the signed payload, set explicitly rather than by
+    auto_now_add, with save() made idempotent over the issued fields so that tampering
+    cannot repair itself.
+  - D-030 the environment is loaded by an explicit tools\Set-Env.ps1 rather than by
+    python-dotenv in settings.py.
+  - Not registered, taken inline: certificate_id, issued_at, issued_by and signature
+    are editable=False so no ModelForm can build inputs for them; the register view
+    redirects after POST so a refresh cannot issue a second certificate; the root
+    redirect is 302 rather than 301; the confirmation page is behind login because
+    REQ-F-005 owns public lookup. All are argued in PR #13's body.
+Watch   :
+  - NO SELF-REVIEW COMMENT WAS POSTED ON PR #13. Session 008 posted one on PR #10, so
+    this is a break in practice and the repository deliverable marks code review. It
+    was declined deliberately: a review written by the author of the code does not
+    answer the question that deliverable asks, and the four substantive objections were
+    already disclosed in the PR body under their own headings. If a review thread is
+    wanted, it needs Sir Ton reading the diff cold and objecting to something the author
+    did not flag. Decide the policy before PR #14, and apply the same answer to #10
+    retrospectively in the report rather than leaving two PRs treated differently.
+  - The registrar_client fixture IS the client fixture with force_login called on it. A
+    test asking for both receives one object and its supposedly anonymous request
+    arrives authenticated. This passed silently once during session 009 before being
+    caught. tests/conftest.py documents it. REQ-F-005 adds public verification tests,
+    which is exactly the shape that walks into it - build a fresh django.test.Client().
+  - A fresh terminal inherits none of QVS_DEBUG, QVS_SECRET_KEY or QVS_SIGNING_KEY, and
+    twelve tests fail on ImproperlyConfigured when it has not been set. That is D-003
+    working as designed, not a defect. It cost two runs this session. D-030 is the fix.
+  - The signature covers issued_at to microsecond precision. Exact on SQLite and
+    PostgreSQL; a backend that truncated sub-second precision would silently invalidate
+    every existing record. Narrows D-002's claim - see D-029.
+  - DO NOT install Docker Desktop, WSL or any hypervisor component on this machine. It
+    carries TaCRAS as well. CLAUDE.md Section 2 records this as a standing rule.
+  - Commit 4d1b1cb is five files written from reasoning and executed nowhere. Largest
+    untested assumption in the repository.
+  - Session-Open.ps1 did NOT misreport "branch not on origin" this session - local and
+    origin shas matched and it read them correctly. The defect described in session
+    008's block is quiescent on this clone, not fixed.
+  - Session 008's opening-prompt copy in this log lists `git fetch --prune` under "Not
+    yet run". It ran at 22:43:00, eighteen seconds after the close commit was written
+    at 22:42:45, so the block was accurate when committed. It has deliberately NOT been
+    edited: correcting a closed block to match what happened afterwards destroys the
+    record. dev_reports\fetch_prune.txt is the evidence.
+Next    : Write tools\Set-Env.ps1 per D-030. Then open the issue for REQ-F-005 and
+          REQ-F-006 together - the verification view is what makes REQ-F-006 a
+          behaviour rather than a property of the signing module - and build the public
+          verification page answering VERIFIED, NOT FOUND or TAMPERED.
+
+Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 010:
+
+```
+Session 010. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S009-A2B-fcca63f
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above fcca63f, that commit being the session 009 close.
+     That is the shape Section 1.3 describes.
+  2. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  3. main is still at 06ab3dc and still unprotected.
+  4. REQ-F-006 carries four tests and a status of OPEN. That is deliberate and
+     explained in session 009's block. Do not "fix" it by changing the status.
+
+Already run:  PR #13 squash-merged to develop as fcca63f - Qualification model,
+              first migration, register view behind login, login and logout routes,
+              four templates, 24 tests. Suite 41 passing at 96.32%. CI green twice.
+              REQ-F-003 and REQ-F-004 at VERIFIED on browser evidence. Root now
+              redirects to the register view; it used to answer 404. D-029 and D-030
+              registered.
+Not yet run:  tools\Set-Env.ps1 - D-030 registers the decision, not the script.
+              Anything Docker, anywhere. The CI job D-028 requires before the Docker
+              branch's PR can open. tools/traceability.py. main has never been
+              protected and there is no release PR.
+
+Next action: write tools\Set-Env.ps1 per D-030, then open the issue for REQ-F-005
+and REQ-F-006 together and build the public verification page - certificate ID in,
+VERIFIED, NOT FOUND or TAMPERED out.
+
+Two hazards session 009 hit, both silent:
+  - registrar_client IS the client fixture with force_login called on it. A test
+    asking for both gets one object and its "anonymous" request arrives
+    authenticated. Build a fresh django.test.Client() instead. REQ-F-005's public
+    tests are exactly the shape that walks into this.
+  - A fresh terminal inherits no environment variables and twelve tests fail on
+    ImproperlyConfigured. That is D-003 working, not a defect.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run the suite with QVS_DEBUG=0 and both throwaway keys set explicitly.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```

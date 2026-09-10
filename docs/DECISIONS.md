@@ -433,3 +433,55 @@ from memory in Sprint D.
   nowhere, on any machine, and it is the largest untested assumption in the repository.
   The first CI build may well fail. That is the point of the gate, and a green suite on
   `develop` is not evidence about it.
+
+## D-029 - `issued_at` is inside the signed payload
+
+- **Context:** REQ-F-002 signs a record's canonical fields at issue. `issued_at` is the
+  timestamp of issue itself, and the obvious Django idiom for it, `auto_now_add`,
+  assigns its value as the row is written - after any code in `save()` has run. A value
+  that does not exist yet cannot be signed.
+- **Decision:** `issued_at` is set explicitly with `timezone.now()` in
+  `Qualification.save()`, immediately before the signature is computed, and it is one of
+  the six fields `canonical_fields()` returns.
+- **Rejected:** Signing the four substantive fields plus `certificate_id` and leaving
+  `issued_at` outside the payload. It is simpler, and it leaves a backdated issue
+  timestamp undetectable - in a system whose purpose is establishing that a credential
+  is what it claims to be, a hole worth one line of code to close.
+- **Consequence:** `save()` must be idempotent over the issued fields, or re-saving an
+  altered record would re-sign it under its new contents and tampering would repair
+  itself. Each assignment is therefore guarded, and
+  `test_re_saving_does_not_re_sign_or_reissue` pins that behaviour.
+  `test_backdating_the_issue_time_breaks_verification` is what this decision buys.
+
+  A second consequence, and the one that needs a paragraph in the report: the signature
+  covers `issued_at` to microsecond precision through `isoformat()`. That round-trips
+  exactly on SQLite and on PostgreSQL, but a backend that truncated sub-second precision
+  would silently invalidate every existing record. D-002 claims the SQLite to PostgreSQL
+  move is a configuration change; that claim survives, but it is narrower than it looks.
+- **Related, taken inline rather than registered:** normalisation lives on the model.
+  `canonical_fields()` returns values already converted to strings, both temporal fields
+  as ISO 8601, so `canonical_payload()`'s `default=str` is never reached in practice.
+  The failure it avoids is a `date` at issue and a string read back from the database
+  serialising to different bytes, which would make a valid record report as TAMPERED - a
+  false accusation of forgery, and the worst error this system can make. Tightening
+  `canonical_payload()` to reject non-strings outright is the stronger fix and remains
+  open; it changes a module merged by PR #10 and its tests, so it needs its own branch.
+
+## D-030 - The environment is loaded by an explicit script, not by `python-dotenv`
+
+- **Context:** `.env` exists in the repository root with the three variables in it, and
+  nothing reads it. `config/settings.py` reads `os.environ` directly and `python-dotenv`
+  is in neither requirements file. The file is documentation shaped like configuration.
+  In session 009 this cost two test runs: a new terminal inherited no variables and
+  twelve tests failed on `ImproperlyConfigured`.
+- **Decision:** A `tools\Set-Env.ps1` loads `.env` into the current PowerShell session.
+  One command at the start of any new terminal.
+- **Rejected:** Reading `.env` in `config/settings.py` via `python-dotenv`. It would
+  remove the need to remember anything, which is its appeal, and it would also mean the
+  container and the CI runner carry a dependency whose only job is to read a file that
+  exists in neither. It makes the local case invisible rather than explicit, and a
+  variable silently supplied from somewhere is harder to reason about than one that is
+  missing loudly.
+- **Consequence:** The failure mode does not disappear, it moves: a terminal where the
+  script has not been run still fails, and still fails loudly, which is the behaviour
+  D-003 wanted. `Set-Env.ps1` does not exist yet and is the first action of session 010.
