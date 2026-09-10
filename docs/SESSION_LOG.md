@@ -1278,10 +1278,21 @@ Watch   :
     at 22:42:45, so the block was accurate when committed. It has deliberately NOT been
     edited: correcting a closed block to match what happened afterwards destroys the
     record. dev_reports\fetch_prune.txt is the evidence.
-Next    : Write tools\Set-Env.ps1 per D-030. Then open the issue for REQ-F-005 and
-          REQ-F-006 together - the verification view is what makes REQ-F-006 a
-          behaviour rather than a property of the signing module - and build the public
-          verification page answering VERIFIED, NOT FOUND or TAMPERED.
+Next    : FIRST, protect main and open a release PR from develop. This has been listed
+          as outstanding in every block since session 005 and has been read as
+          background every time, because it has never appeared on a Next line. It is
+          the direct evidence for REQ-N-001, the only requirement about the pipeline
+          itself, and REQ-N-001 cannot leave OPEN until a merge to main is demonstrably
+          gated. Budget is small; the risk is that branch protection may not be
+          available for this repository's visibility and plan, in which case record the
+          constraint rather than working around it silently - a documented inability to
+          protect main is a legitimate paragraph in the critical evaluation, and an
+          undocumented one is a missing requirement.
+          THEN write tools\Set-Env.ps1 per D-030.
+          THEN open the issue for REQ-F-005 and REQ-F-006 together - the verification
+          view is what makes REQ-F-006 a behaviour rather than a property of the signing
+          module - and build the public verification page answering VERIFIED, NOT FOUND
+          or TAMPERED.
 
 Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 010:
 
@@ -1328,9 +1339,18 @@ Not yet run:  tools\Set-Env.ps1 - D-030 registers the decision, not the script.
               branch's PR can open. tools/traceability.py. main has never been
               protected and there is no release PR.
 
-Next action: write tools\Set-Env.ps1 per D-030, then open the issue for REQ-F-005
-and REQ-F-006 together and build the public verification page - certificate ID in,
-VERIFIED, NOT FOUND or TAMPERED out.
+Next action, in this order:
+  1. Protect main and open a release PR from develop. Do this FIRST. It has been
+     outstanding since session 005 and has been read as background every session
+     because it has never been an instruction. It is the direct evidence for
+     REQ-N-001, which cannot leave OPEN until a merge to main is demonstrably
+     gated. If branch protection turns out to be unavailable for this repository's
+     visibility and plan, record that constraint explicitly rather than quietly
+     working around it - a documented inability is a paragraph in the critical
+     evaluation, an undocumented one is a missing requirement.
+  2. Write tools\Set-Env.ps1 per D-030.
+  3. Open the issue for REQ-F-005 and REQ-F-006 together and build the public
+     verification page - certificate ID in, VERIFIED, NOT FOUND or TAMPERED out.
 
 Two hazards session 009 hit, both silent:
   - registrar_client IS the client fixture with force_login called on it. A test
