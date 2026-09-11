@@ -35,25 +35,46 @@ verify authenticity; maintain an auditable history of verification activity.
 
 ## 2. Environment
 
+Restated in session 008, after the personal laptop was left unbootable and the project
+moved to the corporate machine. Every row was probed on 2026-09-08, not carried over.
+
 | Fact | Value |
 |---|---|
-| Repo root | `C:\Users\Tonderai Machimbira\Projects\Development\Qualification Verification System` |
-| Machine | ELITEBOOK-0001, personal, private network |
-| OS / shell | Windows 11, **PowerShell 5.1**, VS Code integrated terminal |
-| Python | **3.12.10**, the only interpreter registered |
-| Git | 2.55.0.windows.3 |
-| GitHub CLI | gh 2.100.0 |
-| Docker | 29.7.2 (Docker Desktop) |
+| Repo root | `C:\Users\tmachimbira\Projects\Development\qvs` |
+| Machine | ZB-HP450-LC-35, corporate, profile `tmachimbira`, alongside TaCRAS |
+| OS / shell | Windows 11 (10.0.22621), **PowerShell 5.1** (5.1.22621.1778), VS Code integrated terminal |
+| Python | **3.12.6** in `.venv`. The launcher also holds 3.13.3 and defaults to it, so `Setup-Venv.ps1` requests `-3.12` explicitly (D-010) |
+| Git | 2.49.0.windows.1 |
+| GitHub CLI | gh 2.100.0, user-scope install at `~\.local\bin\gh.exe` |
+| Docker | **NOT installed, and not to be installed here** |
 | Claude Code | 2.1.263, native install at `~\.local\bin\claude.exe` |
+| Node | v22.15.0, informational only - nothing in this project uses it |
 | Execution policy | CurrentUser = RemoteSigned |
 | Dev server port | **8020** |
 
-**There is no corporate network here.** No proxy, no certificate store issues, no push
-restriction. Do not carry any of that reasoning over from the TaCRAS project. If
-`git push` ever fails on this machine it is an ordinary problem, diagnosed normally.
+**Docker Desktop, WSL and hypervisor components are not to be installed on this
+machine.** Not for verification, not for a quick check, not to confirm that the Docker
+branch builds. Docker Desktop starting its WSL backend left the previous laptop
+unbootable twice, and under Route B (D-026) the image is built and run on a CI runner
+or not at all.
+
+**This is a corporate machine, but egress to GitHub is unrestricted and uninspected.**
+Probed, not assumed: no proxy variables in the environment, no `http.proxy` in any git
+scope, `github.com` presents a certificate issued by a public CA (Sectigo) so nothing
+is intercepting TLS on that path, `api.github.com` answers 200, and the release-asset
+host is reachable. `credential.helper=manager` and `http.sslbackend=schannel` are set
+in the system git config and are shared with TaCRAS, so neither is changed from here.
+**Push works from this machine** - exercised on 2026-09-08 in session 008, pushing a
+feature branch over HTTPS through Credential Manager with no prompt, no proxy and no
+restriction.
 
 PowerShell 5.1 constraints: no `&&` chaining, multi-line logic goes in a script under
 `tools\`, and paths containing spaces must be quoted.
+
+`Invoke-WebRequest` hangs indefinitely on this profile, with and without
+`-UseBasicParsing`, while the same hosts answer immediately under `curl.exe` or when
+`-TimeoutSec` is set. The cause is not established. **Use `curl.exe` for downloads on
+this machine**, always with `--max-time`.
 
 ---
 
@@ -83,7 +104,8 @@ Never `python`, never `py manage.py`, never an activated-shell assumption. Reaso
 
 ## 4. Running commands
 
-**Every command whose output Claude needs goes through `Invoke-Logged.ps1`:**
+**Every command whose output Claude needs goes through `Invoke-Logged.ps1` - and every
+`git` and `gh` command goes through it whether Claude needs the output or not:**
 
 ```powershell
 .\tools\Invoke-Logged.ps1 '<command>' '<artefact_name>'
@@ -104,6 +126,11 @@ only when you want to watch a long install progress live.
   is a script to fix.
 - **Commands are given in separate labelled blocks**, one command per block, never
   stacked into a single paste.
+- **`git` and `gh` output belongs in an artefact, never in the terminal.** Both are
+  verbose, and their output is exactly the kind that is scrolled past rather than
+  read. Wrapped in `Invoke-Logged.ps1` the console keeps the two-line contract and
+  Claude reads the detail from disk. No exceptions for quiet commands - an exception
+  list is a second rule to keep in sync. See D-022.
 - **Provenance on every claim.** Read it, ran it, inferred it, or were told it. "The
   coverage artefact shows 74%" is honest; asserting 74% without opening the file is
   not.
@@ -150,6 +177,9 @@ only when you want to watch a long install progress live.
   `git commit -F dev_reports\commit_message.txt`, and the file is removed by an
   explicit PowerShell command in the same sequence. Never `-m` for a message carrying
   a body. See D-020.
+- **`gh` issue and pull-request bodies follow the same rule**, written to
+  `dev_reports\issue_body.txt` and passed with `--body-file`. Same quoting problem,
+  same clean-up. See D-024.
 
 ---
 
@@ -253,19 +283,23 @@ Discipline alone is what failed on TaCRAS, so the rule is backed by a command:
 .\tools\Check-Docs.ps1
 ```
 
-It is read-only and reports drift in four families:
+It is read-only and reports drift in three families:
 
 - **Version drift** - every tool version and path asserted in Section 2 above, checked
   against the machine. If Python, git, gh, docker, Claude Code or the repo root has
   moved and this file has not, it fails.
 - **Document map** - every file listed in Section 9 exists, and every `.md` in `docs\` is
   listed in Section 9. A document nobody listed is a document nobody maintains.
-- **Log currency** - compares the newest date in `docs/SESSION_LOG.md` against the
-  newest commit date. **Commits newer than the newest log block means the log is
-  stale**, and it reports by how many days. This is the check that matters most.
 - **Decision references** - every `D-nnn` cited anywhere must exist in
   `docs/DECISIONS.md`. A decision cited but unregistered cannot be found when the
   report is written.
+
+**Log currency is checked at session open, not here** (D-025). Whether the log has
+fallen behind the repository is measured by `tools\Session-Open.ps1`, in commits
+rather than in dates: the newest block names the commit its session left behind, and
+HEAD should be that commit or the close commit above it. It cannot be a pre-commit
+gate, because the block describing the session in progress is not written until that
+session closes.
 
 ### When it runs
 

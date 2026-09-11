@@ -42,7 +42,14 @@ whole census:
 
 It writes `dev_reports\session_open.txt`, which Claude reads. It reports HEAD read
 directly from `.git\refs`, the current branch, the working tree, whether the venv
-exists and which Python it holds, and the tail of the session log.
+exists and which Python it holds, whether the session log is current, and the tail of
+the session log.
+
+**Log currency (D-025).** The census measures it in commits, not dates: it takes the
+newest `HEAD` sha named in `docs/SESSION_LOG.md` and counts how far HEAD sits above
+it. Nought or one is current, one being the close commit described in Section 1.3.
+Two or more is the Section 0.5 stop condition below - work exists that no block
+describes. The verdict is printed on the console beside the tree verdict.
 
 **HEAD is confirmed by reading the refs file, never by trusting a summary.**
 
@@ -126,10 +133,29 @@ Watch   :
 Next    : <one sentence, specific enough to start from cold>
 ```
 
-**The token** is `QVS-S<NNN>-A2B|B2A-<sha7 of HEAD>`. The receiving session quotes it
-in its Section 0.6 opening block. Its only job is to prove the receiving session read the
+**The token** is `QVS-S<NNN>-A2B|B2A-<sha7>`. The receiving session quotes it in its
+Section 0.6 opening block. Its only job is to prove the receiving session read the
 right block and is standing on the right commit - a mismatched token means the log
 and the repo have diverged.
+
+**Which sha7.** The commit the session's work left behind - the last substantive
+commit, not the session-close commit that carries this block. The two cannot be the
+same: the token lives inside the block, so committing the block would change the sha
+the token names. A receiving session therefore expects the census to show HEAD **one
+commit ahead** of the token, and that commit to be the close commit itself. HEAD more
+than one commit ahead, or one commit ahead of something other than a close commit, is
+the Section 0.5 stop condition.
+
+**Before the first commit** the token carries `NOHEAD` in place of the sha7. Two
+sessions closed in that state and both were correct to. It is not a mismatch, and the
+receiving session should not treat it as one.
+
+**The direction letters record intent, not fact.** `B2A` means the closing session ran
+on AccountB and expected AccountA to pick up. If the same account continues instead,
+the token still reads `B2A` and the opening block still reads `AccountB`. That is a
+naming artefact, not a divergence - the token's job is to prove the receiving session
+is standing on the right commit, and the sha7 does that regardless of which account
+holds the keyboard.
 
 ### Section 1.4 Appending
 
@@ -164,7 +190,12 @@ to reconstruct it is asking him to do work Claude is better placed to do.
 
 #### What it must contain
 
-- **Session number and account** for the session being opened, not the one closing.
+- **Session number for the session being opened, and the account the closing
+  session actually ran on.** The prompt must **not** assert which account will open
+  the next session. A closing session cannot know that - it can only state an
+  intention - and asserting it is what made session 004 open under a prompt naming
+  AccountA while it ran on AccountB. **The opening session states the account it is
+  actually signed into at Section 0.6, and that statement wins over the prompt.**
 - **An instruction to read the repository documents and run Section 0 in full.** The prompt
   never substitutes for the protocol - it points at it.
 - **Anything Section 0.5 must reconcile**, named explicitly: unverified claims, expected-but
@@ -178,7 +209,9 @@ to reconstruct it is asking him to do work Claude is better placed to do.
 #### Template
 
 ```
-Session NNN, AccountA | AccountB. Sprint X.
+Session NNN. Sprint X.
+Closing session ran on: AccountA | AccountB. State at Section 0.6 which account
+you are actually on - it may not be the one this prompt expected.
 
 Read the repository documents in the order given in the project instructions
 before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this

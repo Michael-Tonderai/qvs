@@ -1,0 +1,132 @@
+# .github/workflows/ci.yml
+#
+# QVS Continuous Integration pipeline. Implements REQ-N-001, delivers D-007.
+#
+# REQ-N-001 states that no change reaches main without passing lint, security scan
+# and the test suite. This file is the mechanism. It is committed to the repository
+# rather than configured in a web console because D-007 makes the pipeline definition
+# part of the assessed Git deliverable - a reviewer can read how the gates are
+# enforced without being given access to the project's GitHub settings.
+#
+# WHY UBUNTU AND NOT WINDOWS. Development happens on Windows 11, but the deployment
+# target is a Linux container (D-008). Testing on Windows would leave the container's
+# platform untested while proving something about a platform nothing ships on. The
+# ASCII guard is the one Windows-native tool here, and it runs under pwsh, which the
+# runner provides.
+#
+# WHY ONE JOB AND NOT FOUR. Four jobs would each pay for a checkout, a Python setup
+# and a dependency install to run one command. The gates are individually named steps
+# instead, which the Actions interface lists separately - so the evidence is the same
+# and the run is roughly a quarter of the work.
+#
+# WHAT IS DELIBERATELY ABSENT. tools\Check-Docs.ps1 asserts the tool versions and
+# paths recorded in CLAUDE.md Section 2 against the machine it runs on. A runner has
+# no Docker Desktop, no gh at the pinned version and no .venv, so Check-Docs would
+# fail here for being correct. It stays a pre-commit gate on the development machine.
+# A docker build step is also absent - REQ-N-001 names lint, security and tests, and
+# coupling this pipeline to a Dockerfile that does not yet exist buys nothing.
+
+name: CI
+
+# Pushes are checked on the two long-lived branches only. Feature branches are
+# covered by the pull_request trigger, so checking both would run every commit twice
+# and halve the value of a green tick by making it ambiguous which run produced it.
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+# A second push to the same branch makes the first run's answer irrelevant. Cancelling
+# it keeps the queue honest about what is actually being tested.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege by default. Nothing here writes to the repository, so nothing here
+# needs permission to. Bandit would have something to say about the alternative.
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Lint, security and tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      # D-010: 3.12 here, in the .venv and in the container. Pinned to the minor
+      # version, not to "3.x", so a runner image update cannot silently move it.
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      # requirements-dev.txt includes requirements.txt, so this is the whole
+      # environment in one command - the same command a fresh clone would run.
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      # D-018. Runs before the language tooling because a non-ASCII character
+      # corrupts artefacts and string comparisons, and a lint failure reported from a
+      # corrupted file points the reader at the wrong problem.
+      - name: ASCII purity check
+        shell: pwsh
+        run: ./tools/Check-Ascii.ps1
+
+      # D-005. Two invocations because they answer different questions: check finds
+      # defects, format --check finds drift from the agreed style without rewriting
+      # anything. A CI job that reformats code is a CI job that hides the problem.
+      - name: Lint
+        run: ruff check .
+
+      - name: Format check
+        run: ruff format --check .
+
+      # D-006. -ll restricts reporting to medium severity and above, which is the
+      # threshold D-006 set. Configuration is passed here rather than in
+      # pyproject.toml because reading TOML needs the bandit[toml] extra that
+      # requirements-dev.txt does not install.
+      - name: Security scan
+        run: bandit -r config qualifications -ll
+
+      # REQ-N-002: no secret is committed, so none is read from the repository here
+      # either. The keys are generated inside the step and live only for its lifetime.
+      #
+      # QVS_DEBUG is 0 on purpose. settings.py defaults it to 1, and testing under
+      # debug would exercise a configuration that is never deployed - including the
+      # ephemeral SECRET_KEY fallback, which would mask a missing key rather than
+      # prove the start-up error works.
+      #
+      # Coverage settings, including the branch measurement and the fail_under floor
+      # for REQ-N-004, come from pyproject.toml. They are not repeated here, because
+      # two copies of a threshold is how one of them goes stale.
+      - name: Tests with coverage
+        env:
+          QVS_DEBUG: "0"
+        run: |
+          export QVS_SECRET_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"
+          export QVS_SIGNING_KEY="$(python -c 'import secrets; print(secrets.token_urlsafe(50))')"
+          pytest
+
+      # The assignment requires evidence from pipeline executions. Keeping the XML
+      # report as a run artefact means that evidence is downloadable from the run
+      # itself rather than reconstructed locally and asserted to be the same thing.
+      # if: always() so a failing suite still yields the coverage it managed to
+      # measure, which is the case where the number is most worth having.
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: warn
+          retention-days: 30

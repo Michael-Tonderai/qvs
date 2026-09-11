@@ -207,12 +207,89 @@ else {
     Add-Line '.venv NOT PRESENT - run .\tools\Setup-Venv.ps1'
 }
 
+# ------------------------------------------------------------------ log currency ---
+# Moved here from tools\Check-Docs.ps1 in session 005 (D-025). "Has the log fallen
+# behind the repository" is a session-open question. Mid-session the answer is always
+# eventually STALE, because the block describing the session in progress cannot be
+# written until it closes - so as a pre-commit gate the check could only ever be a
+# false positive waiting for the second commit of the day.
+#
+# The test is the rule HANDOVER.md Section 1.3 already states, mechanised. The newest
+# block names the commit its session's work left behind; HEAD should be that commit,
+# or the close commit sitting one above it. Two or more ahead means commits exist that
+# no block describes, which is the Section 0.5 stop condition.
+#
+# Dates are deliberately not used. The date in a block is typed by hand when the block
+# is written, and the commit carrying it is made minutes later. On 2026-09-08 that gap
+# crossed midnight and the old date comparison called a current log one day stale.
+Add-Head 'SESSION LOG CURRENCY'
+$LogFile    = Join-Path $RepoRoot 'docs\SESSION_LOG.md'
+$LogVerdict = 'unknown'
+
+if (-not $IsRepo) {
+    Add-Line 'skipped - not a repository'
+    $LogVerdict = 'no repo'
+}
+elseif (-not (Test-Path $LogFile)) {
+    Add-Line 'docs\SESSION_LOG.md not found.'
+    $LogVerdict = 'NO LOG'
+}
+else {
+    $logText = (Get-Content -Path $LogFile -Raw -Encoding UTF8)
+    $shaHits = [regex]::Matches($logText, '(?m)^HEAD\s*:\s*([0-9a-fA-F]{7,40})')
+
+    if ($shaHits.Count -eq 0) {
+        Add-Line 'no block names a HEAD sha yet - expected before the first commit,'
+        Add-Line 'where the token carries NOHEAD instead.'
+        $LogVerdict = 'no sha logged'
+    }
+    else {
+        $loggedSha = $shaHits[$shaHits.Count - 1].Groups[1].Value
+        Add-Line "newest logged HEAD : $loggedSha"
+
+        Push-Location $RepoRoot
+        try {
+            & git cat-file -e "$loggedSha^{commit}" 2>$null
+            $shaExists = ($LASTEXITCODE -eq 0)
+
+            if (-not $shaExists) {
+                Add-Line 'that commit is NOT in this repository - the log and the checkout'
+                Add-Line 'have diverged. See HANDOVER.md Section 0.5 before proceeding.'
+                $LogVerdict = 'SHA NOT FOUND'
+            }
+            else {
+                & git merge-base --is-ancestor $loggedSha HEAD 2>$null
+                $isAncestor = ($LASTEXITCODE -eq 0)
+                $ahead = (& git rev-list --count "$loggedSha..HEAD" 2>$null | Out-String).Trim()
+                Add-Line "commits since it   : $ahead"
+
+                if (-not $isAncestor) {
+                    Add-Line 'the logged commit is not an ancestor of HEAD - the branch has'
+                    Add-Line 'diverged from what the log describes. See Section 0.5.'
+                    $LogVerdict = 'DIVERGED'
+                }
+                elseif ([int] $ahead -le 1) {
+                    Add-Line 'current - HEAD is the logged commit or the close commit above it,'
+                    Add-Line 'which is the shape HANDOVER.md Section 1.3 describes.'
+                    $LogVerdict = 'current'
+                }
+                else {
+                    Add-Line "STALE - $ahead commits sit above the newest logged block. Work"
+                    Add-Line 'happened that was never logged. Reconcile before building on it.'
+                    $LogVerdict = 'STALE'
+                }
+            }
+        }
+        catch { Add-Line "ERROR: $($_.Exception.Message)"; $LogVerdict = 'error' }
+        finally { Pop-Location }
+    }
+}
+
 # ----------------------------------------------------------------- the last block ---
 # Defect 3. Read as UTF-8 explicitly. Under D-018 the file should be ASCII anyway, so
 # this is belt and braces rather than the fix - the fix is that the character is not
 # in the file in the first place.
 Add-Head 'SESSION LOG - LAST 40 LINES'
-$LogFile = Join-Path $RepoRoot 'docs\SESSION_LOG.md'
 if (Test-Path $LogFile) {
     Add-Line ((Get-Content -Path $LogFile -Tail 40 -Encoding UTF8 | Out-String).TrimEnd())
 }
@@ -223,9 +300,10 @@ else {
 Add-Line ''
 Add-Line ('-' * 78)
 Add-Line "TREE VERDICT : $TreeVerdict"
+Add-Line "LOG VERDICT  : $LogVerdict"
 Add-Line 'END OF CENSUS'
 
 Set-Content -Path $OutFile -Value $L.ToArray() -Encoding ASCII
 
-Write-Host "Session-open census derived - tree: $TreeVerdict"
+Write-Host "Session-open census derived - tree: $TreeVerdict, log: $LogVerdict"
 Write-Host '  -> dev_reports\session_open.txt'
