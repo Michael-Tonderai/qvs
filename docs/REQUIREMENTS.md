@@ -38,7 +38,7 @@ critical evaluation - which is worth more than the feature would have been.
 
 | ID | Requirement | Tier | Status |
 |---|---|---|---|
-| REQ-N-001 | No change reaches `main` without passing lint, security scan and the test suite | 1 | OPEN |
+| REQ-N-001 | No change reaches `main` without passing lint, security scan and the test suite | 1 | VERIFIED |
 | REQ-N-002 | No secret, key or credential is committed to the repository | 1 | OPEN |
 | REQ-N-003 | The system starts from a single `docker compose up` with no manual steps | 1 | OPEN |
 | REQ-N-004 | Test coverage of application code meets the configured threshold, measured with branch coverage enabled | 2 | BUILT |
