@@ -1372,3 +1372,148 @@ profile.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+## Session 010 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-11 23:35
+Token   : QVS-S010-A2B-61b5d1c
+Sprint  : B
+Branch  : develop
+Done    :
+  - main protected for the first time since the repository was created. Classic
+    branch protection applied by API from dev_reports/branch_protection.json rather
+    than by hand: required check "Lint, security and tests" bound to GitHub Actions
+    app id 15368 and strict; pull request required with 0 approvals; enforce_admins
+    on; force pushes and branch deletion refused; conversation resolution required;
+    linear history off.
+  - D-031 registered, covering the mechanism, the zero-approval reasoning and the
+    linear-history call.
+  - PR #14 opened from develop and merged to main as 1253dd6 - a real merge commit
+    with parents 06ab3dc and bafa013 - having passed the required check. The first
+    merge main has ever received.
+  - REQ-N-001 moved OPEN -> VERIFIED, browser-confirmed on the merged PR showing the
+    check as required and on the branch protection settings page.
+  - tools/Set-Env.ps1 written, delivering D-030. Loads .env into the current
+    PowerShell session only, prints names and never values, splits each line on the
+    first '=' so a key containing one is not truncated.
+  - PR #15 opened and squash-merged to develop as 61b5d1c, CI green.
+  - Suite 41 passing at 96.32% on the corporate machine after a reboot, with the
+    environment supplied by Set-Env.ps1 rather than by hand.
+HEAD    : 61b5d1cae2502b3c1c844427b03a692fbd8b19b6  PUSHED
+Tree    : clean
+Issues  : PR #14 merged to main, PR #15 merged to develop. No GitHub issue was
+          opened this session and the issue list was never queried. The issue
+          covering REQ-F-005 and REQ-F-006 remains unopened.
+Open    :
+  - Nothing half-finished. Both units of work reached a merged PR.
+  - REQ-F-005 and REQ-F-006 not started: no issue, no branch, no code.
+Decided :
+  - D-031, registered.
+  - Taken inline, not registered: feature and chore branches squash into develop so
+    its history reads one commit per unit of work, and develop merges into main so
+    main inherits the full history. PR #15 squashed, PR #14 merged, deliberately.
+  - Taken inline: merged branches are not deleted. Branch history is assessed.
+Watch   :
+  - D-025's log currency check produced its second false positive. It counts commits
+    above the newest logged HEAD and calls two or more STALE, which assumes a close
+    is exactly one commit. Session 009 closed and then amended its block twice, so a
+    correctly logged repository read STALE. Session 010's opening prompt anticipated
+    it in prose. That is twice now, and it is worth a decision rather than a third
+    prose warning.
+  - gh pr merge returns exit 0 with no output through Invoke-Logged.ps1. Do not read
+    the silence as failure, and do not read exit 0 as proof the merge happened.
+    Confirm with git log --oneline --parents on the target branch.
+  - gh pr view has no "merged" field; state and mergedAt carry it. Asking for it
+    fails the whole command with exit 1.
+  - .env holds five variables, not the three D-030's context claims: QVS_DEBUG,
+    QVS_SECRET_KEY, QVS_SIGNING_KEY, QVS_ALLOWED_HOSTS, QVS_DATABASE_PATH. The
+    decision is unaffected; the sentence is wrong and was left uncorrected pending
+    Sir Ton's word.
+  - Green CI runs carry annotations_count 1. Never examined. Most likely an action
+    deprecation notice, which stops being cosmetic when the action version retires.
+  - enforce_admins is on, so main cannot be pushed to directly by anyone, including
+    the owner. Changes arrive by pull request or not at all.
+  - Carried from session 009 and still live: registrar_client IS the client fixture
+    with force_login called on it. A test asking for both gets one object and its
+    "anonymous" request arrives authenticated. Build a fresh django.test.Client().
+    REQ-F-005's public tests are exactly the shape that walks into this.
+Next    : Open one GitHub issue covering REQ-F-005 and REQ-F-006 together, branch
+          feature/REQ-F-005-public-verification off develop, and build the public
+          verification page - certificate ID in, VERIFIED, NOT FOUND or TAMPERED out.
+Opening prompt :
+```
+Session 011. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S010-A2B-61b5d1c
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured. The script
+is new as of session 010 - it did not exist before, so do not conclude from an older
+block that the environment must be set by hand.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 61b5d1c, that commit being session 010's close
+     block. That is the Section 1.3 shape. If further docs commits were stacked on
+     it the census will read STALE - check that every commit above 61b5d1c is a docs
+     commit. A code commit above it would not be the expected shape and is worth
+     stopping for.
+  2. main is at 1253dd6 and is now PROTECTED. It is no longer the unprotected
+     background every session has read it as. Nothing can be pushed to it directly,
+     including by the owner, and REQ-N-001 is VERIFIED rather than OPEN.
+  3. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  4. REQ-F-006 carries four tests and a status of OPEN. That is deliberate and
+     explained in session 009's block. Do not "fix" it by changing the status.
+  5. Merged branches are not deleted. origin/feature/REQ-F-003-register-qualification
+     and origin/chore/D-030-set-env are both intact on purpose, not stale refs.
+
+Already run:  main protected under D-031. PR #14 merged develop to main as 1253dd6,
+              a merge commit with two parents, through the required check. REQ-N-001
+              at VERIFIED. tools/Set-Env.ps1 written and merged by PR #15, squashed
+              to develop as 61b5d1c. Suite 41 passing at 96.32% after a reboot.
+Not yet run:  Anything Docker, anywhere. The CI job D-028 requires before the Docker
+              branch's PR can open. tools/traceability.py. No issue has ever been
+              opened for REQ-F-005 or REQ-F-006, and the issue list has never been
+              queried.
+
+Next action, in this order:
+  1. Open one GitHub issue covering REQ-F-005 and REQ-F-006 together. They are one
+     page and one test file; two issues would split the evidence.
+  2. Branch feature/REQ-F-005-public-verification off develop.
+  3. Build the public verification page - certificate ID in, VERIFIED, NOT FOUND or
+     TAMPERED out - with tests, then browser-verify before either requirement moves
+     past BUILT. A green suite is not a verified page (CLAUDE.md Section 5).
+
+Hazards, all silent:
+  - registrar_client IS the client fixture with force_login called on it. A test
+    asking for both gets one object and its "anonymous" request arrives
+    authenticated. Build a fresh django.test.Client() instead. REQ-F-005's public
+    tests are exactly the shape that walks into this.
+  - gh pr merge returns exit 0 and prints nothing. Confirm every merge with
+    git log --oneline --parents on the target branch, never by exit code alone.
+  - gh pr view has no "merged" field. Asking for it fails the whole command.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
