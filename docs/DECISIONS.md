@@ -485,3 +485,45 @@ from memory in Sprint D.
 - **Consequence:** The failure mode does not disappear, it moves: a terminal where the
   script has not been run still fails, and still fails loudly, which is the behaviour
   D-003 wanted. `Set-Env.ps1` does not exist yet and is the first action of session 010.
+
+## D-031 - `main` is protected by classic branch protection, with zero required approvals
+
+- **Context:** REQ-N-001 states that no change reaches `main` without passing lint,
+  security scan and the test suite. `ci.yml` has been that mechanism since D-007, but
+  until this session `main` was unprotected: the pipeline ran, and nothing obliged
+  anyone to heed it. The requirement had a pipeline and no gate. `qvs` is public and the
+  account holds ADMIN, so classic branch protection and rulesets are both available at
+  no cost - there is no plan constraint to document and no workaround to justify.
+- **Decision:** Classic branch protection on `main`, applied by API from
+  `dev_reports/branch_protection.json` rather than by hand in the web console, so what
+  was requested is readable and re-appliable. Required status check
+  `Lint, security and tests` bound to the GitHub Actions app id 15368, with `strict` set
+  so a stale head must rebuild before merging; pull request required with
+  `required_approving_review_count` at 0; `enforce_admins` on; force pushes and branch
+  deletion off; conversation resolution required; linear history off.
+- **Rejected:** Requiring one approving review, which is what a team of three to five
+  would set and what the assignment's collaboration criteria imply. GitHub does not
+  permit approving one's own pull request, so on a single-author repository that setting
+  makes `main` permanently unmergeable. A gate that cannot be satisfied is not a stricter
+  gate, it is a broken one.
+
+  Rulesets were also rejected, and not on merit - they are the newer mechanism and
+  arguably the better one. Branch protection renders as a single readable settings page,
+  which is stronger evidence in a report and a viva than a ruleset's layered view.
+
+  Linear history was rejected because a release merge from `develop` carries two parents
+  and would be refused. The alternative, squashing `develop` into `main`, would collapse
+  the branch history the assignment assesses.
+- **Consequence:** The review gate on this project is the pipeline, not a person, and the
+  report must say so rather than leave a reader to infer that human code review was
+  enforced. This is the clearest instance in the repository of the gap between an
+  assignment written for a team and a project executed by one author, and it belongs in
+  the critical evaluation as exactly that.
+
+  `enforce_admins` means the sole maintainer cannot push to `main` either; changes arrive
+  by pull request or not at all. The protection settings themselves remain editable by an
+  admin, so the position is strict but recoverable.
+
+  REQ-N-001 does not move on protection alone. Protection is the mechanism; the evidence
+  is a pull request from `develop` that merges to `main` through this gate, with the
+  check reported against it. Until that merge exists the requirement stays OPEN.
