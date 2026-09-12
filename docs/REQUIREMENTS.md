@@ -23,7 +23,7 @@ critical evaluation - which is worth more than the feature would have been.
 | ID | Requirement | Tier | Status |
 |---|---|---|---|
 | REQ-F-001 | Each qualification record is issued a unique, non-guessable certificate ID | 1 | BUILT |
-| REQ-F-002 | Each record carries an HMAC-SHA256 signature computed over its canonical fields at issue | 1 | BUILT |
+| REQ-F-002 | Each record carries an HMAC-SHA256 signature computed over its canonical fields at issue | 1 | VERIFIED |
 | REQ-F-003 | An authorised user can register a qualification record | 1 | VERIFIED |
 | REQ-F-004 | An unauthenticated user cannot register or edit records | 1 | VERIFIED |
 | REQ-F-005 | Any user can verify a record by certificate ID, receiving VERIFIED, NOT FOUND or TAMPERED | 1 | VERIFIED |

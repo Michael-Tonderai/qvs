@@ -528,6 +528,13 @@ from memory in Sprint D.
   is a pull request from `develop` that merges to `main` through this gate, with the
   check reported against it. Until that merge exists the requirement stays OPEN.
 
+  **Satisfied on 2026-09-11.** PR #14 merged `develop` into `main` through this gate,
+  with the required check reported against it, and REQ-N-001 moved to VERIFIED in
+  session 010. The paragraph above describes the position before that merge and is left
+  standing rather than edited, because a decision that records what it was waiting for
+  is more useful to the report than one that quietly reads as though it always held.
+  Confirmed in session 012 against `gh pr view 14`, not inferred from commit subjects.
+
 ## D-032 - Audit events carry no foreign keys
 
 - **Context:** REQ-F-007 records every verification attempt and REQ-F-008 requires
