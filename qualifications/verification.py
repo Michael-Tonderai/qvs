@@ -105,10 +105,17 @@ def verify(certificate_id: str) -> VerificationResult:
     choices are in signing.py for reasons documented there; this module simply does not
     undo them.
 
-    Note what is NOT here: no audit write. REQ-F-007 gives every verification attempt a
-    trail, and this is the function that will grow one. It needs a model and a
-    migration, which is why issue #16 fences it out explicitly rather than letting it
-    arrive as an unplanned extra.
+    Note what is NOT here: no audit write. REQ-F-007 gives every verification attempt
+    a trail, and it deliberately did not land in this function. An audit event needs
+    facts that only a request carries - who was signed in, and where the attempt came
+    from - and this module exists precisely so the authenticity question can be
+    answered without a request cycle. qualifications/views.py verify() performs the
+    write through qualifications/audit.py, so this stays a pure decision and every
+    unit test of it stays free of a database write.
+
+    The cost is stated in the pull request for issue #18 rather than hidden: "every
+    attempt is audited" holds because the only caller does it, not because this
+    function enforces it. A second caller would carry the same obligation.
     """
     if not certificate_id:
         return VerificationResult(NOT_FOUND)
