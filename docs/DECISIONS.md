@@ -695,3 +695,62 @@ D-034.*
   job added to `ci.yml` under D-028, which starts the container with `PORT` set to a
   non-default value and requests `/health/` from outside it. Reading the Dockerfile
   could not have established that; running it is the only thing that could.
+
+  **Deployed on 2026-09-12**, in the same session this decision was registered. The
+  service is live at `https://qvs-f3dk.onrender.com`, built from commit 1e02381 by the
+  blueprint, which reports the sha it synced from - so the running system is traceable
+  to a single commit that reached `main` through D-031's required check. The platform
+  logged `Detected service running on port 10000`, which is the `${PORT}` expansion
+  working, and has been answering `/health/` with a 200 every five seconds since. Both
+  the redirect to `/verify/` and the health endpoint's JSON were browser-confirmed.
+  Evidence in `docs/evidence/deployment.md`.
+
+  One fix registered here remains unproven: `SECURE_PROXY_SSL_HEADER` only matters on
+  a POST, and no POST has been made against the deployed site, because the database
+  starts empty and the free instance offers no shell to create a user with. The first
+  login submission is what settles it.
+
+## D-037 - One seeded record carries a fixed certificate ID
+
+- **Context:** Under D-036 the deployed database is empty at every container start, so
+  demonstration data is seeded on every boot. `Qualification.save()` mints a random
+  non-guessable identifier (REQ-F-001), which means every seeded record has a different
+  certificate ID after every restart and redeploy. Nothing about such a record can be
+  written into the technical report, put on a slide or scripted into the demonstration
+  video. The problem is sharper than it first looks because REQ-F-009 and REQ-F-010 are
+  still OPEN: with no search and no list page, an assessor who cannot sign in has no
+  way to discover an identifier at all, so the public verification page - the one part
+  of this system that exists to serve people with no account - is unreachable in
+  practice.
+- **Decision:** The seed creates three records. One carries the fixed identifier
+  `QVS-TEST-CASE-2345-6789`, drawn from `signing.CERTIFICATE_ID_ALPHABET` and matching
+  the issued format exactly, so it is a legal identifier rather than a special case the
+  verification path has to know about. The other two take system-issued random IDs, so
+  the normal issuing path is visible beside it and the fixed one cannot be mistaken for
+  how this system names records. The fixed record is signed by the same `save()` path as
+  any other and is just as tamper-evident.
+- **Rejected:** Random identifiers for all three, which keeps REQ-F-001 unqualified and
+  leaves the demonstration IDs unknowable until someone reads them out of the container
+  log on the platform dashboard, every time the instance restarts - during a recording,
+  that is a failure mode with an audience. Also rejected: relaxing REQ-F-001 itself, or
+  adding a `--certificate-id` option to the register form. The first weakens a
+  requirement to suit a fixture; the second puts an identifier-choosing path into the
+  application, which is exactly what `editable=False` on that field exists to prevent.
+- **Consequence:** One record in the deployed system has a guessable certificate ID, and
+  that is a genuine departure from REQ-F-001 rather than a technicality to argue away.
+  The defensible reading, and the one the report should make: REQ-F-001 constrains what
+  the system *issues*, and a fixture inserted by a management command was never issued -
+  no registrar registered it and no certificate was ever handed to a holder. The string
+  `TEST-CASE` says so in the identifier itself, which is why it was chosen over anything
+  that would pass as real. The exposure is that a guessable ID is enumerable, and what
+  it yields is a demonstration record containing no real person's data.
+
+  This belongs in the critical evaluation as a second instance of the same tension D-031
+  names: an assignment written for a team and a system demonstrated by one author under
+  a free tier with no persistent disk. The stronger long-term answer is REQ-F-009 and
+  REQ-F-010 - once records can be searched, an assessor discovers an identifier the way
+  a real user would and the fixed ID becomes unnecessary. It is not deferred here
+  because those requirements are Tier 2 and the video is not.
+
+  `tests/test_seed_demo.py` pins both halves: that the fixed record verifies through
+  `verification.verify`, and that its identifier is one this system could have issued.

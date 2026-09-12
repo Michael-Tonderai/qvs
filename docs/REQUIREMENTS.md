@@ -40,9 +40,9 @@ critical evaluation - which is worth more than the feature would have been.
 |---|---|---|---|
 | REQ-N-001 | No change reaches `main` without passing lint, security scan and the test suite | 1 | VERIFIED |
 | REQ-N-002 | No secret, key or credential is committed to the repository | 1 | OPEN |
-| REQ-N-003 | The system is deployed to a publicly accessible HTTPS URL, redeployed automatically on merge to `main` | 1 | OPEN |
+| REQ-N-003 | The system is deployed to a publicly accessible HTTPS URL, redeployed automatically on merge to `main` | 1 | VERIFIED |
 | REQ-N-004 | Test coverage of application code meets the configured threshold, measured with branch coverage enabled | 2 | BUILT |
-| REQ-N-005 | The system exposes a health endpoint the deployment platform can poll to decide whether an instance is serving | 1 | BUILT |
+| REQ-N-005 | The system exposes a health endpoint the deployment platform can poll to decide whether an instance is serving | 1 | VERIFIED |
 
 **REQ-N-003 was reworded on 2026-09-12.** It previously read *the system starts from a
 single `docker compose up` with no manual steps*. D-026 moved deployment off local

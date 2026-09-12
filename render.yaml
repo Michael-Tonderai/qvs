@@ -78,3 +78,16 @@ services:
       # later; sync: false means the platform will not overwrite a value set by hand.
       - key: QVS_ALLOWED_HOSTS
         sync: false
+
+      # D-037. The password for the demonstration registrar the entrypoint seeds on
+      # every start. sync: false rather than generateValue for one reason: a generated
+      # value would be known to the platform and to nobody else, and this is a
+      # credential a human has to type into a login form on camera. It is set by hand
+      # in the dashboard and never appears in this file, in the repository or in an
+      # image layer - REQ-N-002 has no exception for demonstration credentials.
+      #
+      # Its absence is also the off switch. Until a value is set, the container starts,
+      # finds nothing, skips the seed and serves normally. That is the intended
+      # behaviour of the first deploy after this merge, not a failure.
+      - key: QVS_DEMO_PASSWORD
+        sync: false

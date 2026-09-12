@@ -1905,3 +1905,210 @@ profile.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+## Session 013 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-13 00:15
+Token   : QVS-S013-A2B-0161476
+Sprint  : B
+Branch  : develop
+Done    :
+  - QVS IS DEPLOYED. https://qvs-f3dk.onrender.com is live, public and serving over
+    HTTPS, built from commit 1e02381 by the render.yaml blueprint.
+  - D-036 registers Render as the platform, superseding D-026's provisional Cloud Run
+    pick. Chosen because it was the only candidate in 2026 with an ongoing free tier
+    needing no card: Railway's ended in 2023, Fly.io's is gone for new accounts, and
+    Cloud Run and Azure both sit behind billing.
+  - render.yaml declares the service as a committed file - Infrastructure-as-Code,
+    which the assignment lists for bonus marks - and deploys from main, so D-031's
+    required check is also the gate on the public URL.
+  - feature/REQ-N-003-docker-deployment merged to develop via PR #20, then develop to
+    main via PR #21. Both merged with --merge rather than squash, deliberately: merge
+    conflict management is an assessed criterion and this was the project's only real
+    conflict. develop's history is no longer uniformly linear. Veto left open.
+  - The image job added to ci.yml under D-028. It builds the Dockerfile, starts the
+    container with PORT set to a non-default value and requests /health/ from outside
+    it. It passed first time, on a Dockerfile that had never been executed anywhere.
+  - Three silent deployment defects found by reading and fixed before deploying: the
+    exec-form CMD could not expand ${PORT}; SECURE_PROXY_SSL_HEADER was absent; and
+    ALLOWED_HOSTS had no way to learn the platform hostname.
+  - D-034 and D-035 registered - the session 006 branch decisions, renumbered on merge
+    because develop had issued D-026 and D-027 to different decisions meanwhile.
+  - REQ-N-003 reworded away from `docker compose up` and moved to VERIFIED.
+    REQ-N-005 added for the health endpoint and moved to VERIFIED. Both
+    browser-confirmed by Sir Ton.
+  - docs/evidence/deployment.md written - the first evidence document in the
+    repository, transcribed by hand rather than pasted.
+  - Issue #8 closed. Suite 72 passing at 95.88%.
+HEAD    : 0161476ad5c8cf1b60951c146d1afbb362d78f12  PUSHED
+Tree    : clean
+Issues  : #8 closed. No issue open. Next issue number will be #22.
+Open    :
+  - Nothing half-finished. Both PRs merged, main and develop both current.
+  - THE DEPLOYED SITE HAS NO USERS AND NO RECORDS, and no way to create either. The
+    free instance has no shell and no persistent disk. Public verification works;
+    registering does not, because there is nobody to log in as. This is the next
+    unit of work and it is not optional - it blocks the demonstration video.
+  - SECURE_PROXY_SSL_HEADER is still unproven. Everything exercised on the live site
+    so far is a GET. The first POST is what settles it, and there is currently no POST
+    anyone can make.
+  - tools/traceability.py still unbuilt. Every test already carries its req marker.
+  - REQ-F-009, REQ-F-010, REQ-F-011, REQ-N-002 all still OPEN.
+  - The technical report (25%), the video (15%) and the individual contribution
+    report (15%) are all still unstarted. That is 55% of the marks.
+Decided :
+  - D-034 - REQ-N-003 means one command to start, after one-time configuration.
+    Renumbered from the branch's D-026.
+  - D-035 - WhiteNoise serves static files, not a second container. Renumbered from
+    the branch's D-027.
+  - D-036 - Render is the deployment platform, amended the same session with the
+    deployed URL and the platform's own port-detection line.
+  - Taken inline, not registered: merging with --merge rather than squash, to keep the
+    conflict-resolution commit in the history; adding REQ-N-005 rather than deferring
+    the health endpoint's mis-citation to its own branch, because render.yaml made
+    that endpoint load-bearing infrastructure in the same session.
+Watch   :
+  - CLAUDE.md AUTO-MERGED CLEANLY AND WAS WRONG TO. Git combined develop's rewritten
+    Section 2 with three paragraphs this branch had added in session 006, producing a
+    working agreement that stated both that Docker must never be installed here and
+    that Docker Desktop is installed with WSL missing. Clean exit, no conflict marker,
+    no gate that could catch it - Check-Docs verifies facts and maps, not whether two
+    paragraphs contradict each other. Caught by reading the merged file. Any future
+    merge of a long-lived branch should have its prose files read, not just its code.
+  - Check-Docs' document-map check DOES NOT RECURSE into docs/ subdirectories. It
+    scanned 19 files and did not see docs/evidence/deployment.md. Evidence documents
+    are therefore unmapped and unchecked, and the traceability matrix is going into
+    that same directory next.
+  - The local .venv drifted from requirements.txt. The merge brought whitenoise in and
+    41 tests died on ModuleNotFoundError. CI never sees this because it installs fresh
+    every run. After any merge that touches requirements, install before testing.
+  - config/settings.py coverage fell to 78% and total to 95.88%. The uncovered lines
+    are the platform branches, which cannot execute where RENDER_EXTERNAL_HOSTNAME
+    does not exist. Named rather than chased.
+  - gh issue close wrote its tick as "???" in the artefact again. Harmless in
+    dev_reports, fatal in docs/evidence. Evidence is transcribed, never pasted.
+  - gh pr merge returned exit 0 with no output twice more. Every merge this session
+    was confirmed with git log --oneline --parents instead.
+  - GitHub still does not auto-close issues here. #8 was closed by hand and confirmed
+    by gh issue view --json state.
+  - The free instance sleeps after 15 minutes idle and takes 30-60 seconds to wake.
+    Warm the URL before recording anything.
+  - registrar_client IS the client fixture with force_login applied. Still live.
+Next    : Seed the deployed instance. A management command creating an idempotent demo
+          registrar and two or three sample qualifications, called from
+          docker-entrypoint.sh after migrate, with the password supplied as a
+          sync: false environment variable so no credential is committed. This
+          unblocks three things at once: it makes the URL demonstrable for the video,
+          it gives an assessor something to verify, and its login form is the first
+          POST against the deployed site - which is what finally proves or disproves
+          SECURE_PROXY_SSL_HEADER.
+Opening prompt :
+```
+Session 014. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects. The direction letters in
+the token record intent, not fact.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S013-A2B-0161476
+
+QVS IS DEPLOYED at https://qvs-f3dk.onrender.com - live, public, HTTPS, redeploying
+automatically on merge to main. Do not re-do any of that work.
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or on the platform, or not at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured. Note that
+QVS_DEBUG=0 set for a pytest run persists for the life of that shell.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 0161476, that commit being session 013's close
+     block. A code commit above it would not be the expected shape.
+  2. main is at 1e02381 and is PROTECTED. main and develop are level - PR #21
+     merged develop into main this session, so there is no gap to close.
+  3. develop's history is NOT uniformly linear any more. 0161476 and 8029c00 are
+     both merge commits with two parents. That was deliberate, to keep the
+     conflict-resolution commit visible for the assessed Git deliverable.
+  4. Four origin/feature and chore branches remain undeleted on purpose, now five
+     with feature/REQ-N-003-docker-deployment. Not stale refs.
+  5. REQ-N-003 and REQ-N-005 are VERIFIED on browser confirmation, not on CI.
+     REQ-F-001, REQ-F-007 and REQ-F-008 remain BUILT deliberately - see session 012.
+
+Already run:  PR #20 merged feature/REQ-N-003-docker-deployment to develop as
+              0161476. PR #21 merged develop to main as 1e02381. Render blueprint
+              applied and synced at 1e02381. D-034, D-035, D-036 registered.
+              REQ-N-003 reworded and VERIFIED, REQ-N-005 added and VERIFIED.
+              Issue #8 closed. docs/evidence/deployment.md written. Suite 72
+              passing at 95.88%.
+Not yet run:  Anything that seeds the deployed database. Any POST against the live
+              site. tools/traceability.py. REQ-F-009, REQ-F-010, REQ-F-011,
+              REQ-N-002. The technical report, the video, the individual report.
+
+Next action, in this order:
+  1. Open an issue for seeding the deployed instance and branch from develop.
+  2. Write a management command that creates a demo registrar and two or three
+     sample qualifications, idempotently - it runs on EVERY container start,
+     because the free instance has no persistent disk and resets to empty on every
+     restart and redeploy. Take the password from an environment variable, never a
+     literal: REQ-N-002 has no exception for demonstration credentials.
+  3. Call it from tools/docker-entrypoint.sh after migrate and before the server
+     starts. A failure there must not stop the container - the site verifying
+     records is worth more than the site refusing to boot over a seed.
+  4. Add the variable to render.yaml as sync: false and set its value in the
+     platform dashboard by hand.
+  5. After it deploys, SIGN IN on the live site. That login POST is the first POST
+     anyone has made against the deployed system and it is the only thing that can
+     prove SECURE_PROXY_SSL_HEADER works. If it returns 403, the header is wrong
+     and CSRF_TRUSTED_ORIGINS is the place to look.
+  6. Then register a qualification through the live site and verify its certificate
+     ID through the public page. That round trip is the demonstration video's spine.
+
+Hazards, all silent:
+  - A LONG-LIVED BRANCH'S PROSE FILES CAN AUTO-MERGE INTO SELF-CONTRADICTION.
+    CLAUDE.md did exactly that this session: clean exit, no conflict marker, and a
+    file asserting both that Docker must never be installed here and that it is
+    installed. Read merged documents, do not trust a clean merge.
+  - Check-Docs does not recurse into docs/ subdirectories. docs/evidence/ is
+    unmapped and unchecked, and the traceability matrix is going there.
+  - The local .venv drifts from requirements.txt and CI cannot see it. After any
+    merge touching requirements, run
+    .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt before pytest.
+  - gh output reaches artefacts with non-ASCII glyphs mangled to "???". Harmless in
+    gitignored dev_reports, rejected by Check-Ascii in docs/evidence. Transcribe
+    evidence by hand; never paste it.
+  - gh pr merge returns exit 0 and prints nothing. Confirm every merge with
+    git log --oneline --parents on the target branch.
+  - gh pr view has no "merged" field. Ask for state and mergedAt instead.
+  - GitHub does not auto-close issues here. Put an explicit gh issue close in the
+    merge sequence and confirm with gh issue view --json state.
+  - Filesystem:edit_file matches the FIRST occurrence of its anchor, silently. The
+    opening-prompt tail is identical in every session block. Append a new block from
+    a file rather than anchoring on it.
+  - registrar_client IS the client fixture with force_login called on it. Build a
+    fresh django.test.Client() for anonymous cases.
+  - The free instance sleeps after 15 minutes idle and takes 30-60 seconds to wake.
+    Warm the URL before showing it to anyone.
+
+Remember what the marks are for. 75% of them need no new features, and the report,
+the video and the individual contribution report - 55% between them - are all still
+unstarted. Features are cut before evidence, documentation or the report.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
