@@ -28,8 +28,8 @@ critical evaluation - which is worth more than the feature would have been.
 | REQ-F-004 | An unauthenticated user cannot register or edit records | 1 | VERIFIED |
 | REQ-F-005 | Any user can verify a record by certificate ID, receiving VERIFIED, NOT FOUND or TAMPERED | 1 | VERIFIED |
 | REQ-F-006 | A record altered after issue fails verification | 1 | VERIFIED |
-| REQ-F-007 | Every verification attempt writes an audit event | 1 | OPEN |
-| REQ-F-008 | Audit events are append-only - no update or delete path exists | 1 | OPEN |
+| REQ-F-007 | Every verification attempt writes an audit event | 1 | BUILT |
+| REQ-F-008 | Audit events are append-only - no update or delete path exists | 1 | BUILT |
 | REQ-F-009 | Any user can search records by certificate ID, holder name or institution | 2 | OPEN |
 | REQ-F-010 | Any user can retrieve the detail of a single record | 2 | OPEN |
 | REQ-F-011 | An authorised user can view the audit history for a record | 3 | OPEN |

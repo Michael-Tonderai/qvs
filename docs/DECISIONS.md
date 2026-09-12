@@ -527,3 +527,51 @@ from memory in Sprint D.
   REQ-N-001 does not move on protection alone. Protection is the mechanism; the evidence
   is a pull request from `develop` that merges to `main` through this gate, with the
   check reported against it. Until that merge exists the requirement stays OPEN.
+
+## D-032 - Audit events carry no foreign keys
+
+- **Context:** REQ-F-007 records every verification attempt and REQ-F-008 requires
+  those records to be append-only. The obvious model has a ForeignKey to
+  `Qualification` and another to the user, which is what an audit table in most systems
+  looks like.
+- **Decision:** `AuditEvent` has no ForeignKey at all. The certificate ID is stored as
+  the string that was submitted, and the actor as a username snapshot. REQ-F-011 will
+  join on the string.
+- **Rejected:** Nullable foreign keys. A NOT FOUND attempt has no qualification to
+  point at, so the column would be null on exactly the events most worth auditing - the
+  ones where somebody presented an identifier this system never issued. On the user
+  side every `on_delete` option is wrong in a different way: CASCADE destroys audit
+  history, SET_NULL rewrites an audit row and so contradicts REQ-F-008 inside the
+  model's own definition, and PROTECT turns the audit trail into a reason an account
+  cannot be closed.
+- **Consequence:** The trail survives the deletion of anything it refers to, and it
+  records what was presented rather than what it turned out to be - which is the
+  question an audit answers. The cost is that a report joining events to records joins
+  on a string rather than on a key, and that an event naming a deleted user cannot be
+  resolved back to an account. Both are correct behaviour for an audit trail rather
+  than limitations of one. This is the same argument
+  `Qualification.canonical_fields()` already makes for keeping `issued_by` outside the
+  signed payload.
+
+## D-033 - Append-only is enforced in the application, not in the database
+
+- **Context:** REQ-F-008 says no update or delete path exists. The strongest available
+  mechanism is a database trigger that refuses UPDATE and DELETE on the table.
+- **Decision:** Enforcement lives in Python. `AuditEvent.save()` raises
+  `AppendOnlyError` when the row already has a primary key, `AuditEvent.delete()`
+  always raises, and `AuditEventQuerySet` overrides `update()` and `delete()` to raise
+  as well. The queryset override is the substantive half: `QuerySet.update()` writes
+  SQL without ever calling `Model.save()`, so a guard on the model alone would leave
+  `AuditEvent.objects.all().update(...)` working perfectly.
+- **Rejected:** Database triggers. They would hold against raw SQL, which the Python
+  guards cannot, and they would pin the schema to one backend in a way D-002's claim
+  that the SQLite to PostgreSQL move is a configuration change does not survive. Also
+  rejected: relying on `save()` alone, which is the version of this guarantee that
+  looks complete and is not.
+- **Consequence:** The guarantee holds against every path the application offers and
+  against none outside it. A direct SQL UPDATE succeeds, and so would a data migration,
+  because historical models in migrations receive a default manager rather than this
+  one - Django only serialises managers marked `use_in_migrations`. That is stated in
+  the technical report's critical evaluation rather than left for a reader to discover,
+  because an application-level guarantee described as if it were a database one is the
+  kind of claim that does not survive a viva question.
