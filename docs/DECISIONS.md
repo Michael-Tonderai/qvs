@@ -710,6 +710,14 @@ D-034.*
   starts empty and the free instance offers no shell to create a user with. The first
   login submission is what settles it.
 
+  **Settled on 2026-09-12, in session 014.** Once the demonstration seed (D-037) gave
+  the deployment an account to sign in as, a sign-in was performed at `/login/` in a
+  browser. It succeeded and redirected to `/register/`. Had the header been wrong,
+  Django's CSRF middleware would have rejected the submission with 403 and
+  `CSRF_TRUSTED_ORIGINS` would have been the place to look. Every fix registered in
+  this decision is now exercised by a real request rather than reasoned about.
+  Evidence in `docs/evidence/seeding.md`.
+
 ## D-037 - One seeded record carries a fixed certificate ID
 
 - **Context:** Under D-036 the deployed database is empty at every container start, so
@@ -754,3 +762,10 @@ D-034.*
 
   `tests/test_seed_demo.py` pins both halves: that the fixed record verifies through
   `verification.verify`, and that its identifier is one this system could have issued.
+
+  **Deployed and confirmed on 2026-09-12**, in the same session this decision was
+  registered. The container seeded at 23:27:19 UTC during its own start-up, and
+  `QVS-TEST-CASE-2345-6789` returned VERIFIED to an anonymous request. That was the
+  first execution of the seed on its creating path anywhere: locally and in CI it had
+  only ever taken the skip branch, because neither environment carries
+  `QVS_DEMO_PASSWORD`. Evidence in `docs/evidence/seeding.md`.

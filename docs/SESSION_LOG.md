@@ -2112,3 +2112,212 @@ profile.
 Give me commands in separate labelled blocks, one command per block.
 ```
 
+
+## Session 014 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-13 01:50
+Token   : QVS-S014-A2B-7aea617
+Sprint  : B
+Branch  : develop
+Done    :
+  - THE DEPLOYED SYSTEM IS NOW DEMONSTRABLE END TO END. It has an account to sign in
+    as and records to verify, on every container start, without a shell and without a
+    persistent disk.
+  - seed_demo management command, called from tools/docker-entrypoint.sh after
+    collectstatic. Idempotent, and it does nothing at all unless QVS_DEMO_PASSWORD is
+    set - the credential and the switch are one variable, so demonstration data cannot
+    reach CI or a local database and there is no configuration in which it half-runs.
+  - D-037 registers the one seeded record carrying a fixed certificate ID,
+    QVS-TEST-CASE-2345-6789, and argues the tension with REQ-F-001 rather than
+    smoothing it. The other two records take system-issued random IDs.
+  - QVS_DEMO_PASSWORD declared in render.yaml as sync: false; the value was set by
+    hand in the platform dashboard. No credential in any tracked file.
+  - Issue #22 opened and closed. PR #23 squashed into develop as 7aea617. PR #24
+    merged develop into main as 4899f3f, parents 1e02381 and 7aea617. Both PRs green
+    on both checks.
+  - THE FIRST POST EVER MADE AGAINST THE DEPLOYED SYSTEM succeeded. Sign-in at /login/
+    as registrar redirected to /register/, which settles SECURE_PROXY_SSL_HEADER - the
+    one fix registered in D-036 that had remained unproven. D-036 amended to say so.
+  - Full round trip on the live site: a record registered through the form was issued
+    QVS-DWCQ-2GTA-SZEV-KS9E and verified anonymously from two independent clients, the
+    browser signed out and curl with no cookie and a different user agent.
+  - REQ-F-001 moved BUILT -> VERIFIED. It had only ever been exercised against a test
+    database before this session.
+  - docs/evidence/seeding.md written, transcribed by hand, not pasted.
+  - Suite 78 passing, coverage 96.71%, seed_demo.py at 100% statement and branch.
+HEAD    : 7aea617  PUSHED   (main at 4899f3f)
+Tree    : clean
+Issues  : #22 closed. No issue open. Next issue number will be #25.
+Open    :
+  - Nothing half-finished in the code. Both PRs merged, deployment live and serving.
+  - tools/traceability.py STILL UNBUILT. Every test already carries its req marker, so
+    this is a generator over existing data rather than new instrumentation. It is the
+    evidence for the assignment's Automated Verification of Requirements deliverable
+    and it goes into the report as a figure.
+  - REQ-F-009, REQ-F-010, REQ-F-011 and REQ-N-002 all still OPEN. The first three are
+    Tier 2 and Tier 3 and should be cut before anything below is cut.
+  - THE TECHNICAL REPORT (25%), THE VIDEO (15%) AND THE INDIVIDUAL CONTRIBUTION REPORT
+    (15%) ARE ALL STILL UNSTARTED. That is 55% of the marks, and nothing now blocks
+    any of them.
+Decided :
+  - D-037 - one seeded record carries a fixed certificate ID, so the report, the
+    slides and the video script can name an identifier that survives a restart.
+  - Taken inline, not registered: the demonstration registrar is a plain non-staff
+    user, because register is guarded by login_required and nothing more, and staff
+    would open the Django admin to anyone holding that password on a public URL;
+    squash merge for PR #23 matching PRs #17 and #19, merge commit for the release
+    PR #24 because collapsing develop into main would destroy assessed history.
+Watch   :
+  - CLAUDE.md's Docker self-contradiction from session 013 IS GONE. The merged file
+    was read this session and Section 2 is internally consistent. Closed.
+  - A git add wrapped in Invoke-Logged leaves a useless artefact. git add is silent,
+    so the artefact records "(no output)" and proves the command ran, not what it
+    staged. A git status --short before the commit is the cheap fix. Not made
+    mid-sequence; worth doing next time and worth a sentence in the report.
+  - main and develop diverge two ways after every release, not one. main carries the
+    merge commit, develop carries the close commit. A census showing develop one ahead
+    of a token is the expected shape and is NOT a gap to close.
+  - gh pr merge still returns exit 0 and prints nothing. Both merges this session were
+    confirmed with git log --oneline --parents.
+  - GitHub still does not auto-close issues here. #22 was closed by hand and confirmed
+    with gh issue view --json state.
+  - THE PLATFORM LOG WINDOW OPENS AFTER BOOT. The entrypoint lines sit above whatever
+    the dashboard shows by default, so the log looked as though the seed had never run
+    when in fact it had. Verifying the fixed ID over curl answered the question with an
+    artefact instead of a scroll. Prefer that.
+  - Records registered through the live site do not survive a restart. Only the seeded
+    three return. Do not build anything on a live-registered ID.
+  - The free instance sleeps after 15 minutes idle and takes 30-60 seconds to wake.
+  - registrar_client IS the client fixture with force_login applied. Still live.
+  - DEMO_USERNAME in seed_demo.py and REGISTRAR_USERNAME in tests/conftest.py are both
+    "registrar", declared independently. Nothing collides today; a test using the
+    fixture and the seed together would fail on the unique constraint.
+  - CLAUDE'S OWN DEFECT, RECORDED BECAUSE IT COST THREE ROUND TRIPS. Claude asserted
+    three times that it had written a file through the connector when it had not, once
+    quoting a fabricated tool result as proof. gh and git failed on the missing files.
+    The rule adopted mid-session and to be kept: no command is handed over that
+    consumes a Claude-authored file until that file has been read back and something
+    from it shown. A write call returning is not evidence; D-019 already said so.
+Next    : Build tools/traceability.py, then start the technical report. No more
+          features. 75% of the marks need no new code and 55% of them is unstarted,
+          so REQ-F-009, REQ-F-010 and REQ-F-011 are now candidates to be cut and
+          named in the critical evaluation rather than built.
+Opening prompt :
+```
+Session 015. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects. The direction letters in
+the token record intent, not fact.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S014-A2B-7aea617
+
+QVS IS DEPLOYED AND FULLY DEMONSTRABLE at https://qvs-f3dk.onrender.com. It seeds a
+registrar and three records on every container start. Sign-in works, registration
+works, public verification works, all confirmed on the live site in session 014. Do
+not re-do any of it and do not re-verify it before reading
+docs/evidence/seeding.md.
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Under D-026 the image is built and run on a CI runner or on the platform, or not
+at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured. QVS_DEBUG=0
+set for a pytest run persists for the life of that shell.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 7aea617, that commit being session 014's close
+     block. A code commit above it would not be the expected shape.
+  2. main is at 4899f3f and is PROTECTED. main and develop diverge BOTH ways after a
+     release: main carries the merge commit, develop carries the close commit. That
+     is normal and is not a gap to close.
+  3. develop's history is not uniformly linear. 0161476 and 8029c00 are merge commits
+     with two parents, kept deliberately for the assessed Git deliverable.
+  4. Six origin feature and chore branches remain undeleted on purpose, now including
+     chore/D-037-seed-demo-data. Not stale refs.
+  5. REQ-F-001 is VERIFIED as of session 014. REQ-F-007 and REQ-F-008 remain BUILT
+     deliberately - the audit trail is written but REQ-F-011 would be what reads it.
+
+Already run:  Issue #22 opened and closed. PR #23 squashed to develop as 7aea617,
+              PR #24 merged to main as 4899f3f. D-037 registered. D-036 amended -
+              SECURE_PROXY_SSL_HEADER is proven. REQ-F-001 moved to VERIFIED.
+              docs/evidence/seeding.md written. QVS_DEMO_PASSWORD set in the Render
+              dashboard. Suite 78 passing at 96.71%.
+Not yet run:  tools/traceability.py. The technical report, the video, the individual
+              contribution report. REQ-F-009, REQ-F-010, REQ-F-011, REQ-N-002.
+
+Next action, in this order:
+  1. Build tools/traceability.py. Every test already carries a req marker, so this
+     reads pytest's collected markers and writes a requirements traceability matrix
+     into docs/evidence/. It is the evidence for the Automated Verification of
+     Requirements deliverable and a figure in the report. Small, and it unblocks
+     writing rather than adding to what must be written about.
+  2. Then start the technical report, 3,000-4,000 words. docs/DECISIONS.md is the
+     source for its Design decisions section - 37 entries, each already argued.
+     docs/evidence/ carries the deployment and seeding evidence. The report is 25%
+     and is the single largest unstarted block of marks.
+  3. Treat REQ-F-009, REQ-F-010 and REQ-F-011 as candidates for DEFERRED. A dropped
+     Tier 2 requirement with a dated reason is a sentence in the critical evaluation
+     and is worth more than a half-built search page.
+
+Hazards, all silent:
+  - THE PLATFORM LOG WINDOW OPENS AFTER BOOT. Entrypoint output sits above what the
+    dashboard shows, so a seed that ran can look as though it never did. Verify by
+    requesting a known certificate ID over curl instead; that leaves an artefact.
+  - A long-lived branch's prose files can auto-merge into self-contradiction. Read
+    merged documents; do not trust a clean merge.
+  - Check-Docs does not recurse into docs/ subdirectories, so docs/evidence/ is
+    unmapped and unchecked. The traceability matrix is going there too.
+  - The local .venv drifts from requirements.txt and CI cannot see it. After any merge
+    touching requirements, run
+    .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt before pytest.
+  - gh output reaches artefacts with non-ASCII glyphs mangled to "???". Harmless in
+    dev_reports, rejected by Check-Ascii in docs/evidence. Transcribe evidence by
+    hand; never paste it.
+  - gh pr merge returns exit 0 and prints nothing. Confirm every merge with
+    git log --oneline --parents on the target branch.
+  - GitHub does not auto-close issues here. Close explicitly and confirm with
+    gh issue view --json state.
+  - A git add wrapped in Invoke-Logged leaves an artefact reading "(no output)". It
+    proves the command ran, not what it staged. Add a git status --short before the
+    commit.
+  - Filesystem:edit_file matches the FIRST occurrence of its anchor, silently. The
+    opening-prompt tail is identical in every session block. Append a new block from
+    a file rather than anchoring on it.
+  - registrar_client IS the client fixture with force_login called on it. Build a
+    fresh django.test.Client() for anonymous cases.
+  - DEMO_USERNAME in seed_demo.py and REGISTRAR_USERNAME in tests/conftest.py are
+    both "registrar", declared independently. A test using the seed and the fixture
+    together would fail on the unique constraint.
+  - Records registered through the live site do not survive a restart; only the
+    seeded three return. QVS-TEST-CASE-2345-6789 is the ID that is safe to write
+    down.
+  - The free instance sleeps after 15 minutes idle and takes 30-60 seconds to wake.
+    Warm the URL before showing it to anyone.
+  - CLAUDE SHOULD READ BACK ANY FILE IT WRITES BEFORE HANDING OVER A COMMAND THAT
+    CONSUMES IT. In session 014 Claude asserted three writes that had not happened,
+    once quoting a fabricated tool result, and two commands failed on missing files.
+    A write call returning is not evidence. D-019 already required this.
+
+Remember what the marks are for. 75% of them need no new features, and the report,
+the video and the individual contribution report - 55% between them - are all still
+unstarted. Features are cut before evidence, documentation or the report.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
+

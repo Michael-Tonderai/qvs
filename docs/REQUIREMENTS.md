@@ -22,7 +22,7 @@ critical evaluation - which is worth more than the feature would have been.
 
 | ID | Requirement | Tier | Status |
 |---|---|---|---|
-| REQ-F-001 | Each qualification record is issued a unique, non-guessable certificate ID | 1 | BUILT |
+| REQ-F-001 | Each qualification record is issued a unique, non-guessable certificate ID | 1 | VERIFIED |
 | REQ-F-002 | Each record carries an HMAC-SHA256 signature computed over its canonical fields at issue | 1 | VERIFIED |
 | REQ-F-003 | An authorised user can register a qualification record | 1 | VERIFIED |
 | REQ-F-004 | An unauthenticated user cannot register or edit records | 1 | VERIFIED |
@@ -43,6 +43,18 @@ critical evaluation - which is worth more than the feature would have been.
 | REQ-N-003 | The system is deployed to a publicly accessible HTTPS URL, redeployed automatically on merge to `main` | 1 | VERIFIED |
 | REQ-N-004 | Test coverage of application code meets the configured threshold, measured with branch coverage enabled | 2 | BUILT |
 | REQ-N-005 | The system exposes a health endpoint the deployment platform can poll to decide whether an instance is serving | 1 | VERIFIED |
+
+**REQ-F-001 moved to VERIFIED on 2026-09-12.** A record registered through the live
+site was issued `QVS-DWCQ-2GTA-SZEV-KS9E`, which contains no character outside
+`signing.CERTIFICATE_ID_ALPHABET`, and it was then verified anonymously from two
+independent clients. Until this session the requirement had only ever been exercised
+against a test database. Evidence in `docs/evidence/seeding.md`.
+
+Note for the report rather than a qualification of the status: one record on the
+deployed instance, `QVS-TEST-CASE-2345-6789`, carries a fixed identifier by design.
+It is a fixture inserted by a management command and was never issued to anyone, so
+it does not weaken this requirement - but it is visible on a public URL and D-037
+argues the case rather than leaving it to be found.
 
 **REQ-N-003 was reworded on 2026-09-12.** It previously read *the system starts from a
 single `docker compose up` with no manual steps*. D-026 moved deployment off local
