@@ -10,7 +10,7 @@ from django.urls import reverse
 
 
 @pytest.mark.integration
-@pytest.mark.req("REQ-N-003")
+@pytest.mark.req("REQ-N-005")
 def test_health_endpoint_reports_ok(client):
     """The health endpoint answers 200 with a JSON ok status.
 
@@ -24,7 +24,7 @@ def test_health_endpoint_reports_ok(client):
 
 
 @pytest.mark.unit
-@pytest.mark.req("REQ-N-003")
+@pytest.mark.req("REQ-N-005")
 def test_health_url_is_reversible():
     """The route is registered under its namespaced name.
 

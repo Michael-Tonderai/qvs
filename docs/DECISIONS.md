@@ -527,3 +527,171 @@ from memory in Sprint D.
   REQ-N-001 does not move on protection alone. Protection is the mechanism; the evidence
   is a pull request from `develop` that merges to `main` through this gate, with the
   check reported against it. Until that merge exists the requirement stays OPEN.
+
+  **Satisfied on 2026-09-11.** PR #14 merged `develop` into `main` through this gate,
+  with the required check reported against it, and REQ-N-001 moved to VERIFIED in
+  session 010. The paragraph above describes the position before that merge and is left
+  standing rather than edited, because a decision that records what it was waiting for
+  is more useful to the report than one that quietly reads as though it always held.
+  Confirmed in session 012 against `gh pr view 14`, not inferred from commit subjects.
+
+## D-032 - Audit events carry no foreign keys
+
+- **Context:** REQ-F-007 records every verification attempt and REQ-F-008 requires
+  those records to be append-only. The obvious model has a ForeignKey to
+  `Qualification` and another to the user, which is what an audit table in most systems
+  looks like.
+- **Decision:** `AuditEvent` has no ForeignKey at all. The certificate ID is stored as
+  the string that was submitted, and the actor as a username snapshot. REQ-F-011 will
+  join on the string.
+- **Rejected:** Nullable foreign keys. A NOT FOUND attempt has no qualification to
+  point at, so the column would be null on exactly the events most worth auditing - the
+  ones where somebody presented an identifier this system never issued. On the user
+  side every `on_delete` option is wrong in a different way: CASCADE destroys audit
+  history, SET_NULL rewrites an audit row and so contradicts REQ-F-008 inside the
+  model's own definition, and PROTECT turns the audit trail into a reason an account
+  cannot be closed.
+- **Consequence:** The trail survives the deletion of anything it refers to, and it
+  records what was presented rather than what it turned out to be - which is the
+  question an audit answers. The cost is that a report joining events to records joins
+  on a string rather than on a key, and that an event naming a deleted user cannot be
+  resolved back to an account. Both are correct behaviour for an audit trail rather
+  than limitations of one. This is the same argument
+  `Qualification.canonical_fields()` already makes for keeping `issued_by` outside the
+  signed payload.
+
+## D-033 - Append-only is enforced in the application, not in the database
+
+- **Context:** REQ-F-008 says no update or delete path exists. The strongest available
+  mechanism is a database trigger that refuses UPDATE and DELETE on the table.
+- **Decision:** Enforcement lives in Python. `AuditEvent.save()` raises
+  `AppendOnlyError` when the row already has a primary key, `AuditEvent.delete()`
+  always raises, and `AuditEventQuerySet` overrides `update()` and `delete()` to raise
+  as well. The queryset override is the substantive half: `QuerySet.update()` writes
+  SQL without ever calling `Model.save()`, so a guard on the model alone would leave
+  `AuditEvent.objects.all().update(...)` working perfectly.
+- **Rejected:** Database triggers. They would hold against raw SQL, which the Python
+  guards cannot, and they would pin the schema to one backend in a way D-002's claim
+  that the SQLite to PostgreSQL move is a configuration change does not survive. Also
+  rejected: relying on `save()` alone, which is the version of this guarantee that
+  looks complete and is not.
+- **Consequence:** The guarantee holds against every path the application offers and
+  against none outside it. A direct SQL UPDATE succeeds, and so would a data migration,
+  because historical models in migrations receive a default manager rather than this
+  one - Django only serialises managers marked `use_in_migrations`. That is stated in
+  the technical report's critical evaluation rather than left for a reader to discover,
+  because an application-level guarantee described as if it were a database one is the
+  kind of claim that does not survive a viva question.
+
+## D-034 - REQ-N-003 means one command to start, after one-time configuration
+
+*Written in session 006 on `feature/REQ-N-003-docker-deployment` as D-026, and
+renumbered here when that branch merged. `develop` had issued D-026 and D-027 to
+different decisions in the meantime, so the branch's original numbers were already
+taken. Nothing about the reasoning changed; only the label did. This is the one place
+in the register where a number does not follow the session it was decided in, and it
+is noted rather than smoothed over.*
+
+- **Context:** REQ-N-002 forbids committing any secret. REQ-N-003 requires the system
+  to start with no manual steps. The container runs with `QVS_DEBUG=0`, under which
+  `config/settings.py` treats a missing `QVS_SECRET_KEY` as a start-up error by
+  design. The two requirements cannot both be satisfied literally: the container needs
+  a key it is forbidden to carry.
+- **Decision:** `docker-compose.yml` reads `env_file: .env`, which is gitignored and
+  excluded from the image build context. `.env` is generated once by
+  `tools\New-DotEnv.ps1`, which produces both keys with `secrets.token_urlsafe(50)`
+  and refuses to overwrite an existing file unless forced. REQ-N-003 therefore means
+  one command to start, after one-time configuration.
+- **Rejected:** Committing throwaway keys into `docker-compose.yml` to make the
+  literal reading true. It would satisfy the wording of the weaker requirement by
+  breaching the stronger one, and a committed key is the string that ends up in
+  production - the same argument that kept a fallback out of `settings.py`. Also
+  rejected: generating a key inside the entrypoint, which would produce a signing key
+  that changes on every container start and so invalidates every signature already
+  issued (D-003).
+- **Consequence:** Configuration is a command rather than a paragraph, so it is done
+  the same way every time. The cost is that a fresh clone cannot start the stack until
+  `New-DotEnv.ps1` has been run once, and that this reading of REQ-N-003 is an
+  interpretation rather than the requirement's literal text - which is why it is
+  registered rather than assumed, and why it belongs in the report's critical
+  evaluation as a case of two requirements in genuine tension.
+
+  Under D-036 the same tension reappears one level up and is answered the same way:
+  the platform generates both keys at first deploy and holds them, so the repository
+  still carries no secret and the deployment still needs no manual key handling. The
+  mechanism moved from a local script to a blueprint field; the argument did not move
+  at all.
+
+## D-035 - WhiteNoise serves static files, not a second container
+
+*Written in session 006 as D-027 and renumbered on merge, for the reason given in
+D-034.*
+
+- **Context:** Django stops serving static files when `DEBUG` is off, and every
+  deployed environment runs with `QVS_DEBUG=0`. Without something serving them, the
+  Django admin renders with no stylesheet - which is what an assessor sees in the
+  demonstration video, worth 15%.
+- **Decision:** WhiteNoise, added to `requirements.txt` with no platform marker and
+  wired in directly below `SecurityMiddleware`. `STORAGES` uses
+  `CompressedStaticFilesStorage`, deliberately not the manifest variant: the manifest
+  backend raises at render time for any `{% static %}` reference it cannot find, which
+  would make the test suite depend on `collectstatic` having run first.
+- **Rejected:** An nginx sidecar container. It is the correct answer for a production
+  deployment and the wrong one here - it doubles the compose file, adds a service to
+  explain on camera, and buys far-future cache headers for a demonstration dataset on
+  a free instance that sleeps when idle. Also rejected: leaving the admin unstyled and
+  calling it scoped-out under the `CLAUDE.md` Section 8 fence. That fence excludes
+  styled UI of our own; it does not excuse a framework's own interface arriving
+  broken.
+- **Consequence:** One dependency and two settings changes, and the deployment serves
+  a complete admin. The trade against nginx is a sentence in the report's critical
+  evaluation. One visible cost locally: WhiteNoise warns `No directory at:
+  staticfiles\` on any run where `collectstatic` has not been run, which includes the
+  test suite and CI. Harmless - the entrypoint collects before gunicorn starts - but
+  it is a warning that will be seen and should not be mistaken for a defect.
+
+## D-036 - Render is the deployment platform
+
+- **Context:** D-026 committed to a managed container service and named Cloud Run as a
+  provisional pick, leaving the actual platform undecided. Six sessions later nothing
+  was deployed anywhere, and the deliverables that depend on a running system - the
+  demonstration video at 15%, and the deployment half of the working-software mark -
+  were all blocked behind that open question.
+- **Decision:** Render, free instance, Docker runtime, built from the existing
+  `Dockerfile` and declared in `render.yaml`. Deploys from `main` with `autoDeploy`,
+  so the gate that protects `main` (D-031) is also the gate on what reaches the public
+  URL. Both keys are generated by the platform at first deploy.
+- **Rejected:** Cloud Run, Azure, Railway and Fly.io. Cloud Run and Azure both sit
+  behind a billing account and a card, which is days of friction for a demonstration
+  system; Railway's free tier ended in 2023 and its trial credit expires; Fly.io no
+  longer offers a free tier to new accounts. Render was the only candidate that puts a
+  live HTTPS URL in front of an assessor with no card and no expiry. Also rejected:
+  configuring the service by hand in the platform's console, which would leave the
+  deployment unreviewable, undiffable and unreproducible - the same argument D-007
+  makes for keeping the pipeline definition in the repository.
+- **Consequence:** REQ-N-003's wording changes. It described a single
+  `docker compose up`; the assessed start command is now a deployment that happens on
+  merge to `main`, and the requirement is reworded in `docs/REQUIREMENTS.md` to name
+  the public URL. `docker-compose.yml` stays in the repository - it is real,
+  reviewable containerisation work and it still runs anywhere Docker exists, just not
+  on this machine.
+
+  Three properties of the free instance are limitations rather than defects, and each
+  belongs in the report rather than being discovered by an assessor. The disk is
+  ephemeral, so records registered through the live site do not survive a restart or a
+  redeployment - the system demonstrates correctly within a session and resets between
+  them. The instance sleeps after fifteen minutes idle and the next request waits
+  thirty to sixty seconds for it to wake, so the URL must be warmed before it is shown
+  on camera. And 512 MB is the whole memory allowance, which is why `WEB_CONCURRENCY`
+  is set to 2 rather than the Dockerfile's local default of 3.
+
+  Three code changes follow from deploying behind a TLS-terminating proxy, and all
+  three would have failed silently. The exec-form `CMD` could not expand `${PORT}`, so
+  the container would have listened on the wrong port and never received traffic;
+  `SECURE_PROXY_SSL_HEADER` is required or the CSRF middleware rejects every POST the
+  system has; and `ALLOWED_HOSTS` needs the platform's own hostname, which
+  `settings.py` now reads from `RENDER_EXTERNAL_HOSTNAME` rather than waiting for
+  someone to type it into a dashboard. The first of these is verified by the `image`
+  job added to `ci.yml` under D-028, which starts the container with `PORT` set to a
+  non-default value and requests `/health/` from outside it. Reading the Dockerfile
+  could not have established that; running it is the only thing that could.

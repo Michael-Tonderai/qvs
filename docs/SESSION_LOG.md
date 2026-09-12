@@ -1372,3 +1372,536 @@ profile.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+## Session 010 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-11 23:35
+Token   : QVS-S010-A2B-61b5d1c
+Sprint  : B
+Branch  : develop
+Done    :
+  - main protected for the first time since the repository was created. Classic
+    branch protection applied by API from dev_reports/branch_protection.json rather
+    than by hand: required check "Lint, security and tests" bound to GitHub Actions
+    app id 15368 and strict; pull request required with 0 approvals; enforce_admins
+    on; force pushes and branch deletion refused; conversation resolution required;
+    linear history off.
+  - D-031 registered, covering the mechanism, the zero-approval reasoning and the
+    linear-history call.
+  - PR #14 opened from develop and merged to main as 1253dd6 - a real merge commit
+    with parents 06ab3dc and bafa013 - having passed the required check. The first
+    merge main has ever received.
+  - REQ-N-001 moved OPEN -> VERIFIED, browser-confirmed on the merged PR showing the
+    check as required and on the branch protection settings page.
+  - tools/Set-Env.ps1 written, delivering D-030. Loads .env into the current
+    PowerShell session only, prints names and never values, splits each line on the
+    first '=' so a key containing one is not truncated.
+  - PR #15 opened and squash-merged to develop as 61b5d1c, CI green.
+  - Suite 41 passing at 96.32% on the corporate machine after a reboot, with the
+    environment supplied by Set-Env.ps1 rather than by hand.
+HEAD    : 61b5d1cae2502b3c1c844427b03a692fbd8b19b6  PUSHED
+Tree    : clean
+Issues  : PR #14 merged to main, PR #15 merged to develop. No GitHub issue was
+          opened this session and the issue list was never queried. The issue
+          covering REQ-F-005 and REQ-F-006 remains unopened.
+Open    :
+  - Nothing half-finished. Both units of work reached a merged PR.
+  - REQ-F-005 and REQ-F-006 not started: no issue, no branch, no code.
+Decided :
+  - D-031, registered.
+  - Taken inline, not registered: feature and chore branches squash into develop so
+    its history reads one commit per unit of work, and develop merges into main so
+    main inherits the full history. PR #15 squashed, PR #14 merged, deliberately.
+  - Taken inline: merged branches are not deleted. Branch history is assessed.
+Watch   :
+  - D-025's log currency check produced its second false positive. It counts commits
+    above the newest logged HEAD and calls two or more STALE, which assumes a close
+    is exactly one commit. Session 009 closed and then amended its block twice, so a
+    correctly logged repository read STALE. Session 010's opening prompt anticipated
+    it in prose. That is twice now, and it is worth a decision rather than a third
+    prose warning.
+  - gh pr merge returns exit 0 with no output through Invoke-Logged.ps1. Do not read
+    the silence as failure, and do not read exit 0 as proof the merge happened.
+    Confirm with git log --oneline --parents on the target branch.
+  - gh pr view has no "merged" field; state and mergedAt carry it. Asking for it
+    fails the whole command with exit 1.
+  - .env holds five variables, not the three D-030's context claims: QVS_DEBUG,
+    QVS_SECRET_KEY, QVS_SIGNING_KEY, QVS_ALLOWED_HOSTS, QVS_DATABASE_PATH. The
+    decision is unaffected; the sentence is wrong and was left uncorrected pending
+    Sir Ton's word.
+  - Green CI runs carry annotations_count 1. Never examined. Most likely an action
+    deprecation notice, which stops being cosmetic when the action version retires.
+  - enforce_admins is on, so main cannot be pushed to directly by anyone, including
+    the owner. Changes arrive by pull request or not at all.
+  - Carried from session 009 and still live: registrar_client IS the client fixture
+    with force_login called on it. A test asking for both gets one object and its
+    "anonymous" request arrives authenticated. Build a fresh django.test.Client().
+    REQ-F-005's public tests are exactly the shape that walks into this.
+Next    : Open one GitHub issue covering REQ-F-005 and REQ-F-006 together, branch
+          feature/REQ-F-005-public-verification off develop, and build the public
+          verification page - certificate ID in, VERIFIED, NOT FOUND or TAMPERED out.
+Opening prompt :
+```
+Session 011. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S010-A2B-61b5d1c
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured. The script
+is new as of session 010 - it did not exist before, so do not conclude from an older
+block that the environment must be set by hand.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 61b5d1c, that commit being session 010's close
+     block. That is the Section 1.3 shape. If further docs commits were stacked on
+     it the census will read STALE - check that every commit above 61b5d1c is a docs
+     commit. A code commit above it would not be the expected shape and is worth
+     stopping for.
+  2. main is at 1253dd6 and is now PROTECTED. It is no longer the unprotected
+     background every session has read it as. Nothing can be pushed to it directly,
+     including by the owner, and REQ-N-001 is VERIFIED rather than OPEN.
+  3. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  4. REQ-F-006 carries four tests and a status of OPEN. That is deliberate and
+     explained in session 009's block. Do not "fix" it by changing the status.
+  5. Merged branches are not deleted. origin/feature/REQ-F-003-register-qualification
+     and origin/chore/D-030-set-env are both intact on purpose, not stale refs.
+
+Already run:  main protected under D-031. PR #14 merged develop to main as 1253dd6,
+              a merge commit with two parents, through the required check. REQ-N-001
+              at VERIFIED. tools/Set-Env.ps1 written and merged by PR #15, squashed
+              to develop as 61b5d1c. Suite 41 passing at 96.32% after a reboot.
+Not yet run:  Anything Docker, anywhere. The CI job D-028 requires before the Docker
+              branch's PR can open. tools/traceability.py. No issue has ever been
+              opened for REQ-F-005 or REQ-F-006, and the issue list has never been
+              queried.
+
+Next action, in this order:
+  1. Open one GitHub issue covering REQ-F-005 and REQ-F-006 together. They are one
+     page and one test file; two issues would split the evidence.
+  2. Branch feature/REQ-F-005-public-verification off develop.
+  3. Build the public verification page - certificate ID in, VERIFIED, NOT FOUND or
+     TAMPERED out - with tests, then browser-verify before either requirement moves
+     past BUILT. A green suite is not a verified page (CLAUDE.md Section 5).
+
+Hazards, all silent:
+  - registrar_client IS the client fixture with force_login called on it. A test
+    asking for both gets one object and its "anonymous" request arrives
+    authenticated. Build a fresh django.test.Client() instead. REQ-F-005's public
+    tests are exactly the shape that walks into this.
+  - gh pr merge returns exit 0 and prints nothing. Confirm every merge with
+    git log --oneline --parents on the target branch, never by exit code alone.
+  - gh pr view has no "merged" field. Asking for it fails the whole command.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
+---
+
+## Session 011 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-12 11:45
+Token   : QVS-S011-A2B-604e157
+Sprint  : B
+Branch  : develop
+Done    :
+  - Issue list queried for the first time in eleven sessions. It found that no PR
+    had ever carried a Closes reference, so five issues stood open describing work
+    that was merged and shipped. #1, #3, #11 and #12 closed with comments citing the
+    decision or merge commit that delivered each, and saying the closure was
+    retrospective rather than pretending the link had always been there.
+  - Issue #16 opened covering REQ-F-005 and REQ-F-006 together.
+  - feature/REQ-F-005-public-verification branched off develop at bbecea1.
+  - qualifications/verification.py written: the three-outcome decision, outside the
+    view, answerable without a request cycle.
+  - The public verification page built, with its template and 14 tests.
+  - The root redirect repointed from register to verify, folded into this branch on
+    Sir Ton's word rather than left for later. test_routing.py rewritten to match.
+  - REQ-F-005 and REQ-F-006 browser-verified and moved OPEN -> VERIFIED.
+  - PR #17 opened, CI green in 30s, squash-merged to develop as 604e157. Confirmed
+    by git log --oneline --parents, not by exit code. Issue #16 closed by the
+    commit message - the first Closes reference this repository has ever carried.
+  - Suite 55 passing at 97.04%, up from 41 at 96.32%. verification.py and views.py
+    both at 100% with branch coverage.
+HEAD    : 604e1576138a084250925205dccdf9d7c6ce743e  PUSHED
+Tree    : clean
+Issues  : #1, #3, #11, #12 closed retrospectively. #16 opened and closed by PR #17.
+          #8 (REQ-N-003 docker) and #9 (REQ-F-001, REQ-F-002) remain open, both on
+          purpose. Next issue number will be #18.
+Open    :
+  - Nothing half-finished. The unit of work reached a merged PR.
+  - Issue #9 held open deliberately, pending a decision recorded under Watch.
+  - REQ-F-007 and REQ-F-008 not started. The verification view is where the audit
+    hook lands, and it was fenced out in writing in issue #16, in the module
+    docstring and in the PR body, so the exclusion is argued rather than forgotten.
+Decided :
+  - Nothing registered. Everything below was taken inline.
+  - A tampered result carries no record. VerificationResult attaches the
+    qualification only on VERIFIED, so the template cannot render fields the system
+    has just refused to vouch for. Enforced by the data, not by discipline.
+  - All three outcomes return 200. A 404 for NOT FOUND would claim the verification
+    page does not exist and would let an automated caller sort real IDs from
+    invented ones by status code alone.
+  - Certificate IDs are uppercased and stripped of whitespace, but look-alike
+    characters are NOT repaired. signing.py excludes 0 and 1 as well as O and I, so
+    there is no correct target to fold onto, and silently verifying the wrong record
+    is worse than a NOT FOUND on a typo. A test asserts this stays un-fixed.
+  - Verification is GET, not POST. It reads and changes nothing, so the result is
+    shareable and needs no CSRF token on a page anonymous users must reach. Worth
+    revisiting when REQ-F-007 makes it write.
+  - The routing tests stay unmarked by requirement even though the root now points
+    at verification. Marking them would let the traceability matrix count a URL
+    configuration as evidence of verification capability.
+  - One commit, not two. The redirect touches the same urls.py region as the new
+    route; splitting cleanly would have meant staging by hunk and reverting
+    test_routing.py for the first commit, risking an intermediate commit whose
+    suite is red.
+  - The first two are the strongest candidates for registration as numbered
+    decisions. Left unnumbered pending Sir Ton's word.
+Watch   :
+  - REQ-F-002 is browser-verified in everything but the register entry. A
+    certificate was minted at 10:09, its signature recomputed and matched at 10:10,
+    and the same record rejected at 10:20 after one column changed. Promoting it to
+    VERIFIED and closing issue #9 citing both requirements is the recommendation.
+    REQ-F-001 should stay at BUILT: a browser saw one well-formed ID used as a
+    lookup key, and no amount of clicking demonstrates uniqueness or
+    non-guessability. Not done, because it is a status change outside the branch's
+    scope and it waits on Sir Ton.
+  - gh output reaches Invoke-Logged artefacts with its success glyph mangled to
+    "???" - PowerShell 5.1 decoding UTF-8 as ANSI, the same phenomenon as D-018 but
+    in tool output rather than repository text. Harmless while dev_reports is
+    gitignored. It stops being harmless the moment a gh artefact is copied into
+    docs/evidence, where Check-Ascii.ps1 will reject it. Sprint D assembles that
+    folder.
+  - D-025's log currency check behaved correctly this session - one commit above
+    the logged HEAD, verdict current. The false positive needs two or more stacked
+    commits, so session 010's second occurrence remains the live case and the
+    decision it deserves is still unwritten.
+  - gh pr merge again returned exit 0 with no output. Confirmed live this session.
+  - Filesystem:edit_file matches the FIRST occurrence of its anchor text, silently.
+    Session 011's close block was written once against an anchor that ends every
+    session's opening prompt and landed between sessions 001 and 002. Caught from
+    the returned diff's trailing context, removed and rewritten against text unique
+    to session 010. Anchor on a token line or a sha, never on boilerplate.
+  - .env holds five variables, not the three D-030's context claims. Carried
+    uncorrected, still pending Sir Ton's word.
+  - Green CI runs carry annotations_count 1. Still never examined.
+  - registrar_client IS the client fixture with force_login applied. Still live, and
+    tests/test_verification.py was written specifically around it - every client in
+    that module is a fresh django.test.Client(). The next module with public tests
+    must do the same.
+  - GET /favicon.ico returns 404 on every page load. Cosmetic, but it will appear
+    in the demonstration video if the server terminal is screen-recorded.
+  - The direction letters in a token record intent, not fact. Session 010 wrote A2B
+    and session 011 then ran on AccountA. The sha7 is what reconciles; the letters
+    do not.
+Next    : Decide REQ-F-002 and issue #9, then build REQ-F-007 and REQ-F-008 - the
+          audit event on every verification attempt, append-only. The hook lands in
+          the verification view. tools/traceability.py is the other unbuilt piece
+          the assignment's verification deliverable depends on.
+Opening prompt :
+```
+Session 012. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects. The direction letters in
+the token record intent, not fact.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S011-A2B-604e157
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured. Note that
+QVS_DEBUG=0 set for a pytest run persists for the life of that shell - starting
+runserver in the same terminal runs with DEBUG off, and WhiteNoise is still
+unmerged.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 604e157, that commit being session 011's close
+     block. That is the Section 1.3 shape. A code commit above it would not be the
+     expected shape and is worth stopping for.
+  2. main is at 1253dd6 and is PROTECTED. Nothing can be pushed to it directly,
+     including by the owner. develop has moved four commits past it and main has
+     not received a merge since PR #14.
+  3. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  4. REQ-F-001 is BUILT and REQ-F-002 is BUILT, and issue #9 covering both is open
+     on purpose. Session 011 recommends promoting REQ-F-002 to VERIFIED and leaving
+     REQ-F-001 at BUILT. That decision has not been taken. Do not take it silently.
+  5. Merged branches are not deleted. origin/feature/REQ-F-005-public-verification,
+     origin/feature/REQ-F-003-register-qualification and origin/chore/D-030-set-env
+     are all intact on purpose, not stale refs.
+
+Already run:  Issue list queried and four stale issues closed. Issue #16 opened and
+              closed by PR #17, which squash-merged to develop as 604e157 through a
+              green required check. REQ-F-005 and REQ-F-006 browser-verified and at
+              VERIFIED. The root now redirects to /verify/. Suite 55 passing at
+              97.04%.
+Not yet run:  Anything Docker, anywhere. The CI job D-028 requires before the Docker
+              branch's PR can open. tools/traceability.py. REQ-F-007 and REQ-F-008.
+              No issue has been opened for the audit requirements.
+
+Next action, in this order:
+  1. Settle REQ-F-002 and issue #9. One decision, then a status line and a close.
+  2. Open one issue covering REQ-F-007 and REQ-F-008 - the audit event and its
+     append-only guarantee. They are one model and one migration.
+  3. Build them. The hook lands in qualifications/views.py verify(), which is
+     currently a pure read; adding the write changes that, and the GET-not-POST
+     reasoning recorded in session 011 is worth re-reading before it does.
+
+Hazards, all silent:
+  - registrar_client IS the client fixture with force_login called on it. A test
+    asking for both gets one object and its "anonymous" request arrives
+    authenticated. Build a fresh django.test.Client() instead. Every client in
+    tests/test_verification.py already does; match it.
+  - gh pr merge returns exit 0 and prints nothing. Confirm every merge with
+    git log --oneline --parents on the target branch, never by exit code alone.
+  - gh pr view has no "merged" field. Asking for it fails the whole command.
+  - Filesystem:edit_file matches the FIRST occurrence of its anchor, silently. Never
+    anchor on text that repeats across session blocks; use a token line or a sha.
+  - gh output reaches artefacts with non-ASCII glyphs mangled to "???". Harmless in
+    gitignored dev_reports, rejected by Check-Ascii.ps1 if copied into docs/evidence.
+  - PRs did not carry Closes references before #17. If an issue looks stale, query
+    the list rather than assuming the work is unfinished.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
+---
+
+## Session 012 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-12 19:00
+Token   : QVS-S012-A2B-e0939ab
+Sprint  : B
+Branch  : develop
+Done    :
+  - Issue #9 settled. REQ-F-002 promoted BUILT -> VERIFIED on session 011's browser
+    evidence; REQ-F-001 left at BUILT because uniqueness and non-guessability are
+    properties of the generator, not of a page. Closed with a comment recording both
+    and the vocabulary gap underneath them.
+  - Issue #18 opened covering REQ-F-007 and REQ-F-008 together, with nine explicit
+    acceptance criteria so the PR had something to close against.
+  - feature/REQ-F-007-audit-events branched off develop at a6995a5.
+  - AuditEvent model written, with AuditEventQuerySet and AppendOnlyError. Migration
+    0002_audit_event. No foreign keys on the model at all.
+  - qualifications/audit.py written - record_attempt(), actor_username(),
+    remote_address(). New module, so models.py never learns about HTTP and
+    verification.py stays answerable without a request cycle.
+  - The audit hook added to views.verify(). GET retained after revisiting, as the
+    view's own docstring anticipated.
+  - tests/test_audit.py - 17 tests, split by req marker across both requirements.
+  - D-032 and D-033 registered.
+  - PR #19 opened, CI green in 51s on the required check, squash-merged to develop as
+    e0939ab. Confirmed by git log --oneline --parents, not by exit code.
+  - Self-review comment posted carrying five findings. One of them - a docstring in
+    verification.py describing a placement the code no longer used - was fixed on the
+    branch as 03626e4 before the merge.
+  - Suite 72 passing at 97.62%, up from 55 at 97.04%. Every module under
+    qualifications at 100% with branch coverage, including the new audit.py.
+  - D-031 amended. PR #14 confirmed MERGED to main on 2026-09-11, so REQ-N-001's
+    VERIFIED status is evidenced rather than assumed. The decision's original
+    paragraph is left standing beneath the correction.
+  - Issues #16 and #18 closed by hand. See Watch - this is now a standing obligation.
+HEAD    : e0939abb1f36ed94105b1c8b66875dfe2d6957c1  PUSHED
+Tree    : clean
+Issues  : #9 closed. #18 opened and closed. #16 closed retrospectively. #8 (REQ-N-003
+          docker) remains open on purpose. Next issue number will be #20.
+Open    :
+  - Nothing half-finished. The unit of work reached a merged PR.
+  - tools/traceability.py still unbuilt. It is the evidence for the assignment's
+    Automated Verification of Requirements deliverable, and every test in the suite
+    already carries the req marker it reads.
+  - The CI job D-028 requires before the Docker branch's PR can open is still not
+    written. Nothing Docker has run anywhere, on any machine.
+  - REQ-F-009, REQ-F-010, REQ-F-011, REQ-N-002 and REQ-N-003 all still OPEN.
+Decided :
+  - REQ-F-002 to VERIFIED, REQ-F-001 stays at BUILT. Registered nowhere as a
+    D-number; it is a status call, not a design decision.
+  - REQ-F-007 and REQ-F-008 stay at BUILT rather than VERIFIED. REQ-F-007's only
+    observable effect is a database row with no interface in front of it until
+    REQ-F-011 lands, and REQ-F-008 is a guarantee about code paths that do not exist.
+    Neither is demonstrable in a browser, which is what VERIFIED means here. Taken on
+    Sir Ton's instruction to decide rather than keep asking. One paragraph in the
+    report's critical evaluation covers REQ-F-001, REQ-F-007 and REQ-F-008 together:
+    some requirements are established by structure and test rather than observation,
+    and this register's status vocabulary has no word for them. That paragraph is
+    worth more than three stretched statuses.
+  - D-032 - audit events carry no foreign keys.
+  - D-033 - append-only is enforced in the application, not the database.
+  - Taken inline, not registered: the audit write lands in the view rather than in
+    verification.verify(); no admin.py is created, so the absence of an admin path is
+    structural; REMOTE_ADDR is recorded and X-Forwarded-For deliberately is not; an
+    over-long submitted ID is truncated at 64 characters rather than rejected; the
+    outcome column carries no choices, because verification.py owns the vocabulary and
+    importing it back into models.py would close a cycle.
+Watch   :
+  - GITHUB DOES NOT AUTO-CLOSE ISSUES IN THIS REPOSITORY. A linked issue closes only
+    when the pull request merges into the default branch. The default branch is main;
+    every PR here targets develop by design. Session 011's block records issue #16 as
+    "closed by the commit message" - it was not. #16 was still open at session 012 and
+    has now been closed by hand, as has #18. The log is appended and never rewritten,
+    so session 011's claim stands uncorrected in its own block; this is the
+    correction. An explicit gh issue close belongs in every merge sequence from here.
+  - Comment drift is invisible to every gate. verification.py described the audit
+    write as something that function would grow; the write went to the view instead.
+    Check-Docs.ps1 verifies facts and maps, not prose, and no test can fail on a
+    wrong docstring. It was caught by reading the module against the change during
+    self-review, which is the argument for doing the self-review at all.
+  - bulk_create(update_conflicts=True) is an unguarded upsert path on AuditEvent.
+    Neither the model guard nor the queryset override catches it. Nothing calls it,
+    and it belongs on D-033's list of uncovered paths alongside raw SQL and data
+    migrations rather than in a speculative guard.
+  - Filesystem:edit_file first-occurrence hazard, live and unchanged. This block was
+    appended from a file via Add-Content rather than by an anchored edit, because the
+    opening-prompt tail is byte-identical in every block in this log.
+  - makemigrations writes CRLF on Windows. .gitattributes normalised it on staging and
+    the committed blob is LF. Expected, not a problem, but it is the only file in this
+    session git had to normalise.
+  - gh pr merge returned exit 0 with no output again. Third session running.
+  - gh output still reaches artefacts with its success glyph mangled to "???".
+    Harmless while dev_reports is gitignored; rejected by Check-Ascii if copied into
+    docs/evidence. Sprint D assembles that folder.
+  - registrar_client IS the client fixture with force_login applied. Still live.
+    tests/test_audit.py builds a fresh django.test.Client() everywhere, including for
+    the signed-in case. Any new module with public tests must do the same.
+  - .env holds five variables, not the three D-030's context claims. Still
+    uncorrected, still pending Sir Ton's word.
+  - Green CI runs carry annotations_count 1. Still never examined.
+  - QVS_DEBUG=0 persists for the life of the shell it is set in. A runserver started
+    in that terminal runs with DEBUG off and WhiteNoise is still unmerged.
+Next    : Build tools/traceability.py. It reads the req markers every test already
+          carries and generates the requirements traceability matrix for
+          docs/evidence/, which is the assignment's Automated Verification of
+          Requirements deliverable and a figure in the technical report. No new
+          feature is involved and 75% of the marks need none.
+Opening prompt :
+```
+Session 013. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects. The direction letters in
+the token record intent, not fact.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S012-A2B-e0939ab
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured. Note that
+QVS_DEBUG=0 set for a pytest run persists for the life of that shell - starting
+runserver in the same terminal runs with DEBUG off, and WhiteNoise is still
+unmerged.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above e0939ab, that commit being session 012's close
+     block. That is the Section 1.3 shape. A code commit above it would not be the
+     expected shape and is worth stopping for.
+  2. main is at 1253dd6 and is PROTECTED. develop has moved six commits past the
+     merge base and main has not received a merge since PR #14, which merged on
+     2026-09-11 and is the evidence REQ-N-001 stands on.
+  3. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  4. REQ-F-007 and REQ-F-008 are BUILT and will stay BUILT. That was decided in
+     session 012, not overlooked. Neither is demonstrable in a browser and the
+     register's VERIFIED means browser-confirmed. Do not promote them.
+  5. Merged branches are not deleted. Four origin/feature and chore branches are
+     intact on purpose, not stale refs.
+
+Already run:  REQ-F-007 and REQ-F-008 built, tested and merged to develop as e0939ab
+              via PR #19 through a green required check. D-032 and D-033 registered.
+              D-031 amended with PR #14's confirmation. Issues #9, #16 and #18 all
+              closed. Suite 72 passing at 97.62%.
+Not yet run:  tools/traceability.py. Anything Docker, anywhere. The CI job D-028
+              requires before the Docker branch's PR can open. REQ-F-009, REQ-F-010,
+              REQ-F-011, REQ-N-002. No issue opened for traceability.
+
+Next action, in this order:
+  1. Open an issue for tools/traceability.py and branch from develop.
+  2. Build it. Every test already carries @pytest.mark.req, so the input exists -
+     read the markers, cross them against docs/REQUIREMENTS.md, and write the matrix
+     into docs/evidence/. A requirement with no test and a test citing a requirement
+     that does not exist are both findings the tool should report rather than skip.
+  3. The output lands in docs/evidence/, which IS tracked and IS checked by
+     Check-Ascii. See the gh glyph hazard below before copying any gh output there.
+
+Hazards, all silent:
+  - GitHub does not auto-close issues here. Linked issues close only on a merge into
+    the default branch; the default branch is main and every PR targets develop. Put
+    an explicit gh issue close in the merge sequence. Do not trust a Closes line.
+  - registrar_client IS the client fixture with force_login called on it. A test
+    asking for both gets one object and its "anonymous" request arrives
+    authenticated. Build a fresh django.test.Client() instead. tests/test_audit.py
+    and tests/test_verification.py both already do; match them.
+  - gh pr merge returns exit 0 and prints nothing. Confirm every merge with
+    git log --oneline --parents on the target branch, never by exit code alone.
+  - gh pr view has no "merged" field. Ask for state and mergedAt instead.
+  - Filesystem:edit_file matches the FIRST occurrence of its anchor, silently. The
+    opening-prompt tail is identical in every session block. Append a new block from
+    a file rather than anchoring on it.
+  - gh output reaches artefacts with non-ASCII glyphs mangled to "???". Harmless in
+    gitignored dev_reports, rejected by Check-Ascii.ps1 if copied into docs/evidence -
+    which is exactly where traceability evidence is going.
+  - No gate reads prose. Check-Docs verifies versions, the document map and decision
+    references. A docstring that describes code accurately today and inaccurately
+    tomorrow will not fail anything.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```

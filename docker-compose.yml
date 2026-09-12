@@ -1,0 +1,48 @@
+# docker-compose.yml
+#
+# One service. `docker compose up` is the entire start procedure (REQ-N-003), which is
+# the claim D-008 made when Docker was chosen over a cloud platform.
+#
+# D-013: the repository folder keeps its spaced name, so the project name is pinned
+# here. Without it compose derives the name from the directory and produces containers
+# called qualificationverificationsystem-web-1, which is both ugly on camera and
+# fragile - it changes if the folder is ever renamed.
+
+name: qvs
+
+services:
+  web:
+    build: .
+    # Host 8020 is the dev server port from CLAUDE.md Section 2, so the URL is the same
+    # whether the system is running under manage.py or in the container. One fewer
+    # thing to explain in the demonstration video. Container 8000 is gunicorn's bind.
+    ports:
+      - "8020:8000"
+    # REQ-N-002: the values live in .env, which is gitignored. .env.example is tracked
+    # and names every variable this project reads without holding a single value, so a
+    # fresh clone knows what to supply. See D-026 for why this counts as satisfying
+    # "no manual steps".
+    env_file:
+      - .env
+    environment:
+      # Set here rather than left to .env, because these three are properties of the
+      # deployment rather than of the developer's machine, and a stray QVS_DEBUG=1 in
+      # a local .env must not be able to reach the container. Values in `environment`
+      # win over values in `env_file`.
+      QVS_DEBUG: "0"
+      # D-002: SQLite on a mounted volume rather than inside a layer, so the data
+      # survives `docker compose down` and the container stays disposable.
+      QVS_DATABASE_PATH: /data/db.sqlite3
+      QVS_ALLOWED_HOSTS: localhost,127.0.0.1
+    volumes:
+      - qvs-data:/data
+    # The container is expected to outlive a laptop reboot during assessment week.
+    # `unless-stopped` restarts it on boot but respects a deliberate `docker compose
+    # stop`, which `always` would not.
+    restart: unless-stopped
+
+volumes:
+  # Named rather than a bind mount to the repository: a bind mount would put the
+  # database file back inside the working tree, where .gitignore is the only thing
+  # standing between it and a commit. A named volume cannot be committed by accident.
+  qvs-data:

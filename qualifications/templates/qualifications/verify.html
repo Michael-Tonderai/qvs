@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% comment %}
+qualifications/templates/qualifications/verify.html
+
+REQ-F-005 - the public verification page.
+REQ-F-006 - the TAMPERED outcome, and what it refuses to show.
+
+The one rule this template follows that is worth stating: record fields are rendered
+only under VERIFIED. The view attaches no record to any other outcome, so this is
+enforced by the data rather than by the discipline of whoever edits this file next.
+
+Three outcomes, three visibly different answers in the body text. Not a colour, not an
+icon - a sentence. A reader who is colour blind, or reading through a screen reader, or
+looking at a printed copy, gets the same answer as everyone else.
+{% endcomment %}
+
+{% block title %}Verify a qualification - QVS{% endblock %}
+
+{% block content %}
+  <h1>Verify a qualification</h1>
+
+  <p>
+    Enter the certificate ID printed on the qualification document. Anyone may check a
+    record; no account is needed.
+  </p>
+
+  {% comment %}
+    GET, so the result can be bookmarked and shared, and so no CSRF token is needed on
+    a page anonymous visitors must reach. No {% csrf_token %} here is deliberate, not
+    an omission - Django requires one for POST only.
+  {% endcomment %}
+  <form method="get" action="{% url 'qualifications:verify' %}">
+    <label for="certificate_id">Certificate ID</label>
+    <input
+      type="text"
+      id="certificate_id"
+      name="certificate_id"
+      value="{{ submitted }}"
+      placeholder="QVS-XXXX-XXXX-XXXX-XXXX"
+      autocomplete="off"
+      autocapitalize="characters"
+      spellcheck="false"
+      size="30"
+      required
+    >
+    <button type="submit">Verify</button>
+  </form>
+
+  {% if result %}
+    <hr>
+
+    {% if result.is_verified %}
+      <h2>VERIFIED</h2>
+      <p>
+        This certificate ID matches a record registered in QVS, and the record still
+        carries the signature it was issued with. Nothing in it has been altered since.
+      </p>
+
+      <dl>
+        <dt>Certificate ID</dt>
+        <dd><code>{{ result.qualification.certificate_id }}</code></dd>
+        <dt>Holder</dt>
+        <dd>{{ result.qualification.holder_name }}</dd>
+        <dt>Institution</dt>
+        <dd>{{ result.qualification.institution }}</dd>
+        <dt>Qualification</dt>
+        <dd>{{ result.qualification.qualification_title }}</dd>
+        <dt>Awarded</dt>
+        <dd>{{ result.qualification.award_date|date:"Y-m-d" }}</dd>
+        <dt>Registered</dt>
+        <dd>{{ result.qualification.issued_at|date:"Y-m-d H:i:s" }} UTC</dd>
+      </dl>
+
+    {% elif result.is_not_found %}
+      <h2>NOT FOUND</h2>
+      <p>
+        No record in QVS carries the certificate ID <code>{{ submitted }}</code>.
+      </p>
+      {% comment %}
+        Worth saying out loud, because the alternative reading is the damaging one: a
+        NOT FOUND is not an accusation. Certificate IDs are easy to mistype, and the
+        alphabet excludes look-alike characters precisely because that happens.
+      {% endcomment %}
+      <p>
+        Check the ID against the document and try again. A single mistyped character
+        produces this answer.
+      </p>
+
+    {% elif result.is_tampered %}
+      <h2>TAMPERED</h2>
+      <p>
+        A record carrying the certificate ID <code>{{ submitted }}</code> exists, but it
+        no longer matches the signature it was issued with. Its contents have been
+        altered since registration.
+      </p>
+      <p>
+        <strong>Do not rely on this qualification.</strong> The stored details are not
+        shown here, because QVS cannot vouch for them. Contact the issuing institution
+        directly.
+      </p>
+    {% endif %}
+  {% endif %}
+{% endblock %}
