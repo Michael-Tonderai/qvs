@@ -26,8 +26,8 @@ critical evaluation - which is worth more than the feature would have been.
 | REQ-F-002 | Each record carries an HMAC-SHA256 signature computed over its canonical fields at issue | 1 | BUILT |
 | REQ-F-003 | An authorised user can register a qualification record | 1 | VERIFIED |
 | REQ-F-004 | An unauthenticated user cannot register or edit records | 1 | VERIFIED |
-| REQ-F-005 | Any user can verify a record by certificate ID, receiving VERIFIED, NOT FOUND or TAMPERED | 1 | OPEN |
-| REQ-F-006 | A record altered after issue fails verification | 1 | OPEN |
+| REQ-F-005 | Any user can verify a record by certificate ID, receiving VERIFIED, NOT FOUND or TAMPERED | 1 | VERIFIED |
+| REQ-F-006 | A record altered after issue fails verification | 1 | VERIFIED |
 | REQ-F-007 | Every verification attempt writes an audit event | 1 | OPEN |
 | REQ-F-008 | Audit events are append-only - no update or delete path exists | 1 | OPEN |
 | REQ-F-009 | Any user can search records by certificate ID, holder name or institution | 2 | OPEN |
