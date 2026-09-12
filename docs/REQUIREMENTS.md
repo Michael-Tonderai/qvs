@@ -40,8 +40,27 @@ critical evaluation - which is worth more than the feature would have been.
 |---|---|---|---|
 | REQ-N-001 | No change reaches `main` without passing lint, security scan and the test suite | 1 | VERIFIED |
 | REQ-N-002 | No secret, key or credential is committed to the repository | 1 | OPEN |
-| REQ-N-003 | The system starts from a single `docker compose up` with no manual steps | 1 | OPEN |
+| REQ-N-003 | The system is deployed to a publicly accessible HTTPS URL, redeployed automatically on merge to `main` | 1 | OPEN |
 | REQ-N-004 | Test coverage of application code meets the configured threshold, measured with branch coverage enabled | 2 | BUILT |
+| REQ-N-005 | The system exposes a health endpoint the deployment platform can poll to decide whether an instance is serving | 1 | BUILT |
+
+**REQ-N-003 was reworded on 2026-09-12.** It previously read *the system starts from a
+single `docker compose up` with no manual steps*. D-026 moved deployment off local
+Docker after the machine that could run it was lost, and D-036 settled on a managed
+platform that builds the image itself and redeploys on merge, so the old wording named
+a start command nobody would ever run for assessment. The requirement is the same
+requirement - the system must start with no manual steps - and only the mechanism it
+names has changed. The original text is recorded here rather than overwritten silently,
+because a requirement that quietly changes to match what was built is not evidence of
+anything.
+
+**REQ-N-005 was added on 2026-09-12.** The health endpoint existed from Sprint A as a
+toolchain smoke test and was cited by `tests/test_health.py` as evidence for
+REQ-N-003, which it never was - answering 200 under the test client says nothing about
+whether the system is deployed. Under D-036 the endpoint became the platform's health
+check, which is infrastructure with a real failure mode: if it stops answering, the
+instance is taken out of rotation. That deserves a requirement of its own, and the two
+tests now cite it.
 
 ---
 

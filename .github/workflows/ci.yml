@@ -21,10 +21,19 @@
 #
 # WHAT IS DELIBERATELY ABSENT. tools\Check-Docs.ps1 asserts the tool versions and
 # paths recorded in CLAUDE.md Section 2 against the machine it runs on. A runner has
-# no Docker Desktop, no gh at the pinned version and no .venv, so Check-Docs would
-# fail here for being correct. It stays a pre-commit gate on the development machine.
-# A docker build step is also absent - REQ-N-001 names lint, security and tests, and
-# coupling this pipeline to a Dockerfile that does not yet exist buys nothing.
+# no gh at the pinned version and no .venv, so Check-Docs would fail here for being
+# correct. It stays a pre-commit gate on the development machine.
+#
+# THE SECOND JOB IS THE ONLY PLACE THIS PROJECT CAN BUILD A CONTAINER. D-026 removed
+# Docker from the development machine entirely, and D-028 made CI evidence the merge
+# gate for the deployment work in place of a local run. The runner is therefore not a
+# convenience here - it is the only machine in the project that will ever execute the
+# Dockerfile before the platform does.
+#
+# It is NOT part of the required status check that protects main (D-031), which is
+# named for what REQ-N-001 states: lint, security scan and tests. Adding a second
+# required check is a branch-protection change with its own evidence, not a side
+# effect of adding a job.
 
 name: CI
 
@@ -130,3 +139,69 @@ jobs:
           path: coverage.xml
           if-no-files-found: warn
           retention-days: 30
+
+  # D-028. The image is built and started here, and the health endpoint is requested
+  # over HTTP from outside the container. Anything less than that - a build with no
+  # run, or a run with no request - proves the Dockerfile parses, not that the system
+  # starts.
+  image:
+    name: Container image builds and serves
+    runs-on: ubuntu-latest
+    # Gated on the quality job so a lint failure does not also pay for an image build.
+    # The two are independent questions, but they are not equally cheap.
+    needs: quality
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      # Plain docker commands rather than the buildx actions. This build has no
+      # registry push, no multi-platform matrix and no cache to configure, so a
+      # third-party action would add a dependency to review in exchange for syntax.
+      - name: Build the image
+        run: docker build -t qvs:ci .
+
+      # PORT is set deliberately, and to something other than the Dockerfile's
+      # default. The managed platform assigns a port through $PORT and routes to it,
+      # and the exec-form CMD this project used until now could not expand a variable
+      # at all - it would have started cleanly, listened on 8000, failed the
+      # platform's health check and never served a request. This step is the evidence
+      # that the substitution works, which is the one thing reading the file could not
+      # establish.
+      #
+      # The keys are generated inside the step and live only for its lifetime, for the
+      # same REQ-N-002 reason the test step generates its own.
+      - name: Start the container
+        run: |
+          docker run -d --name qvs-ci -p 8080:8080 \
+            -e PORT=8080 \
+            -e QVS_DEBUG=0 \
+            -e QVS_SECRET_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')" \
+            -e QVS_SIGNING_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(50))')" \
+            -e QVS_ALLOWED_HOSTS=localhost,127.0.0.1 \
+            -e QVS_DATABASE_PATH=/data/db.sqlite3 \
+            qvs:ci
+
+      # Polled rather than slept against. A fixed sleep is either too short on a slow
+      # runner or wasted time on a fast one, and it reports a timing guess as a
+      # failure. Sixty seconds is generous for migrate plus collectstatic plus
+      # gunicorn binding.
+      - name: Wait for the health endpoint
+        run: |
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/health/ -o health.json; then
+              echo "answered on attempt $attempt"
+              cat health.json
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "the health endpoint did not answer within 60 seconds"
+          exit 1
+
+      # if: always() because the logs are worth most when the step above failed. A
+      # container that refused to start says why on stdout, and PYTHONUNBUFFERED in
+      # the Dockerfile is what makes that output arrive rather than sit in a buffer.
+      - name: Container logs
+        if: always()
+        run: docker logs qvs-ci
