@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% comment %}
+templates/registration/login.html
+
+The path is not arbitrary. Django's LoginView looks for registration/login.html by
+default, so putting it here means the view needs no template_name argument and
+config/urls.py stays a routing table.
+{% endcomment %}
+
+{% block title %}Sign in - QVS{% endblock %}
+
+{% block content %}
+  <h1>Sign in</h1>
+
+  {% if form.errors %}
+    {% comment %}
+      One message for a bad username and a bad password alike. Distinguishing them
+      tells an attacker which usernames exist, which turns a login form into an account
+      enumeration tool. Django's own error text already does this correctly.
+    {% endcomment %}
+    <p role="alert">Your username and password did not match. Please try again.</p>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Sign in</button>
+    {% comment %}
+      Carries the page the user was originally trying to reach, so an anonymous visit
+      to the register form returns there after signing in rather than dumping them on
+      a default page and making them navigate back.
+    {% endcomment %}
+    <input type="hidden" name="next" value="{{ next }}">
+  </form>
+{% endblock %}

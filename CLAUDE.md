@@ -35,41 +35,46 @@ verify authenticity; maintain an auditable history of verification activity.
 
 ## 2. Environment
 
+Restated in session 008, after the personal laptop was left unbootable and the project
+moved to the corporate machine. Every row was probed on 2026-09-08, not carried over.
+
 | Fact | Value |
 |---|---|
-| Repo root | `C:\Users\Tonderai Machimbira\Projects\Development\Qualification Verification System` |
-| Machine | ELITEBOOK-0001, personal, private network |
-| OS / shell | Windows 11, **PowerShell 5.1**, VS Code integrated terminal |
-| Python | **3.12.10**, the only interpreter registered |
-| Git | 2.55.0.windows.3 |
-| GitHub CLI | gh 2.100.0 |
-| Docker | 29.7.2 (Docker Desktop) |
+| Repo root | `C:\Users\tmachimbira\Projects\Development\qvs` |
+| Machine | ZB-HP450-LC-35, corporate, profile `tmachimbira`, alongside TaCRAS |
+| OS / shell | Windows 11 (10.0.22621), **PowerShell 5.1** (5.1.22621.1778), VS Code integrated terminal |
+| Python | **3.12.6** in `.venv`. The launcher also holds 3.13.3 and defaults to it, so `Setup-Venv.ps1` requests `-3.12` explicitly (D-010) |
+| Git | 2.49.0.windows.1 |
+| GitHub CLI | gh 2.100.0, user-scope install at `~\.local\bin\gh.exe` |
+| Docker | **NOT installed, and not to be installed here** |
 | Claude Code | 2.1.263, native install at `~\.local\bin\claude.exe` |
+| Node | v22.15.0, informational only - nothing in this project uses it |
 | Execution policy | CurrentUser = RemoteSigned |
 | Dev server port | **8020** |
 
-**There is no corporate network here.** No proxy, no certificate store issues, no push
-restriction. Do not carry any of that reasoning over from the TaCRAS project. If
-`git push` ever fails on this machine it is an ordinary problem, diagnosed normally.
+**Docker Desktop, WSL and hypervisor components are not to be installed on this
+machine.** Not for verification, not for a quick check, not to confirm that the Docker
+branch builds. Docker Desktop starting its WSL backend left the previous laptop
+unbootable twice, and under Route B (D-026) the image is built and run on a CI runner
+or not at all.
 
-**Docker Desktop is a per-user install, and its engine does not currently run.** The
-application is at `%LOCALAPPDATA%\Programs\DockerDesktop\Docker Desktop.exe`, not
-under `C:\Program Files` - session 006 lost time guessing the default path. The
-`docker` CLI on `PATH` comes from that same install's `resources\bin`, which is why
-every version check passes: those checks only ever prove the client exists.
-
-**WSL is not installed.** `wsl -l -v` reports it absent, and Docker Desktop's Linux
-engine runs inside WSL2, so the daemon cannot start and `docker` fails with a 500 from
-the engine pipe. `wsl --install` from an elevated shell plus a reboot is the
-prerequisite. Until that is done no image can be built and REQ-N-003 cannot be
-verified.
-
-`wsl.exe` writes UTF-16, unlike everything else here. Its output arrives in an
-artefact as spaced-out characters. That is the encoding, not corruption, and not a
-D-018 violation - the rule governs repository text, and `wsl` is not ours to fix.
+**This is a corporate machine, but egress to GitHub is unrestricted and uninspected.**
+Probed, not assumed: no proxy variables in the environment, no `http.proxy` in any git
+scope, `github.com` presents a certificate issued by a public CA (Sectigo) so nothing
+is intercepting TLS on that path, `api.github.com` answers 200, and the release-asset
+host is reachable. `credential.helper=manager` and `http.sslbackend=schannel` are set
+in the system git config and are shared with TaCRAS, so neither is changed from here.
+**Push works from this machine** - exercised on 2026-09-08 in session 008, pushing a
+feature branch over HTTPS through Credential Manager with no prompt, no proxy and no
+restriction.
 
 PowerShell 5.1 constraints: no `&&` chaining, multi-line logic goes in a script under
 `tools\`, and paths containing spaces must be quoted.
+
+`Invoke-WebRequest` hangs indefinitely on this profile, with and without
+`-UseBasicParsing`, while the same hosts answer immediately under `curl.exe` or when
+`-TimeoutSec` is set. The cause is not established. **Use `curl.exe` for downloads on
+this machine**, always with `--max-time`.
 
 ---
 

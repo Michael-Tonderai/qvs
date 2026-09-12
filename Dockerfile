@@ -53,16 +53,29 @@ RUN chmod +x /app/tools/docker-entrypoint.sh
 USER qvs
 
 # Documentation rather than a port publication - docker-compose.yml maps this to 8020
-# on the host.
+# on the host. The managed platform ignores EXPOSE entirely and routes to whatever
+# port the process actually listens on, which is why the bind below reads $PORT.
 EXPOSE 8000
 
 # The entrypoint runs migrate and collectstatic and then execs this CMD, which is what
-# makes `docker compose up` a single command with nothing to follow (REQ-N-003).
+# makes starting the system a single step with nothing to follow (REQ-N-003).
 #
-# --access-logfile - sends the request log to stdout so it appears in
-# `docker compose logs` alongside everything else, rather than into a file inside a
-# container nobody will open. Three workers is arbitrary but not thoughtless: enough
-# that a slow request does not block the demonstration, few enough to be honest about
-# a system backed by SQLite.
+# WHY sh -c RATHER THAN A BARE ARGUMENT LIST. The exec form of CMD is passed straight
+# to execve with no shell, so ${PORT} would reach gunicorn as six literal characters.
+# The managed platform assigns a port through $PORT and routes to it; a hard-coded
+# 8000 would start cleanly, listen on the wrong port, fail the platform's health check
+# and never receive traffic - a silent failure that looks like a broken application.
+# The inner `exec` keeps the process identity the entrypoint's own exec establishes,
+# so gunicorn is still PID 1 and still receives SIGTERM directly. Default 8000 keeps
+# `docker compose up` working unchanged, where nothing sets $PORT.
+#
+# --access-logfile - sends the request log to stdout so it appears in the platform's
+# log stream and in `docker compose logs` alongside everything else, rather than into
+# a file inside a container nobody will open.
+#
+# WEB_CONCURRENCY rather than a fixed worker count: three is right for a laptop and
+# wrong for a 512 MB free instance, where three copies of Django plus collectstatic
+# is how an out-of-memory kill arrives mid-demonstration. The platform sets it to 2 in
+# render.yaml; local runs keep 3.
 ENTRYPOINT ["/app/tools/docker-entrypoint.sh"]
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--access-logfile", "-"]
+CMD ["sh", "-c", "exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-3} --access-logfile -"]

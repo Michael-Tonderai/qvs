@@ -808,3 +808,1100 @@ set it explicitly - a fresh terminal has not inherited it.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+---
+
+## Session 006 - SESSION CLOSE - AccountA - 2026-09-08 13:40
+
+Sprint  : A
+Branch  : develop (session work on feature/REQ-N-003-docker-deployment, unmerged)
+
+Done    :
+  - PR #7 merged. Self-review comment posted from dev_reports\pr_review.txt, CI run
+    confirmed green ("Lint, security and tests", 19s), squash-merged with
+    --delete-branch. develop fast-forwarded 87aeaff..0bf7bd8 across six files.
+    Issues #5 and #6 closed with it, and Check-Docs.ps1 passes on develop again -
+    the D-024/D-025 citation failure is gone.
+  - The session 005 stderr fix verified on live commands rather than on its own diff:
+    `git switch` put "Switched to a new branch" into an artefact, and the Docker
+    daemon failure printed its entire message. The pre-merge runner discarded both,
+    and did so once in this session - `gh pr merge` logged "(no output)" beside exit
+    0 because its confirmation goes to stderr.
+  - Docker deployment written and committed as 4d1b1cb on
+    feature/REQ-N-003-docker-deployment, pushed: Dockerfile (single stage,
+    python:3.12-slim, non-root uid 10001, gunicorn), tools/docker-entrypoint.sh
+    (migrate, collectstatic, exec), docker-compose.yml (name: qvs per D-013, host
+    8020, named volume qvs-data), .dockerignore, and tools/New-DotEnv.ps1 which
+    generates .env with two keys and refuses to overwrite an existing file.
+  - WhiteNoise added to requirements.txt and wired into config/settings.py below
+    SecurityMiddleware, with the compressing storage backend rather than the manifest
+    variant.
+  - Issue #8 opened for REQ-N-003 and deliberately left OPEN.
+  - CLAUDE.md Section 2 now records Docker Desktop's per-user install path, that WSL
+    is absent, and that wsl.exe writes UTF-16.
+
+HEAD    : 0bf7bd8  PUSHED  (develop, before this block's close commit)
+Work    : 4d1b1cb on feature/REQ-N-003-docker-deployment, PUSHED, NO PR opened.
+          main remains at 06ab3dc, six behind develop.
+Tree    : clean
+Issues  : #5 and #6 closed by PR #7. #8 OPEN - REQ-N-003, and it stays open until a
+          container is confirmed serving.
+
+Decided :
+  - REQ-N-003 read as one command to start after one-time configuration. REQ-N-002
+    forbids committing the key the container cannot start without, so the two
+    requirements cannot both be satisfied literally. Resolved with env_file .env,
+    generated once by tools\New-DotEnv.ps1. Registered on the unmerged branch.
+  - WhiteNoise rather than an nginx sidecar, and the compressing static storage
+    backend rather than the manifest variant so the suite acquires no dependency on
+    collectstatic. Registered on the unmerged branch.
+  - **This block cites neither decision by number, deliberately.** Both are
+    registered in docs/DECISIONS.md on feature/REQ-N-003-docker-deployment only. A
+    numbered citation here would fail Check-Docs Section C on develop for exactly the
+    reason session 005's citations did. Session 005 committed against that stale
+    verdict in breach of CLAUDE.md Section 10; this session declines to repeat it.
+    The numbers go in when the branch merges.
+  - Session 005 open item 2 answered: **HEAD is the branch the log is committed to,
+    Work is the commit being handed over.** The currency check in Session-Open.ps1
+    measures develop, so HEAD must be develop or it measures nothing at all.
+  - No PR opened for the Docker branch. Its body would have to describe a deployment
+    nobody has run, and D-009 wants Closes #8 in it, which would close an unverified
+    issue on merge.
+
+Open    :
+  1. **WSL is installed but the machine has not rebooted, so Docker has still never
+     run.** Docker Desktop's Linux engine lives inside WSL2. `wsl --install
+     --no-distribution` COMPLETED during this session - WSL 2.7.13 installed and the
+     VirtualMachinePlatform optional component enabled - with DISM reporting that the
+     changes take effect only after a restart. That restart had not happened when this
+     block was written. Until it does, no image can be built, REQ-N-003 is unverified,
+     and #8 cannot close. Note also that CLAUDE.md Section 2 **on the Docker branch**
+     states that WSL is not installed. That was true when written and is now stale;
+     correct it on that branch once the reboot has proved the engine starts.
+  2. feature/REQ-N-003-docker-deployment is pushed with no pull request. Open it once
+     the container is verified, with Closes #8 in the body.
+  3. The HEAD/Work rule decided above belongs in docs/DECISIONS.md as a numbered
+     entry. It was answered in a log block, which is where it was asked, not where it
+     belongs. Register it when the Docker branch merges.
+  4. **Check-Ascii.ps1 does not scan every file.** It reported 34 files on develop
+     and 38 on feature/REQ-N-003-docker-deployment - a rise of four after five files
+     were added. So exactly one of Dockerfile, .dockerignore, docker-compose.yml,
+     tools/docker-entrypoint.sh and tools/New-DotEnv.ps1 is invisible to it. The
+     extensionless Dockerfile is the likeliest candidate. Confirm which, then decide
+     whether D-018's scope is what it should be - the verdict currently covers less
+     of the repository than its wording suggests.
+  5. main is not protected. Carried from session 003.
+  6. Nothing enforces D-022. Carried from session 003. Belongs in tools\Check.ps1.
+  7. Check-Docs.ps1 Section B cannot see a mapped DIRECTORY. Carried from session 004.
+  8. Session-Open.ps1's dirty-tree wording is misleading when re-run mid-session.
+     Cosmetic. Carried from session 005.
+
+Watch   :
+  - **Docker Desktop is a per-user install** at %LOCALAPPDATA%\Programs\DockerDesktop.
+    Claude guessed C:\Program Files from "Docker Desktop" in CLAUDE.md Section 2 and
+    lost a round trip. A version number is not an installation path. Now recorded.
+  - **"docker 29.7.2" passing in Check-Docs proves only that a client binary exists.**
+    It reported PASS on a machine whose engine cannot start at all. Every version
+    check in Section A has this shape; none of them probes a running service.
+  - **`docker info` returned EXIT CODE 0 while printing "Docker Desktop is unable to
+    start".** The exit code was not a verdict. Read the artefact body, not the code.
+  - wsl.exe writes UTF-16 while everything else here writes ANSI or ASCII, so its
+    output arrives in an artefact spaced out. Encoding, not corruption.
+  - WhiteNoise warns "No directory at: ...\staticfiles\" on any run where
+    collectstatic has not run, which includes the local suite and CI. Harmless - the
+    entrypoint collects before gunicorn starts - but it will be seen and is not a
+    defect.
+  - Coverage under CI parity is now 87.76%, threshold 80%. Read it from a QVS_DEBUG=0
+    run.
+  - Environment variables (QVS_DEBUG and the two throwaway keys) are shell-only and
+    die with the terminal. Carried from session 004. The container is unaffected - it
+    reads .env, which persists.
+  - The Filesystem connector's edit_file matches the FIRST occurrence of its anchor.
+    Carried from session 004. Anchor on text unique to the newest block.
+
+Next    : Reboot, then `docker compose up -d --build`,
+          browser-verify http://localhost:8020/admin/ serves with its stylesheet,
+          confirm the qvs-data volume survives a down and a second up, then open the
+          PR for feature/REQ-N-003-docker-deployment with Closes #8 in the body,
+          self-review it, and merge. Then protect main and open a release PR from
+          develop.
+
+Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 007:
+
+```
+Session 007. Sprint A.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any
+edit.
+
+No token: session 006 closed on the same account, so this is a SESSION CLOSE and
+Section 1.3 does not apply.
+
+To reconcile at Section 0.5:
+  1. develop does NOT contain the Docker work. It is committed as 4d1b1cb on
+     feature/REQ-N-003-docker-deployment, pushed, with NO pull request open. That is
+     deliberate - no container has ever been built, and a PR body would have had to
+     describe a deployment nobody has run.
+  2. docs/DECISIONS.md on develop ends at D-025. Two decisions from session 006 - the
+     REQ-N-003 configuration reading and the WhiteNoise choice - are registered only
+     on that branch. The session 006 log block describes both and cites neither by
+     number, on purpose, so that Check-Docs passes on develop. Do not add the numbers
+     to anything on develop before the branch merges.
+  3. Check-Docs.ps1 and Check-Ascii.ps1 both PASS on develop. Session-Open.ps1 now
+     prints a LOG VERDICT as well as a TREE VERDICT - PR #7 merged, so the
+     session-005 tooling is live. Expect currency "current" at a distance of 1.
+  4. develop is SIX commits ahead of main, which sits at 06ab3dc and moves by release
+     PR only. Expected.
+  5. main is still not protected.
+
+Already run:  PR #7 merged and its branch deleted; issues #5 and #6 closed. Issue #8
+              opened for REQ-N-003 and left OPEN on purpose. All five Docker files
+              written, committed as 4d1b1cb and pushed. WhiteNoise installed in the
+              local .venv and wired into settings. .env generated by
+              tools\New-DotEnv.ps1 and present on disk - do NOT regenerate it, the
+              script refuses for a reason. Suite green at 87.76%.
+Not yet run:  ANYTHING Docker at runtime. No image has been built, no container has
+              ever started. `wsl --install --no-distribution` COMPLETED in session
+              006 - WSL 2.7.13 plus VirtualMachinePlatform - but the reboot it
+              requires had NOT been done, so verify the daemon rather than assuming
+              it. CLAUDE.md Section 2 on the Docker branch still says WSL is not
+              installed and needs correcting there. No PR for the Docker branch. main
+              has never been protected. No release PR from develop.
+
+Next action: confirm WSL is installed and the daemon answers, then
+`docker compose up -d --build` from the feature branch. Browser-verify
+http://localhost:8020/admin/ renders WITH its stylesheet - that is the whole point of
+the WhiteNoise dependency, and a green suite does not test it. Confirm the qvs-data
+volume survives `docker compose down` and a second `up`. Only then open the PR for
+feature/REQ-N-003-docker-deployment with Closes #8, post a self-review comment, and
+squash-merge. Then protect main and open a release PR from develop.
+
+Three things session 006 learnt the hard way:
+  - A version number in Check-Docs is not a working service. "docker 29.7.2" passed
+    on a machine where the engine could not start, because the check reads the client
+    binary. Do not treat a green Check-Docs as evidence that anything runs.
+  - `docker info` exited 0 while printing that Docker Desktop could not start. Read
+    the artefact body; the exit code lied.
+  - Docker Desktop is at %LOCALAPPDATA%\Programs\DockerDesktop, not Program Files.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022) - now the
+fixed runner, so stderr reaches the artefact. Commit messages and gh bodies are
+written to a file, used with -F or --body-file, and deleted afterwards (D-020,
+D-024). Run the suite with QVS_DEBUG=0 to match CI, and set it and the two throwaway
+keys explicitly - a fresh terminal has inherited none of them, and QVS_DEBUG=0
+without a key is fatal by design.
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
+---
+
+## Session 007 - CLOSE - account not recorded - 2026-09-08 (written retrospectively)
+
+Session 007 crashed out and never closed. This block was reconstructed during session
+008 from the opening prompt session 008 was given, and from nothing else. Where a fact
+was not stated there, it is recorded as not stated rather than inferred.
+
+Sprint  : A
+Branch  : develop
+Done    :
+  - Ran a census at 14:03:03. Local and origin shas identical, nothing lost.
+  - Established, conclusively, that the personal laptop's boot loop is not held shut
+    by Docker's virtualization layer: hypervisorlaunchtype was verified Off in the BCD
+    store and Windows still would not boot.
+  - Took the Route B deployment decision. Could not register it - no repository access.
+HEAD    : c8df98a  (unchanged - session 007 made no commit)
+Tree    : clean
+
+Repository state as verified by that census:
+  - develop at c8df98a, clean, seven commits ahead of main.
+  - main at 06ab3dc, the root scaffold commit, not protected, no release PR.
+  - feature/REQ-N-003-docker-deployment at 4d1b1cb, pushed, all five Docker files
+    written, no pull request open. Issue #8 open for REQ-N-003.
+  - docs/DECISIONS.md on develop ended at D-025.
+  - Suite last green at 87.76%.
+
+What session 007 established about the laptop, for the record and for whenever it
+comes back:
+  - Docker Desktop's engine had never started. `docker desktop start` hung
+    provisioning the WSL distro, the machine hard-crashed, and it has not booted since.
+  - Second occurrence this year, same trigger point.
+  - Cleared: SSD SMART and component test; partition layout (EFI 100MB FAT32, 475GB
+    NTFS healthy, 904MB recovery); Windows present at C:\WINDOWS; Startup Repair
+    reporting zero root causes; memory quick check.
+  - CONCLUSIVE: hypervisorlaunchtype Off in the BCD store, Windows still would not
+    boot. The original crash may still have corrupted system files.
+  - Remaining fix: an in-place repair upgrade from Windows 11 install media, keeping
+    files and apps. Not attempted - media never built.
+  - Untested: extensive memory test, power tests, processor, system board.
+
+Watch   :
+  - The laptop holds no unique repository content. Local and origin were identical at
+    census time, so nothing is stranded on it.
+
+---
+
+## Session 008 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-08 22:45
+
+Token   : QVS-S008-A2B-9fbefa9
+Sprint  : A
+Branch  : develop
+Done    :
+  - Moved the project to the corporate machine. Cloned fresh to
+    C:\Users\tmachimbira\Projects\Development\qvs, rebuilt .venv on Python 3.12.6,
+    regenerated .env, installed gh 2.100.0 at user scope, authenticated it.
+  - Probed the network rather than assuming it: no proxy, no TLS interception on the
+    github.com path (Sectigo public CA), api.github.com and the release-asset host both
+    reachable, push exercised successfully.
+  - Rewrote CLAUDE.md Section 2 against the machine as probed. Check-Docs returns
+    DOCUMENTS CURRENT, one warning for Docker being absent.
+  - Registered D-026 (Route B), D-027 (folder rename to qvs), D-028 (the Docker
+    branch's merge gate becomes CI evidence). Marked D-008 and D-013 superseded.
+  - Issue #9, branch feature/REQ-F-001-certificate-signing, PR #10 with a self-review
+    comment, CI green in 29s, squash-merged to develop as 9fbefa9.
+  - REQ-F-001, REQ-F-002 and REQ-N-004 moved to BUILT.
+  - Wrote session 007's block retrospectively (above).
+HEAD    : 9fbefa97522cbbf07a40f1c85de3a47b56465bc2  PUSHED
+Tree    : clean
+Issues  : #8 open (REQ-N-003), #9 closed by PR #10
+Open    :
+  - main is still not protected. No release PR from develop.
+  - feature/REQ-N-003-docker-deployment has no PR. Under D-028 its gate is now a CI
+    job that builds the image and starts the container on a runner. That job does not
+    exist yet and must be written before the PR can be opened.
+  - git fetch --prune is needed: origin/fix/invoke-logged-stderr is gone from the fresh
+    clone as expected, but origin/feature/REQ-F-001-certificate-signing survives the
+    --delete-branch as a stale tracking ref.
+  - tools/traceability.py does not exist. REQUIREMENTS.md describes it as the generator
+    for the traceability matrix in docs/evidence/, which is the evidence for the
+    assignment's Automated Verification of Requirements section.
+  - REQUIREMENTS.md defines VERIFIED as browser-confirmed, which no non-functional
+    requirement can reach. REQ-N-001, REQ-N-002 and REQ-N-004 will sit at BUILT
+    permanently under the current wording. Settle before generating the matrix.
+  - REQ-N-003 still reads "starts from a single docker compose up". Under D-026 that is
+    no longer the assessed start command.
+  - canonical_payload uses default=str, which accepts any type silently. Revisit when
+    REQ-F-003 starts feeding it model fields.
+  - .vscode/ is untracked and not covered by .gitignore.
+Decided :
+  - D-026 Route B: deploy to a managed container service, superseding D-008.
+  - D-027 the repository folder is renamed to qvs, superseding D-013.
+  - D-028 the Docker branch merges on CI evidence, not on a local container run.
+  - Not registered, taken inline: certificate IDs use a 30-symbol alphabet formatted
+    QVS-XXXX-XXXX-XXXX-XXXX; the canonical payload is JSON with sorted keys; the
+    signing key has no development fallback. All three are argued in PR #10's body and
+    in the module's comments, which is where the report will draw them from.
+Watch   :
+  - DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+    It carries TaCRAS as well. CLAUDE.md Section 2 records this as a standing rule.
+  - Commit 4d1b1cb is five files written from reasoning and executed nowhere, on any
+    machine. It is the largest untested assumption in the repository and it may fail
+    its first CI build. A green suite on develop is not evidence about it.
+  - Invoke-WebRequest hangs indefinitely on this profile, with and without
+    -UseBasicParsing. Cause not established. Use curl.exe with --max-time for
+    downloads.
+  - Session-Open.ps1 reports "branch not on origin - nothing pushed yet" on a fresh
+    clone, because remote refs live in .git\packed-refs rather than as loose files.
+    Cosmetic, but it will misreport on every future clone.
+  - The old QVS_SIGNING_KEY died with the laptop and is unrecoverable, because .env is
+    gitignored under REQ-N-002. Nothing had been signed, so nothing was lost. The
+    tension between "no secret is committed" and "a signing key must outlive its
+    machine" belongs in the report's critical evaluation.
+  - tools/New-DotEnv.ps1 exists only on 4d1b1cb, not on develop. .env was hand-written
+    this session from .env.example. Retrieve or rewrite the script when that branch
+    merges.
+Next    : Open the issue for REQ-F-003, branch, and add the Qualification model with a
+          unique constraint on certificate_id, its signature field populated at issue
+          via qualifications/signing.py, its first migration, and the register view
+          behind login for REQ-F-004.
+
+Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 009:
+
+```
+Session 009. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S008-A2B-9fbefa9
+
+The environment changed in session 008 and CLAUDE.md Section 2 now describes it
+correctly. Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 9fbefa9, that commit being the session 008 close.
+     That is the shape Section 1.3 describes.
+  2. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  3. Session-Open.ps1 may report "branch not on origin" for a branch that is pushed.
+     That is a defect in how it reads refs after a fresh clone, not a real divergence.
+  4. main is still at 06ab3dc and still unprotected.
+
+Already run:  Machine move complete - fresh clone, .venv on 3.12.6, .env written,
+              gh 2.100.0 installed and authenticated as Michael-Tonderai. CLAUDE.md
+              Section 2 rewritten and Check-Docs green. D-026, D-027, D-028
+              registered. Issue #9 closed by PR #10, squash-merged as 9fbefa9.
+              REQ-F-001, REQ-F-002, REQ-N-004 at BUILT. Session 007's block written
+              retrospectively.
+Not yet run:  git fetch --prune. Anything Docker, anywhere. The CI job that D-028
+              requires before the Docker branch's PR can open. tools/traceability.py.
+              main has never been protected and there is no release PR.
+
+Next action: open the issue for REQ-F-003, branch, and add the Qualification model -
+unique constraint on certificate_id, signature populated at issue through
+qualifications/signing.py, first migration - then the register view behind login,
+which carries REQ-F-004 with it.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run the suite with QVS_DEBUG=0 and both throwaway keys set explicitly - a
+fresh terminal has inherited none of them. Use curl.exe with --max-time for any
+download; Invoke-WebRequest hangs on this profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
+---
+
+## Session 009 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-10 21:30
+
+Token   : QVS-S009-A2B-fcca63f
+Sprint  : B
+Branch  : develop
+Done    :
+  - Issues #11 (REQ-F-003) and #12 (REQ-F-004), branch
+    feature/REQ-F-003-register-qualification, PR #13 squash-merged to develop as
+    fcca63f. Two commits on the branch: 65200e5 the feature, d139468 the root redirect.
+  - Qualification model, first migration, QualificationForm with a future-date
+    validation rule, register view behind login_required, confirmation page also behind
+    login, login and logout routes on Django's own auth views, four templates.
+  - 24 new tests across four modules plus tests/conftest.py. Suite 41 passing,
+    coverage 96.32% branch. models.py, forms.py, views.py, urls.py and signing.py all
+    at 100%.
+  - CI green twice on PR #13, 22s and 24s.
+  - REQ-F-003 and REQ-F-004 moved to VERIFIED on browser evidence: all five steps in
+    the PR body plus two follow-ups - a clean login with no `next` parameter, and a
+    future award date rejected with the submitted fields preserved on re-render.
+  - Fixed LOGIN_REDIRECT_URL, which was "/" and routed nowhere, so a successful login
+    landed on a 404.
+  - Routed the root to the register view. It had answered 404 since the project was
+    scaffolded.
+  - .vscode/ added to .gitignore.
+  - Registered D-029 and D-030.
+HEAD    : fcca63f  PUSHED
+Tree    : clean
+Issues  : #8 open (REQ-N-003), #11 and #12 closed by PR #13
+Open    :
+  - main is still at 06ab3dc, still not protected, still no release PR. This is now the
+    oldest outstanding item in the project and REQ-N-001 cannot leave OPEN until it
+    changes.
+  - feature/REQ-N-003-docker-deployment has no PR. Under D-028 its gate is a CI job
+    that builds the image and starts the container on a runner. That job does not exist.
+  - tools/Set-Env.ps1 does not exist. D-030 registers the decision, not the script.
+  - tools/traceability.py does not exist.
+  - REQUIREMENTS.md defines VERIFIED as browser-confirmed, which no non-functional
+    requirement can reach. REQ-N-001, REQ-N-002 and REQ-N-004 will sit at BUILT
+    permanently under the current wording. Settle before generating the matrix.
+  - REQ-N-003 still reads "starts from a single docker compose up". Under D-026 that is
+    no longer the assessed start command.
+  - canonical_payload still carries default=str. D-029 records why the model-side fix
+    was taken instead and why tightening the function needs its own branch.
+  - REQ-F-006 has four tests carrying its marker and a status of OPEN. The signature
+    does break on tampering and those tests prove it, but the requirement is about
+    verification behaviour and there is no verification path until REQ-F-005. The
+    traceability matrix will show a requirement with tests and an OPEN status. That is
+    honest, not a defect - but decide before the matrix is generated whether the
+    generator should flag it.
+  - The root redirect is temporary (302) and points at a login wall. REQ-F-005 gives
+    the public an actual destination; revisit then.
+Decided :
+  - D-029 issued_at is inside the signed payload, set explicitly rather than by
+    auto_now_add, with save() made idempotent over the issued fields so that tampering
+    cannot repair itself.
+  - D-030 the environment is loaded by an explicit tools\Set-Env.ps1 rather than by
+    python-dotenv in settings.py.
+  - Not registered, taken inline: certificate_id, issued_at, issued_by and signature
+    are editable=False so no ModelForm can build inputs for them; the register view
+    redirects after POST so a refresh cannot issue a second certificate; the root
+    redirect is 302 rather than 301; the confirmation page is behind login because
+    REQ-F-005 owns public lookup. All are argued in PR #13's body.
+Watch   :
+  - NO SELF-REVIEW COMMENT WAS POSTED ON PR #13. Session 008 posted one on PR #10, so
+    this is a break in practice and the repository deliverable marks code review. It
+    was declined deliberately: a review written by the author of the code does not
+    answer the question that deliverable asks, and the four substantive objections were
+    already disclosed in the PR body under their own headings. If a review thread is
+    wanted, it needs Sir Ton reading the diff cold and objecting to something the author
+    did not flag. Decide the policy before PR #14, and apply the same answer to #10
+    retrospectively in the report rather than leaving two PRs treated differently.
+  - The registrar_client fixture IS the client fixture with force_login called on it. A
+    test asking for both receives one object and its supposedly anonymous request
+    arrives authenticated. This passed silently once during session 009 before being
+    caught. tests/conftest.py documents it. REQ-F-005 adds public verification tests,
+    which is exactly the shape that walks into it - build a fresh django.test.Client().
+  - A fresh terminal inherits none of QVS_DEBUG, QVS_SECRET_KEY or QVS_SIGNING_KEY, and
+    twelve tests fail on ImproperlyConfigured when it has not been set. That is D-003
+    working as designed, not a defect. It cost two runs this session. D-030 is the fix.
+  - The signature covers issued_at to microsecond precision. Exact on SQLite and
+    PostgreSQL; a backend that truncated sub-second precision would silently invalidate
+    every existing record. Narrows D-002's claim - see D-029.
+  - DO NOT install Docker Desktop, WSL or any hypervisor component on this machine. It
+    carries TaCRAS as well. CLAUDE.md Section 2 records this as a standing rule.
+  - Commit 4d1b1cb is five files written from reasoning and executed nowhere. Largest
+    untested assumption in the repository.
+  - Session-Open.ps1 did NOT misreport "branch not on origin" this session - local and
+    origin shas matched and it read them correctly. The defect described in session
+    008's block is quiescent on this clone, not fixed.
+  - Session 008's opening-prompt copy in this log lists `git fetch --prune` under "Not
+    yet run". It ran at 22:43:00, eighteen seconds after the close commit was written
+    at 22:42:45, so the block was accurate when committed. It has deliberately NOT been
+    edited: correcting a closed block to match what happened afterwards destroys the
+    record. dev_reports\fetch_prune.txt is the evidence.
+Next    : FIRST, protect main and open a release PR from develop. This has been listed
+          as outstanding in every block since session 005 and has been read as
+          background every time, because it has never appeared on a Next line. It is
+          the direct evidence for REQ-N-001, the only requirement about the pipeline
+          itself, and REQ-N-001 cannot leave OPEN until a merge to main is demonstrably
+          gated. Budget is small; the risk is that branch protection may not be
+          available for this repository's visibility and plan, in which case record the
+          constraint rather than working around it silently - a documented inability to
+          protect main is a legitimate paragraph in the critical evaluation, and an
+          undocumented one is a missing requirement.
+          THEN write tools\Set-Env.ps1 per D-030.
+          THEN open the issue for REQ-F-005 and REQ-F-006 together - the verification
+          view is what makes REQ-F-006 a behaviour rather than a property of the signing
+          module - and build the public verification page answering VERIFIED, NOT FOUND
+          or TAMPERED.
+
+Opening prompt (D-017, `docs/HANDOVER.md` Section 1.5) - for session 010:
+
+```
+Session 010. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S009-A2B-fcca63f
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD above fcca63f, which was PR #13's squash-merge. Session 009 closed
+     with docs-only commits stacked on it: 9892a87 wrote the close block, and at least
+     one further commit amended the Next line. Do not chase an exact count or an exact
+     sha - any HEAD on develop whose commits above fcca63f are all docs commits is the
+     shape Section 1.3 describes. A code commit above fcca63f would NOT be, and is
+     worth stopping for.
+  2. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  3. main is still at 06ab3dc and still unprotected.
+  4. REQ-F-006 carries four tests and a status of OPEN. That is deliberate and
+     explained in session 009's block. Do not "fix" it by changing the status.
+
+Already run:  PR #13 squash-merged to develop as fcca63f - Qualification model,
+              first migration, register view behind login, login and logout routes,
+              four templates, 24 tests. Suite 41 passing at 96.32%. CI green twice.
+              REQ-F-003 and REQ-F-004 at VERIFIED on browser evidence. Root now
+              redirects to the register view; it used to answer 404. D-029 and D-030
+              registered.
+Not yet run:  tools\Set-Env.ps1 - D-030 registers the decision, not the script.
+              Anything Docker, anywhere. The CI job D-028 requires before the Docker
+              branch's PR can open. tools/traceability.py. main has never been
+              protected and there is no release PR.
+
+Next action, in this order:
+  1. Protect main and open a release PR from develop. Do this FIRST. It has been
+     outstanding since session 005 and has been read as background every session
+     because it has never been an instruction. It is the direct evidence for
+     REQ-N-001, which cannot leave OPEN until a merge to main is demonstrably
+     gated. If branch protection turns out to be unavailable for this repository's
+     visibility and plan, record that constraint explicitly rather than quietly
+     working around it - a documented inability is a paragraph in the critical
+     evaluation, an undocumented one is a missing requirement.
+  2. Write tools\Set-Env.ps1 per D-030.
+  3. Open the issue for REQ-F-005 and REQ-F-006 together and build the public
+     verification page - certificate ID in, VERIFIED, NOT FOUND or TAMPERED out.
+
+Two hazards session 009 hit, both silent:
+  - registrar_client IS the client fixture with force_login called on it. A test
+    asking for both gets one object and its "anonymous" request arrives
+    authenticated. Build a fresh django.test.Client() instead. REQ-F-005's public
+    tests are exactly the shape that walks into this.
+  - A fresh terminal inherits no environment variables and twelve tests fail on
+    ImproperlyConfigured. That is D-003 working, not a defect.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run the suite with QVS_DEBUG=0 and both throwaway keys set explicitly.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
+## Session 010 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-11 23:35
+Token   : QVS-S010-A2B-61b5d1c
+Sprint  : B
+Branch  : develop
+Done    :
+  - main protected for the first time since the repository was created. Classic
+    branch protection applied by API from dev_reports/branch_protection.json rather
+    than by hand: required check "Lint, security and tests" bound to GitHub Actions
+    app id 15368 and strict; pull request required with 0 approvals; enforce_admins
+    on; force pushes and branch deletion refused; conversation resolution required;
+    linear history off.
+  - D-031 registered, covering the mechanism, the zero-approval reasoning and the
+    linear-history call.
+  - PR #14 opened from develop and merged to main as 1253dd6 - a real merge commit
+    with parents 06ab3dc and bafa013 - having passed the required check. The first
+    merge main has ever received.
+  - REQ-N-001 moved OPEN -> VERIFIED, browser-confirmed on the merged PR showing the
+    check as required and on the branch protection settings page.
+  - tools/Set-Env.ps1 written, delivering D-030. Loads .env into the current
+    PowerShell session only, prints names and never values, splits each line on the
+    first '=' so a key containing one is not truncated.
+  - PR #15 opened and squash-merged to develop as 61b5d1c, CI green.
+  - Suite 41 passing at 96.32% on the corporate machine after a reboot, with the
+    environment supplied by Set-Env.ps1 rather than by hand.
+HEAD    : 61b5d1cae2502b3c1c844427b03a692fbd8b19b6  PUSHED
+Tree    : clean
+Issues  : PR #14 merged to main, PR #15 merged to develop. No GitHub issue was
+          opened this session and the issue list was never queried. The issue
+          covering REQ-F-005 and REQ-F-006 remains unopened.
+Open    :
+  - Nothing half-finished. Both units of work reached a merged PR.
+  - REQ-F-005 and REQ-F-006 not started: no issue, no branch, no code.
+Decided :
+  - D-031, registered.
+  - Taken inline, not registered: feature and chore branches squash into develop so
+    its history reads one commit per unit of work, and develop merges into main so
+    main inherits the full history. PR #15 squashed, PR #14 merged, deliberately.
+  - Taken inline: merged branches are not deleted. Branch history is assessed.
+Watch   :
+  - D-025's log currency check produced its second false positive. It counts commits
+    above the newest logged HEAD and calls two or more STALE, which assumes a close
+    is exactly one commit. Session 009 closed and then amended its block twice, so a
+    correctly logged repository read STALE. Session 010's opening prompt anticipated
+    it in prose. That is twice now, and it is worth a decision rather than a third
+    prose warning.
+  - gh pr merge returns exit 0 with no output through Invoke-Logged.ps1. Do not read
+    the silence as failure, and do not read exit 0 as proof the merge happened.
+    Confirm with git log --oneline --parents on the target branch.
+  - gh pr view has no "merged" field; state and mergedAt carry it. Asking for it
+    fails the whole command with exit 1.
+  - .env holds five variables, not the three D-030's context claims: QVS_DEBUG,
+    QVS_SECRET_KEY, QVS_SIGNING_KEY, QVS_ALLOWED_HOSTS, QVS_DATABASE_PATH. The
+    decision is unaffected; the sentence is wrong and was left uncorrected pending
+    Sir Ton's word.
+  - Green CI runs carry annotations_count 1. Never examined. Most likely an action
+    deprecation notice, which stops being cosmetic when the action version retires.
+  - enforce_admins is on, so main cannot be pushed to directly by anyone, including
+    the owner. Changes arrive by pull request or not at all.
+  - Carried from session 009 and still live: registrar_client IS the client fixture
+    with force_login called on it. A test asking for both gets one object and its
+    "anonymous" request arrives authenticated. Build a fresh django.test.Client().
+    REQ-F-005's public tests are exactly the shape that walks into this.
+Next    : Open one GitHub issue covering REQ-F-005 and REQ-F-006 together, branch
+          feature/REQ-F-005-public-verification off develop, and build the public
+          verification page - certificate ID in, VERIFIED, NOT FOUND or TAMPERED out.
+Opening prompt :
+```
+Session 011. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S010-A2B-61b5d1c
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured. The script
+is new as of session 010 - it did not exist before, so do not conclude from an older
+block that the environment must be set by hand.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 61b5d1c, that commit being session 010's close
+     block. That is the Section 1.3 shape. If further docs commits were stacked on
+     it the census will read STALE - check that every commit above 61b5d1c is a docs
+     commit. A code commit above it would not be the expected shape and is worth
+     stopping for.
+  2. main is at 1253dd6 and is now PROTECTED. It is no longer the unprotected
+     background every session has read it as. Nothing can be pushed to it directly,
+     including by the owner, and REQ-N-001 is VERIFIED rather than OPEN.
+  3. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  4. REQ-F-006 carries four tests and a status of OPEN. That is deliberate and
+     explained in session 009's block. Do not "fix" it by changing the status.
+  5. Merged branches are not deleted. origin/feature/REQ-F-003-register-qualification
+     and origin/chore/D-030-set-env are both intact on purpose, not stale refs.
+
+Already run:  main protected under D-031. PR #14 merged develop to main as 1253dd6,
+              a merge commit with two parents, through the required check. REQ-N-001
+              at VERIFIED. tools/Set-Env.ps1 written and merged by PR #15, squashed
+              to develop as 61b5d1c. Suite 41 passing at 96.32% after a reboot.
+Not yet run:  Anything Docker, anywhere. The CI job D-028 requires before the Docker
+              branch's PR can open. tools/traceability.py. No issue has ever been
+              opened for REQ-F-005 or REQ-F-006, and the issue list has never been
+              queried.
+
+Next action, in this order:
+  1. Open one GitHub issue covering REQ-F-005 and REQ-F-006 together. They are one
+     page and one test file; two issues would split the evidence.
+  2. Branch feature/REQ-F-005-public-verification off develop.
+  3. Build the public verification page - certificate ID in, VERIFIED, NOT FOUND or
+     TAMPERED out - with tests, then browser-verify before either requirement moves
+     past BUILT. A green suite is not a verified page (CLAUDE.md Section 5).
+
+Hazards, all silent:
+  - registrar_client IS the client fixture with force_login called on it. A test
+    asking for both gets one object and its "anonymous" request arrives
+    authenticated. Build a fresh django.test.Client() instead. REQ-F-005's public
+    tests are exactly the shape that walks into this.
+  - gh pr merge returns exit 0 and prints nothing. Confirm every merge with
+    git log --oneline --parents on the target branch, never by exit code alone.
+  - gh pr view has no "merged" field. Asking for it fails the whole command.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
+---
+
+## Session 011 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-12 11:45
+Token   : QVS-S011-A2B-604e157
+Sprint  : B
+Branch  : develop
+Done    :
+  - Issue list queried for the first time in eleven sessions. It found that no PR
+    had ever carried a Closes reference, so five issues stood open describing work
+    that was merged and shipped. #1, #3, #11 and #12 closed with comments citing the
+    decision or merge commit that delivered each, and saying the closure was
+    retrospective rather than pretending the link had always been there.
+  - Issue #16 opened covering REQ-F-005 and REQ-F-006 together.
+  - feature/REQ-F-005-public-verification branched off develop at bbecea1.
+  - qualifications/verification.py written: the three-outcome decision, outside the
+    view, answerable without a request cycle.
+  - The public verification page built, with its template and 14 tests.
+  - The root redirect repointed from register to verify, folded into this branch on
+    Sir Ton's word rather than left for later. test_routing.py rewritten to match.
+  - REQ-F-005 and REQ-F-006 browser-verified and moved OPEN -> VERIFIED.
+  - PR #17 opened, CI green in 30s, squash-merged to develop as 604e157. Confirmed
+    by git log --oneline --parents, not by exit code. Issue #16 closed by the
+    commit message - the first Closes reference this repository has ever carried.
+  - Suite 55 passing at 97.04%, up from 41 at 96.32%. verification.py and views.py
+    both at 100% with branch coverage.
+HEAD    : 604e1576138a084250925205dccdf9d7c6ce743e  PUSHED
+Tree    : clean
+Issues  : #1, #3, #11, #12 closed retrospectively. #16 opened and closed by PR #17.
+          #8 (REQ-N-003 docker) and #9 (REQ-F-001, REQ-F-002) remain open, both on
+          purpose. Next issue number will be #18.
+Open    :
+  - Nothing half-finished. The unit of work reached a merged PR.
+  - Issue #9 held open deliberately, pending a decision recorded under Watch.
+  - REQ-F-007 and REQ-F-008 not started. The verification view is where the audit
+    hook lands, and it was fenced out in writing in issue #16, in the module
+    docstring and in the PR body, so the exclusion is argued rather than forgotten.
+Decided :
+  - Nothing registered. Everything below was taken inline.
+  - A tampered result carries no record. VerificationResult attaches the
+    qualification only on VERIFIED, so the template cannot render fields the system
+    has just refused to vouch for. Enforced by the data, not by discipline.
+  - All three outcomes return 200. A 404 for NOT FOUND would claim the verification
+    page does not exist and would let an automated caller sort real IDs from
+    invented ones by status code alone.
+  - Certificate IDs are uppercased and stripped of whitespace, but look-alike
+    characters are NOT repaired. signing.py excludes 0 and 1 as well as O and I, so
+    there is no correct target to fold onto, and silently verifying the wrong record
+    is worse than a NOT FOUND on a typo. A test asserts this stays un-fixed.
+  - Verification is GET, not POST. It reads and changes nothing, so the result is
+    shareable and needs no CSRF token on a page anonymous users must reach. Worth
+    revisiting when REQ-F-007 makes it write.
+  - The routing tests stay unmarked by requirement even though the root now points
+    at verification. Marking them would let the traceability matrix count a URL
+    configuration as evidence of verification capability.
+  - One commit, not two. The redirect touches the same urls.py region as the new
+    route; splitting cleanly would have meant staging by hunk and reverting
+    test_routing.py for the first commit, risking an intermediate commit whose
+    suite is red.
+  - The first two are the strongest candidates for registration as numbered
+    decisions. Left unnumbered pending Sir Ton's word.
+Watch   :
+  - REQ-F-002 is browser-verified in everything but the register entry. A
+    certificate was minted at 10:09, its signature recomputed and matched at 10:10,
+    and the same record rejected at 10:20 after one column changed. Promoting it to
+    VERIFIED and closing issue #9 citing both requirements is the recommendation.
+    REQ-F-001 should stay at BUILT: a browser saw one well-formed ID used as a
+    lookup key, and no amount of clicking demonstrates uniqueness or
+    non-guessability. Not done, because it is a status change outside the branch's
+    scope and it waits on Sir Ton.
+  - gh output reaches Invoke-Logged artefacts with its success glyph mangled to
+    "???" - PowerShell 5.1 decoding UTF-8 as ANSI, the same phenomenon as D-018 but
+    in tool output rather than repository text. Harmless while dev_reports is
+    gitignored. It stops being harmless the moment a gh artefact is copied into
+    docs/evidence, where Check-Ascii.ps1 will reject it. Sprint D assembles that
+    folder.
+  - D-025's log currency check behaved correctly this session - one commit above
+    the logged HEAD, verdict current. The false positive needs two or more stacked
+    commits, so session 010's second occurrence remains the live case and the
+    decision it deserves is still unwritten.
+  - gh pr merge again returned exit 0 with no output. Confirmed live this session.
+  - Filesystem:edit_file matches the FIRST occurrence of its anchor text, silently.
+    Session 011's close block was written once against an anchor that ends every
+    session's opening prompt and landed between sessions 001 and 002. Caught from
+    the returned diff's trailing context, removed and rewritten against text unique
+    to session 010. Anchor on a token line or a sha, never on boilerplate.
+  - .env holds five variables, not the three D-030's context claims. Carried
+    uncorrected, still pending Sir Ton's word.
+  - Green CI runs carry annotations_count 1. Still never examined.
+  - registrar_client IS the client fixture with force_login applied. Still live, and
+    tests/test_verification.py was written specifically around it - every client in
+    that module is a fresh django.test.Client(). The next module with public tests
+    must do the same.
+  - GET /favicon.ico returns 404 on every page load. Cosmetic, but it will appear
+    in the demonstration video if the server terminal is screen-recorded.
+  - The direction letters in a token record intent, not fact. Session 010 wrote A2B
+    and session 011 then ran on AccountA. The sha7 is what reconciles; the letters
+    do not.
+Next    : Decide REQ-F-002 and issue #9, then build REQ-F-007 and REQ-F-008 - the
+          audit event on every verification attempt, append-only. The hook lands in
+          the verification view. tools/traceability.py is the other unbuilt piece
+          the assignment's verification deliverable depends on.
+Opening prompt :
+```
+Session 012. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects. The direction letters in
+the token record intent, not fact.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S011-A2B-604e157
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured. Note that
+QVS_DEBUG=0 set for a pytest run persists for the life of that shell - starting
+runserver in the same terminal runs with DEBUG off, and WhiteNoise is still
+unmerged.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 604e157, that commit being session 011's close
+     block. That is the Section 1.3 shape. A code commit above it would not be the
+     expected shape and is worth stopping for.
+  2. main is at 1253dd6 and is PROTECTED. Nothing can be pushed to it directly,
+     including by the owner. develop has moved four commits past it and main has
+     not received a merge since PR #14.
+  3. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  4. REQ-F-001 is BUILT and REQ-F-002 is BUILT, and issue #9 covering both is open
+     on purpose. Session 011 recommends promoting REQ-F-002 to VERIFIED and leaving
+     REQ-F-001 at BUILT. That decision has not been taken. Do not take it silently.
+  5. Merged branches are not deleted. origin/feature/REQ-F-005-public-verification,
+     origin/feature/REQ-F-003-register-qualification and origin/chore/D-030-set-env
+     are all intact on purpose, not stale refs.
+
+Already run:  Issue list queried and four stale issues closed. Issue #16 opened and
+              closed by PR #17, which squash-merged to develop as 604e157 through a
+              green required check. REQ-F-005 and REQ-F-006 browser-verified and at
+              VERIFIED. The root now redirects to /verify/. Suite 55 passing at
+              97.04%.
+Not yet run:  Anything Docker, anywhere. The CI job D-028 requires before the Docker
+              branch's PR can open. tools/traceability.py. REQ-F-007 and REQ-F-008.
+              No issue has been opened for the audit requirements.
+
+Next action, in this order:
+  1. Settle REQ-F-002 and issue #9. One decision, then a status line and a close.
+  2. Open one issue covering REQ-F-007 and REQ-F-008 - the audit event and its
+     append-only guarantee. They are one model and one migration.
+  3. Build them. The hook lands in qualifications/views.py verify(), which is
+     currently a pure read; adding the write changes that, and the GET-not-POST
+     reasoning recorded in session 011 is worth re-reading before it does.
+
+Hazards, all silent:
+  - registrar_client IS the client fixture with force_login called on it. A test
+    asking for both gets one object and its "anonymous" request arrives
+    authenticated. Build a fresh django.test.Client() instead. Every client in
+    tests/test_verification.py already does; match it.
+  - gh pr merge returns exit 0 and prints nothing. Confirm every merge with
+    git log --oneline --parents on the target branch, never by exit code alone.
+  - gh pr view has no "merged" field. Asking for it fails the whole command.
+  - Filesystem:edit_file matches the FIRST occurrence of its anchor, silently. Never
+    anchor on text that repeats across session blocks; use a token line or a sha.
+  - gh output reaches artefacts with non-ASCII glyphs mangled to "???". Harmless in
+    gitignored dev_reports, rejected by Check-Ascii.ps1 if copied into docs/evidence.
+  - PRs did not carry Closes references before #17. If an issue looks stale, query
+    the list rather than assuming the work is unfinished.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
+---
+
+## Session 012 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-12 19:00
+Token   : QVS-S012-A2B-e0939ab
+Sprint  : B
+Branch  : develop
+Done    :
+  - Issue #9 settled. REQ-F-002 promoted BUILT -> VERIFIED on session 011's browser
+    evidence; REQ-F-001 left at BUILT because uniqueness and non-guessability are
+    properties of the generator, not of a page. Closed with a comment recording both
+    and the vocabulary gap underneath them.
+  - Issue #18 opened covering REQ-F-007 and REQ-F-008 together, with nine explicit
+    acceptance criteria so the PR had something to close against.
+  - feature/REQ-F-007-audit-events branched off develop at a6995a5.
+  - AuditEvent model written, with AuditEventQuerySet and AppendOnlyError. Migration
+    0002_audit_event. No foreign keys on the model at all.
+  - qualifications/audit.py written - record_attempt(), actor_username(),
+    remote_address(). New module, so models.py never learns about HTTP and
+    verification.py stays answerable without a request cycle.
+  - The audit hook added to views.verify(). GET retained after revisiting, as the
+    view's own docstring anticipated.
+  - tests/test_audit.py - 17 tests, split by req marker across both requirements.
+  - D-032 and D-033 registered.
+  - PR #19 opened, CI green in 51s on the required check, squash-merged to develop as
+    e0939ab. Confirmed by git log --oneline --parents, not by exit code.
+  - Self-review comment posted carrying five findings. One of them - a docstring in
+    verification.py describing a placement the code no longer used - was fixed on the
+    branch as 03626e4 before the merge.
+  - Suite 72 passing at 97.62%, up from 55 at 97.04%. Every module under
+    qualifications at 100% with branch coverage, including the new audit.py.
+  - D-031 amended. PR #14 confirmed MERGED to main on 2026-09-11, so REQ-N-001's
+    VERIFIED status is evidenced rather than assumed. The decision's original
+    paragraph is left standing beneath the correction.
+  - Issues #16 and #18 closed by hand. See Watch - this is now a standing obligation.
+HEAD    : e0939abb1f36ed94105b1c8b66875dfe2d6957c1  PUSHED
+Tree    : clean
+Issues  : #9 closed. #18 opened and closed. #16 closed retrospectively. #8 (REQ-N-003
+          docker) remains open on purpose. Next issue number will be #20.
+Open    :
+  - Nothing half-finished. The unit of work reached a merged PR.
+  - tools/traceability.py still unbuilt. It is the evidence for the assignment's
+    Automated Verification of Requirements deliverable, and every test in the suite
+    already carries the req marker it reads.
+  - The CI job D-028 requires before the Docker branch's PR can open is still not
+    written. Nothing Docker has run anywhere, on any machine.
+  - REQ-F-009, REQ-F-010, REQ-F-011, REQ-N-002 and REQ-N-003 all still OPEN.
+Decided :
+  - REQ-F-002 to VERIFIED, REQ-F-001 stays at BUILT. Registered nowhere as a
+    D-number; it is a status call, not a design decision.
+  - REQ-F-007 and REQ-F-008 stay at BUILT rather than VERIFIED. REQ-F-007's only
+    observable effect is a database row with no interface in front of it until
+    REQ-F-011 lands, and REQ-F-008 is a guarantee about code paths that do not exist.
+    Neither is demonstrable in a browser, which is what VERIFIED means here. Taken on
+    Sir Ton's instruction to decide rather than keep asking. One paragraph in the
+    report's critical evaluation covers REQ-F-001, REQ-F-007 and REQ-F-008 together:
+    some requirements are established by structure and test rather than observation,
+    and this register's status vocabulary has no word for them. That paragraph is
+    worth more than three stretched statuses.
+  - D-032 - audit events carry no foreign keys.
+  - D-033 - append-only is enforced in the application, not the database.
+  - Taken inline, not registered: the audit write lands in the view rather than in
+    verification.verify(); no admin.py is created, so the absence of an admin path is
+    structural; REMOTE_ADDR is recorded and X-Forwarded-For deliberately is not; an
+    over-long submitted ID is truncated at 64 characters rather than rejected; the
+    outcome column carries no choices, because verification.py owns the vocabulary and
+    importing it back into models.py would close a cycle.
+Watch   :
+  - GITHUB DOES NOT AUTO-CLOSE ISSUES IN THIS REPOSITORY. A linked issue closes only
+    when the pull request merges into the default branch. The default branch is main;
+    every PR here targets develop by design. Session 011's block records issue #16 as
+    "closed by the commit message" - it was not. #16 was still open at session 012 and
+    has now been closed by hand, as has #18. The log is appended and never rewritten,
+    so session 011's claim stands uncorrected in its own block; this is the
+    correction. An explicit gh issue close belongs in every merge sequence from here.
+  - Comment drift is invisible to every gate. verification.py described the audit
+    write as something that function would grow; the write went to the view instead.
+    Check-Docs.ps1 verifies facts and maps, not prose, and no test can fail on a
+    wrong docstring. It was caught by reading the module against the change during
+    self-review, which is the argument for doing the self-review at all.
+  - bulk_create(update_conflicts=True) is an unguarded upsert path on AuditEvent.
+    Neither the model guard nor the queryset override catches it. Nothing calls it,
+    and it belongs on D-033's list of uncovered paths alongside raw SQL and data
+    migrations rather than in a speculative guard.
+  - Filesystem:edit_file first-occurrence hazard, live and unchanged. This block was
+    appended from a file via Add-Content rather than by an anchored edit, because the
+    opening-prompt tail is byte-identical in every block in this log.
+  - makemigrations writes CRLF on Windows. .gitattributes normalised it on staging and
+    the committed blob is LF. Expected, not a problem, but it is the only file in this
+    session git had to normalise.
+  - gh pr merge returned exit 0 with no output again. Third session running.
+  - gh output still reaches artefacts with its success glyph mangled to "???".
+    Harmless while dev_reports is gitignored; rejected by Check-Ascii if copied into
+    docs/evidence. Sprint D assembles that folder.
+  - registrar_client IS the client fixture with force_login applied. Still live.
+    tests/test_audit.py builds a fresh django.test.Client() everywhere, including for
+    the signed-in case. Any new module with public tests must do the same.
+  - .env holds five variables, not the three D-030's context claims. Still
+    uncorrected, still pending Sir Ton's word.
+  - Green CI runs carry annotations_count 1. Still never examined.
+  - QVS_DEBUG=0 persists for the life of the shell it is set in. A runserver started
+    in that terminal runs with DEBUG off and WhiteNoise is still unmerged.
+Next    : Build tools/traceability.py. It reads the req markers every test already
+          carries and generates the requirements traceability matrix for
+          docs/evidence/, which is the assignment's Automated Verification of
+          Requirements deliverable and a figure in the technical report. No new
+          feature is involved and 75% of the marks need none.
+Opening prompt :
+```
+Session 013. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects. The direction letters in
+the token record intent, not fact.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S012-A2B-e0939ab
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Not for verification, not for a quick check. Under D-026 the image is built and
+run on a CI runner or not at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured. Note that
+QVS_DEBUG=0 set for a pytest run persists for the life of that shell - starting
+runserver in the same terminal runs with DEBUG off, and WhiteNoise is still
+unmerged.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above e0939ab, that commit being session 012's close
+     block. That is the Section 1.3 shape. A code commit above it would not be the
+     expected shape and is worth stopping for.
+  2. main is at 1253dd6 and is PROTECTED. develop has moved six commits past the
+     merge base and main has not received a merge since PR #14, which merged on
+     2026-09-11 and is the evidence REQ-N-001 stands on.
+  3. Two session 006 decisions - the REQ-N-003 configuration reading and the
+     WhiteNoise choice - still exist only on feature/REQ-N-003-docker-deployment and
+     are deliberately uncited by number on develop. Do not number them before merge.
+  4. REQ-F-007 and REQ-F-008 are BUILT and will stay BUILT. That was decided in
+     session 012, not overlooked. Neither is demonstrable in a browser and the
+     register's VERIFIED means browser-confirmed. Do not promote them.
+  5. Merged branches are not deleted. Four origin/feature and chore branches are
+     intact on purpose, not stale refs.
+
+Already run:  REQ-F-007 and REQ-F-008 built, tested and merged to develop as e0939ab
+              via PR #19 through a green required check. D-032 and D-033 registered.
+              D-031 amended with PR #14's confirmation. Issues #9, #16 and #18 all
+              closed. Suite 72 passing at 97.62%.
+Not yet run:  tools/traceability.py. Anything Docker, anywhere. The CI job D-028
+              requires before the Docker branch's PR can open. REQ-F-009, REQ-F-010,
+              REQ-F-011, REQ-N-002. No issue opened for traceability.
+
+Next action, in this order:
+  1. Open an issue for tools/traceability.py and branch from develop.
+  2. Build it. Every test already carries @pytest.mark.req, so the input exists -
+     read the markers, cross them against docs/REQUIREMENTS.md, and write the matrix
+     into docs/evidence/. A requirement with no test and a test citing a requirement
+     that does not exist are both findings the tool should report rather than skip.
+  3. The output lands in docs/evidence/, which IS tracked and IS checked by
+     Check-Ascii. See the gh glyph hazard below before copying any gh output there.
+
+Hazards, all silent:
+  - GitHub does not auto-close issues here. Linked issues close only on a merge into
+    the default branch; the default branch is main and every PR targets develop. Put
+    an explicit gh issue close in the merge sequence. Do not trust a Closes line.
+  - registrar_client IS the client fixture with force_login called on it. A test
+    asking for both gets one object and its "anonymous" request arrives
+    authenticated. Build a fresh django.test.Client() instead. tests/test_audit.py
+    and tests/test_verification.py both already do; match them.
+  - gh pr merge returns exit 0 and prints nothing. Confirm every merge with
+    git log --oneline --parents on the target branch, never by exit code alone.
+  - gh pr view has no "merged" field. Ask for state and mergedAt instead.
+  - Filesystem:edit_file matches the FIRST occurrence of its anchor, silently. The
+    opening-prompt tail is identical in every session block. Append a new block from
+    a file rather than anchoring on it.
+  - gh output reaches artefacts with non-ASCII glyphs mangled to "???". Harmless in
+    gitignored dev_reports, rejected by Check-Ascii.ps1 if copied into docs/evidence -
+    which is exactly where traceability evidence is going.
+  - No gate reads prose. Check-Docs verifies versions, the document map and decision
+    references. A docstring that describes code accurately today and inaccurately
+    tomorrow will not fail anything.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```

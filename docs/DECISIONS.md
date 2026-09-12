@@ -87,6 +87,7 @@ from memory in Sprint D.
   for no additional marks.
 - **Consequence:** REQ-N-003 is satisfiable and demonstrable on camera. A live public
   URL becomes an optional stretch rather than a commitment.
+- **SUPERSEDED BY D-026.**
 
 ## D-009 - Pull-request workflow even when working alone
 
@@ -148,6 +149,7 @@ from memory in Sprint D.
   and restarting Claude Desktop mid-build, for friction the tooling design already
   removes.
 - **Consequence:** The path is typed once per terminal session and nowhere else.
+- **SUPERSEDED BY D-027.**
 
 ## D-014 - Governance limited to three documents
 
@@ -375,13 +377,226 @@ from memory in Sprint D.
   because the failure it detects can only be created by a session that has already
   ended.
 
-## D-026 - REQ-N-003 means one command to start, after one-time configuration
+## D-026 - Route B: deploy to a managed container service, not local Docker
+
+- **Context:** The assignment allows Docker or a cloud platform. D-008 chose Docker on
+  the reasoning that a cloud account was setup and billing for no additional marks.
+  Since then the only machine that could run Docker has been left unbootable twice by
+  Docker Desktop itself, and the corporate machine that replaced it must not have
+  Docker Desktop, WSL or any hypervisor component installed. Local Docker is therefore
+  not a route that exists any more, not merely one that is inconvenient.
+- **Decision:** Deploy to a managed container service returning a real HTTPS URL.
+  Cloud Run is the provisional pick on cost and speed; Azure is worth weighing if MSU
+  credit exists. The image defined by commit 4d1b1cb becomes the build artefact rather
+  than the deployment itself, so that work carries forward instead of being discarded.
+- **Rejected:** Staying with D-008. It now depends on a capability this project no
+  longer has, and acquiring it means putting Docker Desktop on a corporate machine that
+  also carries TaCRAS - risking a second dead machine to satisfy a wording choice.
+- **Consequence:** A live public URL moves from optional stretch to commitment, which
+  is stronger evidence for the deployment deliverable than a local run recorded on
+  camera. REQ-N-003's wording still describes a single `docker compose up` and needs
+  revisiting, since the assessed start command is no longer the local one.
+
+## D-027 - The repository folder is renamed to `qvs`
+
+- **Context:** D-013 kept the spaced folder name on the reasoning that renaming would
+  cost a connector reconfiguration and a Claude Desktop restart mid-build, for friction
+  the tooling design already removed. The laptop holding that checkout is gone. Session
+  008 cloned fresh onto the corporate machine and had to configure the connector from
+  nothing regardless, so the cost D-013 was avoiding had already been paid.
+- **Decision:** The repository root is `C:\Users\tmachimbira\Projects\Development\qvs`,
+  a sibling of the `tacras` checkout, with no spaces in the path.
+- **Rejected:** Recreating the spaced name on the new machine for continuity. It would
+  have preserved a path that only ever existed to avoid a rename that has now happened
+  anyway, and it keeps spaces in a path that reaches PowerShell arguments, build
+  contexts and coverage output.
+- **Consequence:** No script changed. Every tool derives the repository root from
+  `$PSScriptRoot` and `config/settings.py` derives `BASE_DIR` from its own location,
+  which is exactly the property D-013 was written to protect - so the rename cost
+  nothing beyond the connector entry. `config/settings.py` still cites D-013 for that
+  reasoning and the citation stays valid; a superseded decision is not a wrong one.
+
+## D-028 - The Docker branch merges on CI evidence, not on a local container run
+
+- **Context:** Session 006 deliberately held the pull request for
+  `feature/REQ-N-003-docker-deployment` because no container had ever been built and a
+  PR body would have had to describe a deployment nobody had run. Under D-026 no
+  container will ever run on this machine either, so holding the PR for a local run is
+  waiting for something that cannot now happen.
+- **Decision:** The merge gate becomes CI evidence: a workflow job that builds the
+  image and starts the container on the runner, with the run log cited in the PR body
+  and copied into `docs/evidence/`.
+- **Rejected:** Merging 4d1b1cb on nothing, on the grounds that the gate has become
+  impossible. The gate's purpose was never the locality of the run; it was that the
+  claim in the PR body be true.
+- **Consequence:** Commit 4d1b1cb is five files written from reasoning and executed
+  nowhere, on any machine, and it is the largest untested assumption in the repository.
+  The first CI build may well fail. That is the point of the gate, and a green suite on
+  `develop` is not evidence about it.
+
+## D-029 - `issued_at` is inside the signed payload
+
+- **Context:** REQ-F-002 signs a record's canonical fields at issue. `issued_at` is the
+  timestamp of issue itself, and the obvious Django idiom for it, `auto_now_add`,
+  assigns its value as the row is written - after any code in `save()` has run. A value
+  that does not exist yet cannot be signed.
+- **Decision:** `issued_at` is set explicitly with `timezone.now()` in
+  `Qualification.save()`, immediately before the signature is computed, and it is one of
+  the six fields `canonical_fields()` returns.
+- **Rejected:** Signing the four substantive fields plus `certificate_id` and leaving
+  `issued_at` outside the payload. It is simpler, and it leaves a backdated issue
+  timestamp undetectable - in a system whose purpose is establishing that a credential
+  is what it claims to be, a hole worth one line of code to close.
+- **Consequence:** `save()` must be idempotent over the issued fields, or re-saving an
+  altered record would re-sign it under its new contents and tampering would repair
+  itself. Each assignment is therefore guarded, and
+  `test_re_saving_does_not_re_sign_or_reissue` pins that behaviour.
+  `test_backdating_the_issue_time_breaks_verification` is what this decision buys.
+
+  A second consequence, and the one that needs a paragraph in the report: the signature
+  covers `issued_at` to microsecond precision through `isoformat()`. That round-trips
+  exactly on SQLite and on PostgreSQL, but a backend that truncated sub-second precision
+  would silently invalidate every existing record. D-002 claims the SQLite to PostgreSQL
+  move is a configuration change; that claim survives, but it is narrower than it looks.
+- **Related, taken inline rather than registered:** normalisation lives on the model.
+  `canonical_fields()` returns values already converted to strings, both temporal fields
+  as ISO 8601, so `canonical_payload()`'s `default=str` is never reached in practice.
+  The failure it avoids is a `date` at issue and a string read back from the database
+  serialising to different bytes, which would make a valid record report as TAMPERED - a
+  false accusation of forgery, and the worst error this system can make. Tightening
+  `canonical_payload()` to reject non-strings outright is the stronger fix and remains
+  open; it changes a module merged by PR #10 and its tests, so it needs its own branch.
+
+## D-030 - The environment is loaded by an explicit script, not by `python-dotenv`
+
+- **Context:** `.env` exists in the repository root with the three variables in it, and
+  nothing reads it. `config/settings.py` reads `os.environ` directly and `python-dotenv`
+  is in neither requirements file. The file is documentation shaped like configuration.
+  In session 009 this cost two test runs: a new terminal inherited no variables and
+  twelve tests failed on `ImproperlyConfigured`.
+- **Decision:** A `tools\Set-Env.ps1` loads `.env` into the current PowerShell session.
+  One command at the start of any new terminal.
+- **Rejected:** Reading `.env` in `config/settings.py` via `python-dotenv`. It would
+  remove the need to remember anything, which is its appeal, and it would also mean the
+  container and the CI runner carry a dependency whose only job is to read a file that
+  exists in neither. It makes the local case invisible rather than explicit, and a
+  variable silently supplied from somewhere is harder to reason about than one that is
+  missing loudly.
+- **Consequence:** The failure mode does not disappear, it moves: a terminal where the
+  script has not been run still fails, and still fails loudly, which is the behaviour
+  D-003 wanted. `Set-Env.ps1` does not exist yet and is the first action of session 010.
+
+## D-031 - `main` is protected by classic branch protection, with zero required approvals
+
+- **Context:** REQ-N-001 states that no change reaches `main` without passing lint,
+  security scan and the test suite. `ci.yml` has been that mechanism since D-007, but
+  until this session `main` was unprotected: the pipeline ran, and nothing obliged
+  anyone to heed it. The requirement had a pipeline and no gate. `qvs` is public and the
+  account holds ADMIN, so classic branch protection and rulesets are both available at
+  no cost - there is no plan constraint to document and no workaround to justify.
+- **Decision:** Classic branch protection on `main`, applied by API from
+  `dev_reports/branch_protection.json` rather than by hand in the web console, so what
+  was requested is readable and re-appliable. Required status check
+  `Lint, security and tests` bound to the GitHub Actions app id 15368, with `strict` set
+  so a stale head must rebuild before merging; pull request required with
+  `required_approving_review_count` at 0; `enforce_admins` on; force pushes and branch
+  deletion off; conversation resolution required; linear history off.
+- **Rejected:** Requiring one approving review, which is what a team of three to five
+  would set and what the assignment's collaboration criteria imply. GitHub does not
+  permit approving one's own pull request, so on a single-author repository that setting
+  makes `main` permanently unmergeable. A gate that cannot be satisfied is not a stricter
+  gate, it is a broken one.
+
+  Rulesets were also rejected, and not on merit - they are the newer mechanism and
+  arguably the better one. Branch protection renders as a single readable settings page,
+  which is stronger evidence in a report and a viva than a ruleset's layered view.
+
+  Linear history was rejected because a release merge from `develop` carries two parents
+  and would be refused. The alternative, squashing `develop` into `main`, would collapse
+  the branch history the assignment assesses.
+- **Consequence:** The review gate on this project is the pipeline, not a person, and the
+  report must say so rather than leave a reader to infer that human code review was
+  enforced. This is the clearest instance in the repository of the gap between an
+  assignment written for a team and a project executed by one author, and it belongs in
+  the critical evaluation as exactly that.
+
+  `enforce_admins` means the sole maintainer cannot push to `main` either; changes arrive
+  by pull request or not at all. The protection settings themselves remain editable by an
+  admin, so the position is strict but recoverable.
+
+  REQ-N-001 does not move on protection alone. Protection is the mechanism; the evidence
+  is a pull request from `develop` that merges to `main` through this gate, with the
+  check reported against it. Until that merge exists the requirement stays OPEN.
+
+  **Satisfied on 2026-09-11.** PR #14 merged `develop` into `main` through this gate,
+  with the required check reported against it, and REQ-N-001 moved to VERIFIED in
+  session 010. The paragraph above describes the position before that merge and is left
+  standing rather than edited, because a decision that records what it was waiting for
+  is more useful to the report than one that quietly reads as though it always held.
+  Confirmed in session 012 against `gh pr view 14`, not inferred from commit subjects.
+
+## D-032 - Audit events carry no foreign keys
+
+- **Context:** REQ-F-007 records every verification attempt and REQ-F-008 requires
+  those records to be append-only. The obvious model has a ForeignKey to
+  `Qualification` and another to the user, which is what an audit table in most systems
+  looks like.
+- **Decision:** `AuditEvent` has no ForeignKey at all. The certificate ID is stored as
+  the string that was submitted, and the actor as a username snapshot. REQ-F-011 will
+  join on the string.
+- **Rejected:** Nullable foreign keys. A NOT FOUND attempt has no qualification to
+  point at, so the column would be null on exactly the events most worth auditing - the
+  ones where somebody presented an identifier this system never issued. On the user
+  side every `on_delete` option is wrong in a different way: CASCADE destroys audit
+  history, SET_NULL rewrites an audit row and so contradicts REQ-F-008 inside the
+  model's own definition, and PROTECT turns the audit trail into a reason an account
+  cannot be closed.
+- **Consequence:** The trail survives the deletion of anything it refers to, and it
+  records what was presented rather than what it turned out to be - which is the
+  question an audit answers. The cost is that a report joining events to records joins
+  on a string rather than on a key, and that an event naming a deleted user cannot be
+  resolved back to an account. Both are correct behaviour for an audit trail rather
+  than limitations of one. This is the same argument
+  `Qualification.canonical_fields()` already makes for keeping `issued_by` outside the
+  signed payload.
+
+## D-033 - Append-only is enforced in the application, not in the database
+
+- **Context:** REQ-F-008 says no update or delete path exists. The strongest available
+  mechanism is a database trigger that refuses UPDATE and DELETE on the table.
+- **Decision:** Enforcement lives in Python. `AuditEvent.save()` raises
+  `AppendOnlyError` when the row already has a primary key, `AuditEvent.delete()`
+  always raises, and `AuditEventQuerySet` overrides `update()` and `delete()` to raise
+  as well. The queryset override is the substantive half: `QuerySet.update()` writes
+  SQL without ever calling `Model.save()`, so a guard on the model alone would leave
+  `AuditEvent.objects.all().update(...)` working perfectly.
+- **Rejected:** Database triggers. They would hold against raw SQL, which the Python
+  guards cannot, and they would pin the schema to one backend in a way D-002's claim
+  that the SQLite to PostgreSQL move is a configuration change does not survive. Also
+  rejected: relying on `save()` alone, which is the version of this guarantee that
+  looks complete and is not.
+- **Consequence:** The guarantee holds against every path the application offers and
+  against none outside it. A direct SQL UPDATE succeeds, and so would a data migration,
+  because historical models in migrations receive a default manager rather than this
+  one - Django only serialises managers marked `use_in_migrations`. That is stated in
+  the technical report's critical evaluation rather than left for a reader to discover,
+  because an application-level guarantee described as if it were a database one is the
+  kind of claim that does not survive a viva question.
+
+## D-034 - REQ-N-003 means one command to start, after one-time configuration
+
+*Written in session 006 on `feature/REQ-N-003-docker-deployment` as D-026, and
+renumbered here when that branch merged. `develop` had issued D-026 and D-027 to
+different decisions in the meantime, so the branch's original numbers were already
+taken. Nothing about the reasoning changed; only the label did. This is the one place
+in the register where a number does not follow the session it was decided in, and it
+is noted rather than smoothed over.*
 
 - **Context:** REQ-N-002 forbids committing any secret. REQ-N-003 requires the system
-  to start from a single `docker compose up` with no manual steps. The container runs
-  with `QVS_DEBUG=0`, under which `config/settings.py` treats a missing
-  `QVS_SECRET_KEY` as a start-up error by design. The two requirements cannot both be
-  satisfied literally: the container needs a key it is forbidden to carry.
+  to start with no manual steps. The container runs with `QVS_DEBUG=0`, under which
+  `config/settings.py` treats a missing `QVS_SECRET_KEY` as a start-up error by
+  design. The two requirements cannot both be satisfied literally: the container needs
+  a key it is forbidden to carry.
 - **Decision:** `docker-compose.yml` reads `env_file: .env`, which is gitignored and
   excluded from the image build context. `.env` is generated once by
   `tools\New-DotEnv.ps1`, which produces both keys with `secrets.token_urlsafe(50)`
@@ -395,18 +610,27 @@ from memory in Sprint D.
   that changes on every container start and so invalidates every signature already
   issued (D-003).
 - **Consequence:** Configuration is a command rather than a paragraph, so it is done
-  the same way every time. The cost is that `docker compose up` fails on a fresh
-  clone until `New-DotEnv.ps1` has been run once, and that this reading of REQ-N-003
-  is an interpretation rather than the requirement's literal text - which is why it is
-  registered here rather than assumed, and why it belongs in the report's critical
+  the same way every time. The cost is that a fresh clone cannot start the stack until
+  `New-DotEnv.ps1` has been run once, and that this reading of REQ-N-003 is an
+  interpretation rather than the requirement's literal text - which is why it is
+  registered rather than assumed, and why it belongs in the report's critical
   evaluation as a case of two requirements in genuine tension.
 
-## D-027 - WhiteNoise serves static files, not a second container
+  Under D-036 the same tension reappears one level up and is answered the same way:
+  the platform generates both keys at first deploy and holds them, so the repository
+  still carries no secret and the deployment still needs no manual key handling. The
+  mechanism moved from a local script to a blueprint field; the argument did not move
+  at all.
 
-- **Context:** Django stops serving static files when `DEBUG` is off, and the
-  container runs with `QVS_DEBUG=0`. Without something serving them, the Django admin
-  renders with no stylesheet - which is what an assessor sees in the demonstration
-  video, worth 15%.
+## D-035 - WhiteNoise serves static files, not a second container
+
+*Written in session 006 as D-027 and renumbered on merge, for the reason given in
+D-034.*
+
+- **Context:** Django stops serving static files when `DEBUG` is off, and every
+  deployed environment runs with `QVS_DEBUG=0`. Without something serving them, the
+  Django admin renders with no stylesheet - which is what an assessor sees in the
+  demonstration video, worth 15%.
 - **Decision:** WhiteNoise, added to `requirements.txt` with no platform marker and
   wired in directly below `SecurityMiddleware`. `STORAGES` uses
   `CompressedStaticFilesStorage`, deliberately not the manifest variant: the manifest
@@ -414,13 +638,60 @@ from memory in Sprint D.
   would make the test suite depend on `collectstatic` having run first.
 - **Rejected:** An nginx sidecar container. It is the correct answer for a production
   deployment and the wrong one here - it doubles the compose file, adds a service to
-  explain on camera, and buys far-future cache headers on a system demonstrated at
-  localhost. Also rejected: leaving the admin unstyled and calling it scoped-out under
-  the Section 8 fence. That fence excludes styled UI of our own; it does not excuse a
-  framework's own interface arriving broken.
-- **Consequence:** One dependency and two settings changes, and the container serves
+  explain on camera, and buys far-future cache headers for a demonstration dataset on
+  a free instance that sleeps when idle. Also rejected: leaving the admin unstyled and
+  calling it scoped-out under the `CLAUDE.md` Section 8 fence. That fence excludes
+  styled UI of our own; it does not excuse a framework's own interface arriving
+  broken.
+- **Consequence:** One dependency and two settings changes, and the deployment serves
   a complete admin. The trade against nginx is a sentence in the report's critical
   evaluation. One visible cost locally: WhiteNoise warns `No directory at:
   staticfiles\` on any run where `collectstatic` has not been run, which includes the
   test suite and CI. Harmless - the entrypoint collects before gunicorn starts - but
   it is a warning that will be seen and should not be mistaken for a defect.
+
+## D-036 - Render is the deployment platform
+
+- **Context:** D-026 committed to a managed container service and named Cloud Run as a
+  provisional pick, leaving the actual platform undecided. Six sessions later nothing
+  was deployed anywhere, and the deliverables that depend on a running system - the
+  demonstration video at 15%, and the deployment half of the working-software mark -
+  were all blocked behind that open question.
+- **Decision:** Render, free instance, Docker runtime, built from the existing
+  `Dockerfile` and declared in `render.yaml`. Deploys from `main` with `autoDeploy`,
+  so the gate that protects `main` (D-031) is also the gate on what reaches the public
+  URL. Both keys are generated by the platform at first deploy.
+- **Rejected:** Cloud Run, Azure, Railway and Fly.io. Cloud Run and Azure both sit
+  behind a billing account and a card, which is days of friction for a demonstration
+  system; Railway's free tier ended in 2023 and its trial credit expires; Fly.io no
+  longer offers a free tier to new accounts. Render was the only candidate that puts a
+  live HTTPS URL in front of an assessor with no card and no expiry. Also rejected:
+  configuring the service by hand in the platform's console, which would leave the
+  deployment unreviewable, undiffable and unreproducible - the same argument D-007
+  makes for keeping the pipeline definition in the repository.
+- **Consequence:** REQ-N-003's wording changes. It described a single
+  `docker compose up`; the assessed start command is now a deployment that happens on
+  merge to `main`, and the requirement is reworded in `docs/REQUIREMENTS.md` to name
+  the public URL. `docker-compose.yml` stays in the repository - it is real,
+  reviewable containerisation work and it still runs anywhere Docker exists, just not
+  on this machine.
+
+  Three properties of the free instance are limitations rather than defects, and each
+  belongs in the report rather than being discovered by an assessor. The disk is
+  ephemeral, so records registered through the live site do not survive a restart or a
+  redeployment - the system demonstrates correctly within a session and resets between
+  them. The instance sleeps after fifteen minutes idle and the next request waits
+  thirty to sixty seconds for it to wake, so the URL must be warmed before it is shown
+  on camera. And 512 MB is the whole memory allowance, which is why `WEB_CONCURRENCY`
+  is set to 2 rather than the Dockerfile's local default of 3.
+
+  Three code changes follow from deploying behind a TLS-terminating proxy, and all
+  three would have failed silently. The exec-form `CMD` could not expand `${PORT}`, so
+  the container would have listened on the wrong port and never received traffic;
+  `SECURE_PROXY_SSL_HEADER` is required or the CSRF middleware rejects every POST the
+  system has; and `ALLOWED_HOSTS` needs the platform's own hostname, which
+  `settings.py` now reads from `RENDER_EXTERNAL_HOSTNAME` rather than waiting for
+  someone to type it into a dashboard. The first of these is verified by the `image`
+  job added to `ci.yml` under D-028, which starts the container with `PORT` set to a
+  non-default value and requests `/health/` from outside it. Reading the Dockerfile
+  could not have established that; running it is the only thing that could.

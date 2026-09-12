@@ -53,6 +53,48 @@ ALLOWED_HOSTS = [
     if host.strip()
 ]
 
+# --- Deployment behind a TLS-terminating proxy ------------------------------------
+#
+# D-036. The managed platform supplies the service's own external hostname at
+# runtime. Reading it here means the deployment is correct before anyone types a
+# hostname into a dashboard, and it stays correct if the service is recreated under a
+# different name. The variable is absent locally and in CI, so these lines do nothing
+# there - which is the point: one settings module, three environments, no branching
+# on which one it is.
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME", "")
+if RENDER_EXTERNAL_HOSTNAME and RENDER_EXTERNAL_HOSTNAME not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# The platform terminates TLS at its edge and forwards plain HTTP to this process.
+# Without this header Django believes every request is insecure, and the CSRF
+# middleware then compares an https:// Origin header against a request it thinks is
+# http:// and rejects the POST. That is every form this system has - registering a
+# qualification, and submitting a certificate ID to verify - so the system would look
+# broken rather than misconfigured.
+#
+# Trusting a forwarded header is only safe behind a proxy that always sets it. True
+# of the platform, false of a bare gunicorn, so it is conditional on DEBUG being off
+# rather than set unconditionally.
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+
+# CSRF_TRUSTED_ORIGINS carries the scheme, unlike ALLOWED_HOSTS. Read from the
+# environment so any host can be supplied without a code change, and extended with
+# the platform hostname where one exists.
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get("QVS_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if origin.strip()
+]
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+
+# SECURE_SSL_REDIRECT is deliberately NOT set, and this comment is the reason it is
+# absent rather than forgotten. The platform's health check reaches this process over
+# plain HTTP on the internal port; a redirect would answer it with a 301 instead of a
+# 200, and the service would be marked unhealthy while working perfectly. The edge
+# serves the public site over HTTPS only, so the redirect buys nothing here anyway.
+
 # --- Applications -----------------------------------------------------------------
 
 INSTALLED_APPS = [
@@ -132,10 +174,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-# REQ-F-004: unauthenticated users cannot register or edit records. These two settings
-# are where the redirect lands once the login view exists.
+# REQ-F-004: unauthenticated users cannot register or edit records. These are where
+# the redirect lands; the login and logout routes themselves are wired in config/urls.
 LOGIN_URL = "login"
-LOGIN_REDIRECT_URL = "/"
+
+# Was "/", which routes nowhere - the qualifications app is mounted at the root but
+# defines no index, so a successful login landed on a 404. Pointed at the register
+# view, which is the only thing an authenticated user can currently do. A real landing
+# page belongs with REQ-F-009 search and REQ-F-010 record detail, not here.
+LOGIN_REDIRECT_URL = "qualifications:register"
+LOGOUT_REDIRECT_URL = "login"
 
 # --- Internationalisation ---------------------------------------------------------
 
@@ -159,8 +207,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # render time for any {% static %} reference it cannot find in the manifest - which
 # means the test suite fails unless collectstatic has been run first. That couples the
 # tests to a build step for no benefit this project can name: the manifest exists to
-# support far-future cache headers on a public site, and this system is demonstrated
-# on localhost.
+# support far-future cache headers on a high-traffic site, and this one serves a
+# demonstration dataset from a free instance that sleeps when idle.
 #
 # CompressedStaticFilesStorage still gzips, still serves through WhiteNoise, and has
 # no manifest to be missing. The trade is named here rather than discovered later by

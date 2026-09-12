@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% comment %}
+qualifications/templates/qualifications/register.html
+
+REQ-F-003. The form is the whole page. There is no certificate ID field and no
+signature field, and that is not an omission - both are editable=False on the model, so
+ModelForm never builds them. What a registrar states and what the system attests are
+kept apart in the model layer, not by remembering to leave inputs out of a template.
+{% endcomment %}
+
+{% block title %}Register a qualification - QVS{% endblock %}
+
+{% block content %}
+  <h1>Register a qualification</h1>
+
+  {% if form.non_field_errors %}
+    <div role="alert">{{ form.non_field_errors }}</div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Register</button>
+  </form>
+{% endblock %}
