@@ -695,3 +695,17 @@ D-034.*
   job added to `ci.yml` under D-028, which starts the container with `PORT` set to a
   non-default value and requests `/health/` from outside it. Reading the Dockerfile
   could not have established that; running it is the only thing that could.
+
+  **Deployed on 2026-09-12**, in the same session this decision was registered. The
+  service is live at `https://qvs-f3dk.onrender.com`, built from commit 1e02381 by the
+  blueprint, which reports the sha it synced from - so the running system is traceable
+  to a single commit that reached `main` through D-031's required check. The platform
+  logged `Detected service running on port 10000`, which is the `${PORT}` expansion
+  working, and has been answering `/health/` with a 200 every five seconds since. Both
+  the redirect to `/verify/` and the health endpoint's JSON were browser-confirmed.
+  Evidence in `docs/evidence/deployment.md`.
+
+  One fix registered here remains unproven: `SECURE_PROXY_SSL_HEADER` only matters on
+  a POST, and no POST has been made against the deployed site, because the database
+  starts empty and the free instance offers no shell to create a user with. The first
+  login submission is what settles it.
