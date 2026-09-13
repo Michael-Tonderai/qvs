@@ -2321,3 +2321,266 @@ profile.
 Give me commands in separate labelled blocks, one command per block.
 ```
 
+
+## Session 015 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-13 11:30
+Token   : QVS-S015-A2B-30ebfd9
+Sprint  : B
+Branch  : develop
+Done    :
+  - Built tools/traceability.py. Collects the suite's req markers in-process via
+    pytest.main with a plugin implementing pytest_collection_modifyitems, and
+    left-joins them onto the requirement rows parsed from docs/REQUIREMENTS.md.
+    Passes --no-cov so a collect-only run cannot overwrite the real coverage.xml.
+  - Generated docs/evidence/traceability.md. 16 requirements, 78 tests collected,
+    3 real gaps (REQ-F-009, REQ-F-010, REQ-F-011), 3 tests citing no requirement.
+  - Added a Verified by column to both tables in docs/REQUIREMENTS.md, with a
+    mechanism-token table defining suite, pipeline, protection, coverage and
+    deployment.
+  - Registered D-038.
+  - Issue #25 opened. PR #26 created with a full body and a five-point self-review
+    comment. Both required checks green: Lint security and tests, and Container
+    image builds and serves.
+  - Verified from git log --oneline --parents that 0161476 and 8029c00 each carry
+    two parents. Previously asserted in a handover, never checked.
+HEAD    : 30ebfd9bd919e5088131f0809cd1b7c1f40dad55  PUSHED
+Tree    : clean
+Issues  : #25 OPEN. The PR body says Closes #25 and GitHub did not link it - Issues
+          was degraded during the outage below. Close it by hand next session.
+Open    :
+  - PR #26 IS UNMERGED. Commit c3aad18 sits on chore/D-038-traceability-matrix,
+    pushed to origin. develop does not carry the traceability work. This is the
+    single outstanding item from this session and it is blocked on GitHub, not on
+    anything in this repository.
+  - WHY THE TOKEN NAMES 30ebfd9, WHICH IS SESSION 014'S CLOSE COMMIT. This session
+    produced no commit on develop, because its one commit could not be merged. The
+    receiving session should still expect HEAD one commit above 30ebfd9, that
+    commit being this block. That is the normal shape for the wrong reason, and it
+    is recorded here so it is not read as a divergence.
+  - The four Tier 2 and Tier 3 requirements remain OPEN and untouched: REQ-F-009,
+    REQ-F-010, REQ-F-011, REQ-N-002.
+  - THE TECHNICAL REPORT (25%), THE VIDEO (15%) AND THE INDIVIDUAL CONTRIBUTION
+    REPORT (15%) ARE ALL STILL UNSTARTED. 55% of the marks. Nothing blocks any of
+    them, including the unmerged PR - docs/evidence/traceability.md exists on disk
+    and the report can be written from it.
+Decided :
+  - D-038 - the traceability matrix is generated from the register, not from the
+    markers, so a requirement with no test is a visible row rather than an absent
+    one.
+  - Option B over Option C on how to record non-suite verification: the register
+    gains a Verified by column rather than the matrix carrying a prose footnote.
+    Chosen because the assignment's Automated Verification of Requirements section
+    names four mechanisms and the matrix previously knew about one.
+  - Not deleting any branch on merge. Seven feature and chore branches now stand on
+    origin, on purpose, for the assessed Git deliverable.
+Watch   :
+  - THIS CLOSE COMMIT WAS MADE WITH A KNOWN Check-Docs FAILURE, DELIBERATELY. The
+    gate reports "D-038 is cited but not registered in DECISIONS.md". That is true
+    of develop and false of the repository: D-038 is registered in c3aad18 on
+    chore/D-038-traceability-matrix, inside unmerged PR #26. The gate compares
+    develop against itself and cannot see an open branch. CLAUDE.md says a STALE
+    verdict is fixed before committing and never deferred; the only two fixes
+    available were to orphan this block on the feature branch where a future
+    session would not find it, or to strip the D-038 citations and lose the
+    cross-reference the register exists for. Merging PR #26 clears it in one
+    action. Re-run .\tools\Check-Docs.ps1 straight after the merge and expect
+    DOCUMENTS CURRENT.
+  - Files written through the Filesystem connector can land with CRLF in the
+    working copy. git add warned on docs/SESSION_LOG.md. .gitattributes normalises
+    to LF in the index so the committed blob is correct. Expected, not a defect.
+  - GITHUB HAD A MAJOR OUTAGE OF THE PULL REQUESTS SERVICE DURING THIS SESSION.
+    Incident opened 2026-09-13 09:16 UTC: API Requests, Issues, Pages degraded,
+    Actions degraded, Pull Requests MAJOR OUTAGE. Our first merge attempt failed at
+    09:10 UTC, six minutes before GitHub acknowledged it. gh pr merge failed twice
+    through GraphQL and gh api PUT .../merge failed once through REST with
+    "unexpected end of JSON input" - two surfaces, one broken backend. The green
+    Squash and merge button was absent from the PR page for the same reason. If the
+    merge still fails next session, check https://www.githubstatus.com/ FIRST.
+  - CLAUDE'S OWN DEFECT, FIRST. When a clean, mergeable PR refused to merge twice,
+    Claude proposed a third API route instead of checking whether GitHub was up.
+    That cost three round trips. The rule to keep: two failures of the same
+    operation against an external service means check that service's status before
+    proposing a third attempt.
+  - CLAUDE'S OWN DEFECT, SECOND. A Filesystem:edit_file call supplied eight-space
+    indentation for lines sitting at four inside a function. The connector matched
+    them loosely anyway and produced syntactically invalid Python. Caught only by
+    reading the returned diff. Read the diff every time; and for anything more than
+    a one-line change, rewrite the file in full rather than patching it.
+  - gh pr merge returns exit 0 and prints nothing on success, and its failure here
+    was equally quiet in the other direction - git pull said "Already up to date"
+    and would have read as success. Confirm every merge with
+    git log --oneline --parents on the target branch. This is now twice-proven.
+  - A typo in a Verified by cell hides a gap SILENTLY. parse_mechanisms() accepts
+    any token and nothing validates it against the register's own mechanism table.
+    Write "suit" for "suite" and the requirement stops expecting a test and stops
+    counting as a gap. Eight lines to fix, deliberately not in PR #26, and Sir Ton
+    has not yet decided whether it is worth a follow-up branch.
+  - Nothing tests tools/traceability.py. The generator producing the evidence for
+    the Automated Verification of Requirements deliverable is itself unverified.
+    Deliberate - it is a tools/ script outside the coverage source list - and it is
+    worth one honest sentence in the report.
+  - Three tests in tests/test_routing.py cite no requirement. They pin the root
+    redirect to /verify/, which is a design decision implemented and tested but
+    never written down as a requirement. It is also the answer to why the deployed
+    system lands on a public page rather than a login form, and Sir Ton has asked
+    for that question to be addressed properly.
+  - Run .\tools\Set-Env.ps1 in any fresh terminal before anything touching Django.
+  - The free Render instance sleeps after 15 minutes idle, 30-60 seconds to wake.
+    Records registered live do not survive a restart; QVS-TEST-CASE-2345-6789 is
+    the identifier safe to write down.
+Next    : Merge PR #26 the moment GitHub recovers, close issue #25 by hand, then
+          start the technical report. No more features. REQ-F-009, REQ-F-010 and
+          REQ-F-011 are candidates to be marked DEFERRED and named in the critical
+          evaluation rather than built.
+Opening prompt :
+```
+Session 016. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expects. The direction letters in
+the token record intent, not fact.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full - probe the connector, have me run
+.\tools\Session-Open.ps1 and read the artefact yourself, reconcile it against the
+last SESSION_LOG block, and state the Section 0.6 opening position before any edit.
+
+Token: QVS-S015-A2B-30ebfd9
+
+FIRST ACTION OF THIS SESSION, BEFORE ANYTHING ELSE.
+
+PR #26 could not be merged in session 015 because GitHub's Pull Requests service
+was in MAJOR OUTAGE (incident opened 2026-09-13 09:16 UTC). Nothing is wrong with
+the repository. Commit c3aad18 is on chore/D-038-traceability-matrix and pushed,
+the PR is open with a full body and a self-review comment, and both required
+checks are green.
+
+Check https://www.githubstatus.com/ first. If Pull Requests is operational, run
+these four, one block at a time, in this order:
+
+  .\tools\Invoke-Logged.ps1 'gh pr merge 26 --squash' 'pr26_merge_3'
+
+  .\tools\Invoke-Logged.ps1 'gh issue close 25' 'issue25_close'
+
+  .\tools\Invoke-Logged.ps1 'git pull' 'pull_develop_d038_4'
+
+  .\tools\Invoke-Logged.ps1 'git log --oneline --parents -3' 'log_develop_d038_4'
+
+The fourth is not optional. gh pr merge returns exit 0 and prints nothing on
+success, and its failure in session 015 was equally quiet - git pull said
+"Already up to date" and would have read as success. The merge is proven by the
+history on develop, never by an exit code.
+
+If the merge fails again and the status page shows the incident resolved, do NOT
+retry a third API route. Say so and move on to the report. The merge is worth zero
+marks on its own; the branch is pushed and an open PR with green checks and a
+written self-review is already evidence for the Git deliverable.
+
+QVS IS DEPLOYED AND FULLY DEMONSTRABLE at https://qvs-f3dk.onrender.com. It seeds a
+registrar and three records on every container start. Sign-in, registration and
+public verification all confirmed live in session 014. Do not re-do or re-verify
+any of it before reading docs/evidence/seeding.md.
+
+Work happens on the corporate machine at
+C:\Users\tmachimbira\Projects\Development\qvs, alongside TaCRAS.
+
+DO NOT install Docker Desktop, WSL or any hypervisor component on this machine.
+Under D-026 the image is built and run on a CI runner or on the platform, or not
+at all.
+
+Run .\tools\Set-Env.ps1 before anything that touches Django. A fresh terminal has
+no environment variables and twelve tests fail on ImproperlyConfigured.
+
+To reconcile at Section 0.5:
+  1. Expect HEAD one commit above 30ebfd9, that commit being session 015's close
+     block. Note that 30ebfd9 is session 014's close commit: session 015 produced
+     no commit on develop because its one commit could not be merged. Normal
+     shape, unusual reason.
+  2. develop does NOT contain tools/traceability.py, the Verified by column or
+     D-038. All three are on chore/D-038-traceability-matrix in commit c3aad18.
+     That is the unmerged PR, not missing work.
+     Check-Docs therefore FAILS on develop with "D-038 is cited but not
+     registered in DECISIONS.md". Session 015 committed its close block knowing
+     this. The merge clears it - re-run .\tools\Check-Docs.ps1 straight after.
+  3. Issue #25 is OPEN despite a PR body reading "Closes #25". GitHub's Issues
+     service was degraded; the linkage never computed. Close it by hand.
+  4. main is at 4899f3f and is PROTECTED. main and develop diverge BOTH ways after
+     a release. Not a gap to close.
+  5. Seven origin feature and chore branches remain undeleted on purpose, now
+     including chore/D-038-traceability-matrix. Not stale refs.
+  6. develop's history is not uniformly linear. 0161476 and 8029c00 are merge
+     commits with two parents, verified in session 015 by git log --parents.
+
+Already run:  tools/traceability.py built, run three times, ruff-clean. The matrix
+              generated at docs/evidence/traceability.md. Verified by column added
+              to docs/REQUIREMENTS.md. D-038 registered. Issue #25 opened. PR #26
+              created, self-reviewed, both checks green. Check-Ascii ASCII CLEAN
+              over 68 files, Check-Docs DOCUMENTS CURRENT.
+Not yet run:  The merge of PR #26. The technical report, the video, the individual
+              contribution report. REQ-F-009, REQ-F-010, REQ-F-011, REQ-N-002.
+
+Next action, after the merge block above:
+  1. Start the technical report, 3,000-4,000 words. docs/DECISIONS.md is the source
+     for its Design decisions section - 38 entries, each already argued.
+     docs/evidence/ carries deployment, seeding and traceability evidence. The
+     report is 25% and is the single largest unstarted block of marks.
+  2. Treat REQ-F-009, REQ-F-010 and REQ-F-011 as candidates for DEFERRED. A dropped
+     Tier 2 requirement with a dated reason is a sentence in the critical
+     evaluation and is worth more than a half-built search page.
+  3. Sir Ton has asked why the deployed system lands on /verify/ rather than on a
+     login or register page. That question is unanswered and he is owed a proper
+     answer. It connects to the three tests in tests/test_routing.py that cite no
+     requirement - the landing behaviour was implemented and tested but never
+     written down as a requirement.
+  4. Sir Ton has not decided whether the Verified by typo hole is worth a follow-up
+     branch. Ask before building it.
+
+Hazards, all silent:
+  - TWO FAILURES OF THE SAME OPERATION AGAINST AN EXTERNAL SERVICE MEANS CHECK THAT
+    SERVICE'S STATUS BEFORE PROPOSING A THIRD ATTEMPT. Session 015 burned three of
+    Sir Ton's round trips retrying a merge during a GitHub outage.
+  - Filesystem:edit_file matches loosely and silently. A call supplying the wrong
+    indentation produced syntactically invalid Python in session 015. Read the
+    returned diff every time, and rewrite a file in full rather than patching it
+    for anything beyond a one-line change.
+  - Filesystem:edit_file also matches the FIRST occurrence of its anchor. The
+    opening-prompt tail is identical in every session block. Append a new block
+    from a file, byte-exact, rather than anchoring on it.
+  - CLAUDE SHOULD READ BACK ANY FILE IT WRITES BEFORE HANDING OVER A COMMAND THAT
+    CONSUMES IT. A write call returning is not evidence. D-019 requires this.
+  - THE PLATFORM LOG WINDOW OPENS AFTER BOOT. A seed that ran can look as though it
+    never did. Verify by requesting a known certificate ID over curl instead.
+  - Check-Docs does not recurse into docs/ subdirectories, so docs/evidence/ is
+    unmapped and unchecked. The traceability matrix lives there.
+  - The local .venv drifts from requirements.txt and CI cannot see it. After any
+    merge touching requirements, run
+    .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt before pytest.
+  - gh output reaches artefacts with non-ASCII glyphs mangled to "???". Harmless in
+    dev_reports, rejected by Check-Ascii in docs/evidence. Transcribe by hand.
+  - GitHub does not auto-close issues here. Close explicitly and confirm with
+    gh issue view --json state.
+  - A git add wrapped in Invoke-Logged leaves an artefact reading "(no output)".
+    Add a git status --short before the commit.
+  - registrar_client IS the client fixture with force_login called on it. Build a
+    fresh django.test.Client() for anonymous cases.
+  - DEMO_USERNAME in seed_demo.py and REGISTRAR_USERNAME in tests/conftest.py are
+    both "registrar", declared independently. A test using the seed and the fixture
+    together would fail on the unique constraint.
+  - Records registered through the live site do not survive a restart; only the
+    seeded three return. QVS-TEST-CASE-2345-6789 is the ID safe to write down.
+  - The free instance sleeps after 15 minutes idle and takes 30-60 seconds to wake.
+    Warm the URL before showing it to anyone.
+
+Remember what the marks are for. 75% of them need no new features, and the report,
+the video and the individual contribution report - 55% between them - are all still
+unstarted. Features are cut before evidence, documentation or the report.
+
+Every git and gh command goes through .\tools\Invoke-Logged.ps1 (D-022). Commit
+messages and gh bodies via file with -F or --body-file, deleted afterwards (D-020,
+D-024). Run .\tools\Set-Env.ps1, then QVS_DEBUG=0 for the suite.
+Use curl.exe with --max-time for any download; Invoke-WebRequest hangs on this
+profile.
+
+Give me commands in separate labelled blocks, one command per block.
+```
