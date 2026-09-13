@@ -2584,3 +2584,152 @@ profile.
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+---
+
+## Session 016 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-14 00:30
+
+Token   : QVS-S016-A2B-0b1c534
+Sprint  : B
+Branch  : develop
+Done    :
+  - Merged PR #26 (traceability matrix generator) once the GitHub Pull Requests
+    outage cleared; closed issue #25. Squash confirmed from the parent list.
+  - Validated the repository against the assignment brief. Scorecard: Git strong,
+    working software partial, report/video/contribution report unstarted.
+  - D-039 registered. CLAUDE.md Section 8 scope fence amended to permit one
+    hand-written stylesheet, on the grounds of public deployment, the 15% video, and
+    usability as a named assessment criterion. Nothing else in the fence moved.
+  - REQ-F-012 registered - the root redirect to /verify/ as a requirement in its own
+    right. Status VERIFIED, verified by suite, Tier 2.
+  - Styled application shell across all five pages. One stylesheet at
+    qualifications/static/qualifications/qvs.css, collected by the app-directories
+    finder with no settings change. No framework, no build step, no new dependency.
+  - The three orphan tests in tests/test_routing.py now cite REQ-F-012, and the
+    module header was rewritten in the same commit so it no longer argues against the
+    markers beneath it. The matrix now reports 0 tests citing nothing, closing one of
+    D-038's two live findings.
+  - PR #28 opened with a self-review comment, both CI jobs green, squash-merged to
+    develop. Issue #27 closed.
+
+HEAD    : 0b1c534451c7e69c9769ba9f4f0c42b3d1485615  PUSHED
+Tree    : clean
+Issues  : #25 closed, #27 closed. Nothing open.
+
+Open    :
+  - Tier B not started. REQ-F-009 search and REQ-F-010 record detail are approved to
+    be built behind @login_required, but both requirements are still worded "Any
+    user" in the register. Reword both preserving the original text (as REQ-N-003's
+    was) and register a decision BEFORE writing any view.
+  - docs/evidence/ still holds no pipeline evidence, which the assignment requires
+    explicitly. PR #28's run is the obvious source: run 34786668735, both jobs green,
+    quality 33s and image 19s. Transcribe by hand - gh output mangles non-ASCII to
+    ??? and Check-Ascii rejects that under docs/.
+  - Merge conflict management still has no committed evidence. A real conflict
+    happened and D-034's header narrates it. One paragraph in the report's DevOps
+    workflow section citing D-034 closes this; the artefact itself is gitignored.
+  - Technical report, demonstration video and individual contribution report are all
+    unstarted. 55% of the marks.
+  - Two bonus categories are arguably already earned and merely unclaimed:
+    Infrastructure-as-Code (render.yaml, branch protection applied by API) and
+    advanced security (HMAC-SHA256 signing over issued_at, append-only audit enforced
+    at queryset level, deliberate refusal to trust X-Forwarded-For). A paragraph each.
+  - parse_mechanisms() in tools/traceability.py silently accepts any token, so a typo
+    in the Verified by column makes a requirement stop counting as a gap. Eight lines
+    to fix. Sir Ton's call whether it earns a branch.
+  - An inline SVG favicon was offered twice and not taken up. /favicon.ico 404s on
+    every page load and will appear in the terminal during the video.
+
+Decided :
+  - D-039 - the scope fence permits a stylesheet. Registered.
+  - REQ-F-009 and REQ-F-010 will be built behind @login_required rather than as the
+    register's "Any user" wording states. Built literally they would create a public
+    directory of who holds which qualification, make the non-guessable certificate ID
+    pointless, and break the consent chain that verification depends on. Approved by
+    Sir Ton in chat; NOT yet registered as a D-number. Register it in session 017.
+  - Tier A before Tier B, so Tier B pages are authored into a styled shell rather
+    than retrofitted, and so the system still looks finished on camera if Tier B slips.
+  - No dashboard and no sidebar. Neither is named in the brief.
+  - The stylesheet lives at an app-level static path rather than adding
+    STATICFILES_DIRS to config/settings.py. This diverges from issue #27's body; the
+    divergence is recorded in PR #28 rather than left silent.
+
+Watch   :
+  - The local db.sqlite3 was missing 0002_audit_event, merged back in session 012.
+    Verification raised OperationalError: no such table: qualifications_auditevent.
+    pytest builds a fresh test database, so the suite can never catch this. Nothing in
+    the local gate asserts that the development database matches the migrations on the
+    branch - makemigrations --check --dry-run would. Three environments, two of them
+    ever asserted against. This is critical-evaluation material, not just a nuisance.
+  - A terminal that has not run .\tools\Set-Env.ps1 has no QVS_SECRET_KEY, so
+    settings.py generates a throwaway key per process and every restart signs you out.
+    VS Code activating .venv is not the same as having the environment. Test it in a
+    private browser window - a stale cookie logs "Session data corrupted" on every
+    request indefinitely, because nothing writes a replacement until you sign in.
+  - THE APPEND RULE IN SESSION 015'S WATCH LIST IS NOT ADVISORY. Session 016 ignored
+    it and used Filesystem:edit_file to append this block twice. Both times the anchor
+    matched an earlier occurrence - once landing before Session 002, once before
+    Session 014 - because the closing lines of an opening prompt are identical in
+    every block by construction. Both were discarded with git restore. Write the block
+    to dev_reports and append it with Add-Content. Do not anchor on prose.
+  - Check-Ascii.ps1 and Check-Docs.ps1 produce "(no output)" under Invoke-Logged.
+    They use Write-Host, which bypasses stdout redirection. Read the exit code; the
+    verdict line is not in the artefact. Same reason git add yields nothing.
+  - The connector refuses nested directory creation. Create one level at a time.
+  - The suite emits 41 warnings about a missing staticfiles\ directory because
+    STATIC_ROOT has never been created locally. Pre-existing, harmless, but it is
+    noise in an artefact an assessor may see.
+  - A status page read must be reconciled against the current clock, not merely read.
+    This session reported githubstatus.com as showing a live outage from a stale
+    cached page; the incident had resolved 40 minutes earlier.
+
+Next    : Open an issue for Tier B, branch from develop, and start by rewording
+          REQ-F-009 and REQ-F-010 in docs/REQUIREMENTS.md to say "An authenticated
+          user" - preserving the original text - and registering the decision that
+          argues why, before any view is written.
+
+Opening prompt:
+
+```
+Session 017. Sprint B.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expected.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full, ending with the Section 0.6 opening position.
+
+Token: QVS-S016-A2B-0b1c534
+
+To reconcile at Section 0.5:
+  1. HEAD should sit exactly one commit above 0b1c534, and that commit should be
+     the session 016 close commit carrying this block. More than one is a stop.
+  2. Seven or more feature/chore branches remain undeleted on the remote. That is
+     intentional - branch history is assessed - and is not drift.
+  3. REQ-F-009 and REQ-F-010 read "Any user" in docs/REQUIREMENTS.md but are
+     approved to be built behind @login_required. The wording is stale, not the
+     decision. Reword before building, and register the decision.
+
+Already run:  Tier A is merged. PR #28 squash-merged to develop at 0b1c534, both
+              CI jobs green, issues #25 and #27 closed. The full local gate passed
+              on that commit: ASCII, ruff check, ruff format, bandit, 78 tests at
+              96.71% coverage, traceability, Check-Docs. Do not re-run it to
+              confirm - read this block.
+
+Not yet run:  Everything in Tier B. No issue and no branch exists for it yet.
+
+Next action: Reword REQ-F-009 and REQ-F-010 in docs/REQUIREMENTS.md to
+"An authenticated user", preserving the original text as REQ-N-003's was, and
+register the decision arguing why a public search endpoint would break the
+consent chain - before writing any view.
+
+Run .\tools\Set-Env.ps1 in every fresh terminal, then QVS_DEBUG=0 for the suite
+and back to 1 for runserver. Every git and gh command goes through
+.\tools\Invoke-Logged.ps1 (D-022); commit messages and gh bodies via file with -F
+or --body-file, deleted afterwards (D-020, D-024). Do not install Docker Desktop,
+WSL or any hypervisor component on this machine (D-026).
+
+Give me commands in separate labelled blocks, one command per block.
+```
