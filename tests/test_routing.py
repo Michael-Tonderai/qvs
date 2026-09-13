@@ -1,13 +1,19 @@
 # tests/test_routing.py
 #
-# The root redirect. It serves no requirement, so these tests carry no req marker -
-# they will not appear in the traceability matrix, and they should not.
+# The root redirect. These tests verify REQ-F-012.
 #
-# That stays true now that the root points at the verification page. The redirect is
-# convenience, not capability: REQ-F-005 is satisfied by /verify/ itself, and marking
-# these tests would let the matrix count a URL configuration as evidence that the
-# system can verify a qualification. It cannot. Delete the redirect and REQ-F-005 is
-# still met; delete the view and no redirect saves it.
+# WHAT CHANGED AND WHY. This header previously argued that these tests should carry no
+# req marker, on the grounds that the redirect is convenience rather than capability and
+# that marking them would let a URL configuration count as evidence that the system can
+# verify a qualification. That argument was correct, and it is still correct - against
+# REQ-F-005. It does not hold against REQ-F-012, which is scoped to landing behaviour
+# and claims nothing about verification.
+#
+# The distinction is the same one the old header drew, read the other way round. Delete
+# the redirect and REQ-F-005 is still met by /verify/; delete the view and no redirect
+# saves it. Two separable claims, so two requirements, and the matrix can now trace
+# tested behaviour to something instead of showing three orphan tests. D-038 named that
+# orphaning as one of its two live findings.
 #
 # Deliberately kept out of test_register.py and test_verification.py. Those modules are
 # about capabilities; this one is about wiring, and merging them would make the next
@@ -19,6 +25,7 @@ from django.urls import reverse
 
 
 @pytest.mark.integration
+@pytest.mark.req("REQ-F-012")
 def test_root_redirects_to_verification():
     """The empty path resolves and sends the visitor somewhere real.
 
@@ -37,6 +44,7 @@ def test_root_redirects_to_verification():
 
 
 @pytest.mark.integration
+@pytest.mark.req("REQ-F-012")
 def test_the_root_redirect_is_temporary():
     """302, not 301, and the distinction is not pedantry.
 
@@ -53,6 +61,7 @@ def test_the_root_redirect_is_temporary():
 
 
 @pytest.mark.integration
+@pytest.mark.req("REQ-F-012")
 def test_an_anonymous_visitor_to_the_root_reaches_a_usable_page():
     """Following the chain: root, verification form, done. No login wall.
 
@@ -64,6 +73,10 @@ def test_an_anonymous_visitor_to_the_root_reaches_a_usable_page():
     Asserting the absence of the login redirect as well as the presence of the form,
     because a chain that merely ends in a 200 would also be satisfied by a login page
     rendering successfully.
+
+    The content assertion survives the D-039 restyling because it matches the page
+    heading, which is body text. Had it matched markup instead, a stylesheet would have
+    been free to break it.
     """
     response = Client().get("/", follow=True)
 

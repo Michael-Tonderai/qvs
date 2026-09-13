@@ -55,6 +55,7 @@ other mechanism is not expected to have a test and is not counted as a gap.
 | REQ-F-009 | Any user can search records by certificate ID, holder name or institution | 2 | OPEN | suite |
 | REQ-F-010 | Any user can retrieve the detail of a single record | 2 | OPEN | suite |
 | REQ-F-011 | An authorised user can view the audit history for a record | 3 | OPEN | suite |
+| REQ-F-012 | A visitor arriving at the site root is taken to the public verification page | 2 | VERIFIED | suite |
 
 ## Non-functional
 
@@ -98,6 +99,28 @@ requirement - the system must start with no manual steps - and only the mechanis
 names has changed. The original text is recorded here rather than overwritten silently,
 because a requirement that quietly changes to match what was built is not evidence of
 anything.
+
+**REQ-F-012 was added on 2026-09-14.** It is not a new capability - the root redirect
+has existed and been tested since REQ-F-005 landed. It is the retrospective
+registration of a decision that was implemented and tested but never written down, and
+D-038 named that omission as one of its two live findings: three tests in
+`tests/test_routing.py` cited no requirement at all, so the traceability matrix showed
+tested behaviour with nothing to trace it to.
+
+The wording matters. This requirement is about **landing behaviour**, not about
+verification. `tests/test_routing.py` argued in its own header that these tests should
+carry no marker, on the grounds that marking them would let a URL configuration count
+as evidence that the system can verify a qualification - and against `REQ-F-005` that
+argument is correct. It does not hold against a requirement scoped to where the front
+door opens. Delete the redirect and REQ-F-005 is still met by `/verify/`; delete the
+view and no redirect saves it. Two separate claims, two separate requirements, and the
+header comment in that file was rewritten in the same commit so it no longer
+contradicts the markers beneath it.
+
+It is deliberately absent from the assignment mapping table below. The brief asks for
+four capabilities and this is none of them - it is a usability decision about the
+public entry point, and the honest place for it is here rather than stretched to fit a
+row it does not belong in.
 
 **REQ-N-005 was added on 2026-09-12.** The health endpoint existed from Sprint A as a
 toolchain smoke test and was cited by `tests/test_health.py` as evidence for

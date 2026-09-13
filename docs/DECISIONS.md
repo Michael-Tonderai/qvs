@@ -808,3 +808,41 @@ D-034.*
   but never written down as a requirement. Both belong in the critical evaluation; the
   second is also the answer to why the deployed system lands on a public page rather
   than on a login form.
+
+## D-039 - The scope fence is amended to permit a stylesheet
+
+- **Context:** `CLAUDE.md` Section 8 fenced out "any styled UI beyond legible browser
+  defaults". That fence was written in Sprint A, when the system ran only on localhost
+  and was seen only by the person building it. Three things have changed since. The
+  system is deployed to a public HTTPS URL under D-036 and REQ-N-003. A 10-15 minute
+  demonstration video carrying 15% of the module marks is filmed against these pages.
+  And **usability is one of four named assessment criteria** for the Working Software
+  System deliverable, which carries 25%.
+- **Decision:** The fence is amended to permit one hand-written stylesheet at
+  `qualifications/static/qualifications/qvs.css`, and the presentational markup in the
+  templates that carries its classes. Nothing else about Section 8 moves: no CSS
+  framework, no JavaScript framework, no build step, no asset pipeline, no dependency
+  added to `requirements.txt`. The stylesheet is served by Django's app-directories
+  finder, so no settings change is needed either.
+- **Rejected:** Leaving the fence intact and arguing usability in the report instead.
+  Section 8's own standard is that a sentence in the critical evaluation earns more
+  than a half-built feature - but that trade holds for features, which cost days. This
+  costs one file and no dependencies, and the criterion it answers is named in the
+  brief rather than invented. Also rejected: a CSS framework, which would bring a
+  payload larger than the entire application and a dependency to audit under D-006;
+  and adding `STATICFILES_DIRS` to `config/settings.py` for a project-level `static/`,
+  when an app-level path is collected with no configuration at all.
+- **Consequence:** The fence now distinguishes between scope and polish. What Section 8
+  exists to prevent is *capability* creep - a REST API, a blockchain, a role hierarchy -
+  each of which adds surface that has to be designed, tested, documented and defended.
+  A stylesheet adds no surface: delete it and every requirement is still met, every
+  test still passes, and every page still says the same thing. That distinction is the
+  reason this amendment is narrow enough to be safe, and it is the line any future
+  proposal to widen Section 8 has to clear.
+
+  One property is preserved deliberately and must survive any later edit. The three
+  verification outcomes are stated **in the body text** of `verify.html`, and the
+  verdict colours are additional to that wording rather than a substitute for it. A
+  reader who is colour blind, using a screen reader, or looking at a printed page gets
+  the same answer as everyone else. This was true of the page before it was styled, and
+  styling is exactly the change that would silently break it.

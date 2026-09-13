@@ -11,26 +11,36 @@ config/urls.py stays a routing table.
 {% block title %}Sign in - QVS{% endblock %}
 
 {% block content %}
-  <h1>Sign in</h1>
+  <div class="card">
+    <h1>Sign in</h1>
 
-  {% if form.errors %}
-    {% comment %}
-      One message for a bad username and a bad password alike. Distinguishing them
-      tells an attacker which usernames exist, which turns a login form into an account
-      enumeration tool. Django's own error text already does this correctly.
-    {% endcomment %}
-    <p role="alert">Your username and password did not match. Please try again.</p>
-  {% endif %}
+    <p class="lede">
+      Signing in is for registrars who issue qualification records. Verifying a
+      certificate needs no account -
+      <a href="{% url 'qualifications:verify' %}">check one here</a>.
+    </p>
 
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Sign in</button>
-    {% comment %}
-      Carries the page the user was originally trying to reach, so an anonymous visit
-      to the register form returns there after signing in rather than dumping them on
-      a default page and making them navigate back.
-    {% endcomment %}
-    <input type="hidden" name="next" value="{{ next }}">
-  </form>
+    {% if form.errors %}
+      {% comment %}
+        One message for a bad username and a bad password alike. Distinguishing them
+        tells an attacker which usernames exist, which turns a login form into an account
+        enumeration tool. Django's own error text already does this correctly.
+      {% endcomment %}
+      <ul class="errorlist" role="alert">
+        <li>Your username and password did not match. Please try again.</li>
+      </ul>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn" type="submit">Sign in</button>
+      {% comment %}
+        Carries the page the user was originally trying to reach, so an anonymous visit
+        to the register form returns there after signing in rather than dumping them on
+        a default page and making them navigate back.
+      {% endcomment %}
+      <input type="hidden" name="next" value="{{ next }}">
+    </form>
+  </div>
 {% endblock %}

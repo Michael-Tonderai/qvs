@@ -226,7 +226,19 @@ Not in this project. Not "later" - not at all, unless Sprint D is complete:
 Blockchain. A REST API separate from the server-rendered views. Any JavaScript
 framework. PostgreSQL or MySQL. Celery or async workers. Document upload or OCR.
 Email notification. Multi-tenancy. Role hierarchies beyond `is_staff`. Agentic AI.
-Kubernetes. Any styled UI beyond legible browser defaults.
+Kubernetes. Any CSS framework, asset pipeline or build step.
+
+**Amended by D-039 on 2026-09-14.** This list previously ended "any styled UI beyond
+legible browser defaults". One hand-written stylesheet is now permitted, at
+`qualifications/static/qualifications/qvs.css`, together with the presentational markup
+that carries its classes - because the system is now publicly deployed, a video worth
+15% is filmed against these pages, and usability is a named criterion of the 25%
+Working Software System deliverable. Nothing else moved, and the boundary D-039 draws
+is the one to apply to anything proposed next: this fence exists to stop **capability**
+creep, not polish. A REST API or a role hierarchy adds surface that must be designed,
+tested, documented and defended. A stylesheet adds none - delete it and every
+requirement is still met and every test still passes. A proposal that cannot clear that
+line stays fenced.
 
 If one of these is proposed mid-build, the answer is a sentence in the report's
 critical evaluation explaining why it was scoped out. That sentence earns more than
