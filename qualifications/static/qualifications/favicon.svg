@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="QVS">
+  <!-- qualifications/static/qualifications/favicon.svg
+
+       A check mark, not a Q. The tab is the smallest surface this system has and the
+       one thing worth saying there is what it does: it confirms something. The navy is
+       --brand from qvs.css, repeated here as a literal because an SVG served as a
+       static file cannot read a custom property defined in another one. Two copies of
+       a colour is exactly what that stylesheet's header argues against, so if the
+       brand colour ever moves, this file is the second place to change.
+
+       SVG rather than .ico: one file, no binary, no build step, scales to any density,
+       and it stays readable in a diff. Safari below 16 falls back to no icon, which is
+       the position this project was in anyway. -->
+  <rect width="32" height="32" rx="6" fill="#12304f"/>
+  <path d="M8 16.5 L13.5 22 L24 11"
+        fill="none"
+        stroke="#ffffff"
+        stroke-width="3.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"/>
+</svg>

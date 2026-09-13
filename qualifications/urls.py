@@ -26,9 +26,11 @@ urlpatterns = [
     # look like an internal registry that happens to allow verification, which is the
     # wrong way round.
     #
-    # Still a temporary redirect. REQ-F-009 search and REQ-F-010 record detail may yet
-    # give the root a page of its own, and a permanent redirect is cached by browsers
-    # and painful to take back.
+    # Still a temporary redirect, and REQ-F-012 registered that behaviour rather than
+    # changing it. REQ-F-009 search and REQ-F-010 record detail have since landed and
+    # did NOT take the root: both are behind login under D-040, and an anonymous
+    # visitor sent to a signed-in page would arrive at a login form instead of at the
+    # one thing this system offers them.
     path(
         "",
         RedirectView.as_view(pattern_name="qualifications:verify"),
@@ -49,5 +51,21 @@ urlpatterns = [
         "registered/<str:certificate_id>/",
         views.register_done,
         name="register_done",
+    ),
+    # REQ-F-009. Same query-string shape as `verify` above and for the same reason:
+    # `/search/` renders the form, `/search/?q=...` renders an answer, and the answer
+    # is a URL somebody can send to a colleague.
+    #
+    # The URL name is `search` while the view is `search_records`, because
+    # `qualifications.search` is the module the view delegates to and a view of that
+    # name would shadow the import. Everything outside views.py refers to the name.
+    path("search/", views.search_records, name="search"),
+    # REQ-F-010. Keyed on the certificate ID rather than the primary key, the same
+    # choice `register_done` makes above and for the same reason - a sequential pk in
+    # an address tells a reader how many records exist and lets them walk the set.
+    path(
+        "records/<str:certificate_id>/",
+        views.record_detail,
+        name="record_detail",
     ),
 ]

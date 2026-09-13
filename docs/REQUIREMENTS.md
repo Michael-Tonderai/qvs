@@ -52,8 +52,8 @@ other mechanism is not expected to have a test and is not counted as a gap.
 | REQ-F-006 | A record altered after issue fails verification | 1 | VERIFIED | suite |
 | REQ-F-007 | Every verification attempt writes an audit event | 1 | BUILT | suite |
 | REQ-F-008 | Audit events are append-only - no update or delete path exists | 1 | BUILT | suite |
-| REQ-F-009 | An authenticated user can search records by certificate ID, holder name or institution | 2 | OPEN | suite |
-| REQ-F-010 | An authenticated user can retrieve the detail of a single record | 2 | OPEN | suite |
+| REQ-F-009 | An authenticated user can search records by certificate ID, holder name or institution | 2 | VERIFIED | suite |
+| REQ-F-010 | An authenticated user can retrieve the detail of a single record | 2 | VERIFIED | suite |
 | REQ-F-011 | An authorised user can view the audit history for a record | 3 | OPEN | suite |
 | REQ-F-012 | A visitor arriving at the site root is taken to the public verification page | 2 | VERIFIED | suite |
 
@@ -144,6 +144,15 @@ reason REQ-N-003's was on 2026-09-12: a requirement that quietly changes to matc
 was built is not evidence of anything. What changed is who the capability is for. The
 capability itself is unchanged, and the assignment mapping table below is unaffected -
 the brief asks for search and retrieval without saying by whom.
+
+**REQ-F-009 and REQ-F-010 moved to VERIFIED on 2026-09-14.** Both pages were exercised
+in a browser against the development server: an anonymous request to `/search/`
+redirected to the login form, a holder-name search returned a table linking each result
+to its record, a term matching nothing produced the no-match page rather than an empty
+table, and the detail page's verification link returned VERIFIED on the public page.
+Two confirmations came from the server log rather than from the screen and are stronger
+for it: `?q=John+Doe` and `?q=john+doe` returned byte-identical responses, and
+`/records/<id>/` resolved identically with the identifier's middle group in lower case.
 
 ---
 
