@@ -769,3 +769,42 @@ D-034.*
   first execution of the seed on its creating path anywhere: locally and in CI it had
   only ever taken the skip branch, because neither environment carries
   `QVS_DEMO_PASSWORD`. Evidence in `docs/evidence/seeding.md`.
+
+## D-038 - The traceability matrix is generated from the register, not from the markers
+
+- **Context:** The assignment's *Automated Verification of Requirements* deliverable
+  needs an artefact joining requirements to the tests that verify them. Every test
+  already carries a `req` marker and `docs/REQUIREMENTS.md` already holds the register,
+  so the obvious generator walks the collected markers and writes a row per
+  requirement it finds.
+- **Decision:** Rows come from `docs/REQUIREMENTS.md` and tests are left-joined onto
+  them. `tools/traceability.py` collects markers in-process via `pytest.main` with a
+  plugin object implementing `pytest_collection_modifyitems`, passing `--no-cov` so a
+  collect-only run does not overwrite the real `coverage.xml` with an empty report.
+  The register gains a `Verified by` column naming the mechanism - `suite`, `pipeline`,
+  `protection`, `coverage`, `deployment` - and a missing test is reported as a GAP only
+  where the register named `suite`.
+- **Rejected:** Driving rows from the markers. Such a matrix can only contain
+  requirements that already have tests, so an uncovered requirement disappears from the
+  document entirely and the artefact silently asserts complete coverage - the opposite
+  of what evidence is for. Also rejected: parsing `--collect-only -q` text, whose shape
+  is free to change between pytest releases; and treating every requirement without a
+  test as a defect, which the first run proved wrong.
+- **Consequence:** The first run disproved the register's own opening claim that every
+  ID maps to at least one test. Six had none, and three of those - REQ-N-001, REQ-N-003
+  and REQ-N-004 - carried a status of VERIFIED or BUILT. None was unverified: branch
+  protection and the required check cover REQ-N-001 (D-031), the running deployment
+  covers REQ-N-003 (D-036), and the `fail_under` threshold covers REQ-N-004. What was
+  wrong was the assumption that a pytest test is the only thing that can verify a
+  requirement automatically - which is also the assumption the assignment's own four
+  mechanisms reject. The matrix now reports the mechanism instead of reporting an
+  absence.
+
+  Two live findings the matrix surfaced and did not resolve. REQ-N-002 is `OPEN` with a
+  single test behind it, and that test covers one path rather than the requirement; no
+  secret-scanning gate exists, so the requirement is weaker than its row suggests. And
+  three tests in `tests/test_routing.py` cite no requirement at all - they pin the root
+  redirect to `/verify/`, which is a design decision that was implemented and tested
+  but never written down as a requirement. Both belong in the critical evaluation; the
+  second is also the answer to why the deployed system lands on a public page rather
+  than on a login form.
