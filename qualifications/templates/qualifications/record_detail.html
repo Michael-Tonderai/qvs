@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% comment %}
+qualifications/templates/qualifications/record_detail.html
+
+REQ-F-010 - retrieve the detail of a single record.
+
+Behind login, like the search page that links here.
+
+WHAT THIS PAGE DOES NOT DO. It does not state whether the record is authentic. The view
+does not call verification.verify, because verification.py's guarantee that every
+attempt is audited holds only because its single caller writes the event - a second
+caller would inherit that obligation, and auditing internal browsing would change what
+the audit trail means. So this page shows what is registered and sends the reader to the
+public verification page to ask the other question. register_done.html takes the same
+shape for the same reason.
+
+That separation is not a limitation to apologise for. Retrieval answers "what does the
+register say"; verification answers "is this still what was signed". Two questions, two
+pages, one place where the second one is answered.
+{% endcomment %}
+
+{% block title %}{{ qualification.certificate_id }} - QVS{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h1>Registered record</h1>
+
+    <p><span class="cert-id cert-id--issued">{{ qualification.certificate_id }}</span></p>
+
+    <dl class="record">
+      <dt>Holder</dt><dd>{{ qualification.holder_name }}</dd>
+      <dt>Institution</dt><dd>{{ qualification.institution }}</dd>
+      <dt>Qualification</dt><dd>{{ qualification.qualification_title }}</dd>
+      <dt>Awarded</dt><dd>{{ qualification.award_date|date:"Y-m-d" }}</dd>
+      <dt>Registered</dt><dd>{{ qualification.issued_at|date:"Y-m-d H:i:s" }} UTC</dd>
+      <dt>Registered by</dt><dd>{{ qualification.issued_by.get_username }}</dd>
+      <dt>Signature</dt><dd><code>{{ qualification.signature }}</code></dd>
+    </dl>
+  </div>
+
+  <div class="card">
+    <h2>Is this record still authentic?</h2>
+    <p>
+      This page reports what is registered. It does not re-check the signature. To ask
+      whether the record has been altered since it was issued, run it through the public
+      verification page - which anyone can do, with no account.
+    </p>
+    <p>
+      <a class="btn"
+         href="{% url 'qualifications:verify' %}?certificate_id={{ qualification.certificate_id }}">
+        Verify this certificate ID
+      </a>
+      <a class="btn btn--quiet" href="{% url 'qualifications:search' %}">Back to search</a>
+    </p>
+  </div>
+{% endblock %}

@@ -760,6 +760,12 @@ D-034.*
   a real user would and the fixed ID becomes unnecessary. It is not deferred here
   because those requirements are Tier 2 and the video is not.
 
+  **That expectation did not survive D-040.** Search is built behind
+  `@login_required`, so an assessor with no account still cannot discover a certificate
+  ID by searching for one. The fixed identifier is therefore not a stopgap that REQ-F-009
+  retires - it is the permanent entry point to the one public page this system has, and
+  the report should describe it as such rather than as temporary scaffolding.
+
   `tests/test_seed_demo.py` pins both halves: that the fixed record verifies through
   `verification.verify`, and that its identifier is one this system could have issued.
 
@@ -846,3 +852,40 @@ D-034.*
   reader who is colour blind, using a screen reader, or looking at a printed page gets
   the same answer as everyone else. This was true of the page before it was styled, and
   styling is exactly the change that would silently break it.
+
+## D-040 - Search and record retrieval are authenticated, not public
+
+- **Context:** REQ-F-009 and REQ-F-010 were written in Sprint A reading "Any user", by
+  symmetry with REQ-F-005, which is public by design and argued for at length in
+  `views.py`. Neither was examined again until Tier B came to build against them. Read
+  literally, the two requirements specify a public index of every record the system
+  holds, searchable by a person's name and by the institution that awarded their
+  qualification.
+- **Decision:** Both capabilities sit behind `@login_required`. `docs/REQUIREMENTS.md`
+  is reworded to "An authenticated user", with the original text preserved in the notes
+  below the table exactly as REQ-N-003's was on 2026-09-12.
+- **Rejected:** Building them public as written. It defeats REQ-F-001 - a non-guessable
+  certificate ID buys nothing once the record it names can be found by typing a holder's
+  name - and it breaks the consent chain that makes REQ-F-005 defensible. Verification
+  is public because a holder chose to hand their certificate to somebody; a searchable
+  index removes the holder from that transaction entirely. The public capability is
+  checking a credential you were given, not discovering credentials you were not. Also
+  rejected: building behind login while leaving the register saying "Any user", which is
+  precisely how a governance document stops describing the system it governs - the
+  failure D-015 exists to prevent, arriving through wording rather than through drift.
+- **Consequence:** The system's public surface is now settled and is deliberately
+  narrow: the root redirect (REQ-F-012), the health endpoint (REQ-N-005) and
+  verification by certificate ID (REQ-F-005). Everything else requires an account. That
+  asymmetry is the most interesting security property this system has and belongs in the
+  report as a designed position rather than being left for a reader to notice.
+
+  Two costs, both real. An assessor must sign in to exercise search, so the
+  demonstration seed's account (D-037) becomes load-bearing for the video rather than
+  merely convenient. And the register now contains a requirement whose wording was
+  changed after the fact, which is the second such change after REQ-N-003 - a pattern
+  worth naming honestly in the critical evaluation as requirements written early against
+  a system nobody had built yet.
+
+  One further consequence is recorded against D-037 rather than here, because it
+  invalidates a forward-looking claim that entry made: search behind login does not make
+  the fixed demonstration certificate ID unnecessary.

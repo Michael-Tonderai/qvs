@@ -440,6 +440,69 @@ a:focus {
   }
 }
 
+/* --- Results table ----------------------------------------------------------------
+ *
+ * The only table in the application. A search result set is genuinely tabular - the
+ * same five fields for every row, compared down columns - so a table is the honest
+ * element and a screen reader announces it as one.
+ *
+ * No fixed column widths. The certificate ID is a known width and the other four are
+ * free text of wildly varying length, so the browser's own table algorithm does a
+ * better job than any set of percentages guessed here. */
+
+.results {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.results th,
+.results td {
+  text-align: left;
+  padding: 0.55rem 0.75rem 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+.results thead th {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  border-bottom-width: 2px;
+}
+
+.results tbody tr:hover {
+  background: var(--canvas);
+}
+
+.results tbody td:first-child {
+  white-space: nowrap;
+}
+
+/* A table is the one element that cannot wrap, so on a narrow screen it scrolls
+ * sideways inside its card rather than widening the page. */
+.card > .results {
+  display: block;
+  overflow-x: auto;
+}
+
+/* --- Notice ------------------------------------------------------------------------
+ *
+ * For a statement about the result set rather than about a record - currently only the
+ * truncation warning. Deliberately NOT a verdict panel: verdict styling belongs to the
+ * three verification outcomes, and borrowing it here would give an advisory note the
+ * same visual weight as a formal answer about a credential. */
+
+.notice {
+  background: var(--caution-bg);
+  border-left: 3px solid var(--caution-rule);
+  color: var(--caution-ink);
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
 /* --- Footer ----------------------------------------------------------------------- */
 
 .site-footer {

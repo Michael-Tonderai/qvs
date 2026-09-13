@@ -27,6 +27,12 @@ docstring makes the same point from the other side.
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}QVS{% endblock %}</title>
+  {% comment %}
+    Declared explicitly so the browser stops requesting /favicon.ico from the site root,
+    where nothing is routed and Django answers 404 on every single page load. Harmless,
+    but it is noise in a terminal that appears in the demonstration video.
+  {% endcomment %}
+  <link rel="icon" type="image/svg+xml" href="{% static 'qualifications/favicon.svg' %}">
   <link rel="stylesheet" href="{% static 'qualifications/qvs.css' %}">
 </head>
 <body>
@@ -75,6 +81,12 @@ docstring makes the same point from the other side.
             <a class="site-nav__link" href="{% url 'qualifications:register' %}"
                {% if request.resolver_match.url_name == 'register' %}aria-current="page"{% endif %}>
               Register a qualification
+            </a>
+          </li>
+          <li>
+            <a class="site-nav__link" href="{% url 'qualifications:search' %}"
+               {% if request.resolver_match.url_name == 'search' %}aria-current="page"{% endif %}>
+              Search records
             </a>
           </li>
         {% else %}

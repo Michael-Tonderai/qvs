@@ -11,10 +11,10 @@ Rows come from `docs/REQUIREMENTS.md`; tests come from the `req` markers pytest 
 | Measure | Value |
 |---|---|
 | Requirements in the register | 17 |
-| Requirements with at least one test | 11 |
+| Requirements with at least one test | 13 |
 | Requirements verified outside the test suite | 3 |
-| Gaps - named `suite`, no test | 3 |
-| Tests collected | 78 |
+| Gaps - named `suite`, no test | 1 |
+| Tests collected | 93 |
 | Tests carrying no req marker | 0 |
 
 ## Matrix
@@ -32,8 +32,8 @@ separately. A test may carry neither, and is still counted in Tests.
 | REQ-F-006 | 1 | VERIFIED | suite | 7 | 0 / 7 |
 | REQ-F-007 | 1 | BUILT | suite | 12 | 1 / 11 |
 | REQ-F-008 | 1 | BUILT | suite | 5 | 0 / 5 |
-| REQ-F-009 | 2 | OPEN | suite | GAP | 0 / 0 |
-| REQ-F-010 | 2 | OPEN | suite | GAP | 0 / 0 |
+| REQ-F-009 | 2 | VERIFIED | suite | 10 | 0 / 10 |
+| REQ-F-010 | 2 | VERIFIED | suite | 5 | 0 / 5 |
 | REQ-F-011 | 3 | OPEN | suite | GAP | 0 / 0 |
 | REQ-F-012 | 2 | VERIFIED | suite | 3 | 0 / 3 |
 | REQ-N-001 | 1 | VERIFIED | protection, pipeline | n/a | 0 / 0 |
@@ -156,17 +156,30 @@ Tier 1. Status BUILT. Verified by suite.
 - `tests/test_audit.py::test_an_existing_event_cannot_be_re_saved` (integration)
 - `tests/test_audit.py::test_the_trail_survives_every_refused_operation` (integration)
 
-### REQ-F-009 - Any user can search records by certificate ID, holder name or institution
+### REQ-F-009 - An authenticated user can search records by certificate ID, holder name or institution
 
-Tier 2. Status OPEN. Verified by suite.
+Tier 2. Status VERIFIED. Verified by suite.
 
-- GAP. This requirement names `suite` and no test cites it.
+- `tests/test_search.py::test_a_term_matching_nothing_returns_nothing` (integration)
+- `tests/test_search.py::test_a_truncated_result_set_admits_it` (integration)
+- `tests/test_search.py::test_anonymous_search_is_redirected_to_login` (integration)
+- `tests/test_search.py::test_blank_query_matches_nothing` (integration)
+- `tests/test_search.py::test_matches_a_partial_certificate_id_typed_in_lower_case` (integration)
+- `tests/test_search.py::test_matches_on_holder_name_case_insensitively` (integration)
+- `tests/test_search.py::test_matches_on_institution` (integration)
+- `tests/test_search.py::test_search_lists_matches_and_links_to_each_record` (integration)
+- `tests/test_search.py::test_search_page_with_no_query_reports_nothing_either_way` (integration)
+- `tests/test_search.py::test_search_with_no_matches_says_so` (integration)
 
-### REQ-F-010 - Any user can retrieve the detail of a single record
+### REQ-F-010 - An authenticated user can retrieve the detail of a single record
 
-Tier 2. Status OPEN. Verified by suite.
+Tier 2. Status VERIFIED. Verified by suite.
 
-- GAP. This requirement names `suite` and no test cites it.
+- `tests/test_search.py::test_a_lower_case_certificate_id_in_the_url_still_resolves` (integration)
+- `tests/test_search.py::test_an_unknown_certificate_id_is_a_404` (integration)
+- `tests/test_search.py::test_anonymous_record_detail_is_redirected_to_login` (integration)
+- `tests/test_search.py::test_neither_page_writes_an_audit_event` (integration)
+- `tests/test_search.py::test_record_detail_shows_the_registered_fields` (integration)
 
 ### REQ-F-011 - An authorised user can view the audit history for a record
 
