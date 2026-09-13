@@ -52,8 +52,8 @@ other mechanism is not expected to have a test and is not counted as a gap.
 | REQ-F-006 | A record altered after issue fails verification | 1 | VERIFIED | suite |
 | REQ-F-007 | Every verification attempt writes an audit event | 1 | BUILT | suite |
 | REQ-F-008 | Audit events are append-only - no update or delete path exists | 1 | BUILT | suite |
-| REQ-F-009 | Any user can search records by certificate ID, holder name or institution | 2 | OPEN | suite |
-| REQ-F-010 | Any user can retrieve the detail of a single record | 2 | OPEN | suite |
+| REQ-F-009 | An authenticated user can search records by certificate ID, holder name or institution | 2 | OPEN | suite |
+| REQ-F-010 | An authenticated user can retrieve the detail of a single record | 2 | OPEN | suite |
 | REQ-F-011 | An authorised user can view the audit history for a record | 3 | OPEN | suite |
 | REQ-F-012 | A visitor arriving at the site root is taken to the public verification page | 2 | VERIFIED | suite |
 
@@ -129,6 +129,21 @@ whether the system is deployed. Under D-036 the endpoint became the platform's h
 check, which is infrastructure with a real failure mode: if it stops answering, the
 instance is taken out of rotation. That deserves a requirement of its own, and the two
 tests now cite it.
+
+**REQ-F-009 and REQ-F-010 were reworded on 2026-09-14.** They previously read *Any
+user can search records by certificate ID, holder name or institution* and *Any user
+can retrieve the detail of a single record*. Both were written in Sprint A by symmetry
+with REQ-F-005, which is public by design; neither was examined again until Tier B came
+to build against them. Read literally they specify a public index of every record the
+system holds, searchable by a person's name - which defeats REQ-F-001 and breaks the
+consent chain that makes public verification defensible. D-040 argues the case and is
+the reason this wording changed.
+
+The original text is recorded here rather than overwritten silently, for the same
+reason REQ-N-003's was on 2026-09-12: a requirement that quietly changes to match what
+was built is not evidence of anything. What changed is who the capability is for. The
+capability itself is unchanged, and the assignment mapping table below is unaffected -
+the brief asks for search and retrieval without saying by whom.
 
 ---
 
