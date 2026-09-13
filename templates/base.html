@@ -1,9 +1,25 @@
+{% load static %}
 {% comment %}
 templates/base.html
 
-The shared shell. Deliberately plain: CLAUDE.md Section 8 fences styling, and a
-stylesheet is not a requirement any deliverable is assessed against. Semantic HTML with
-browser defaults is legible, accessible and costs nothing to maintain.
+The shared application shell.
+
+WHAT CHANGED AND WHY. This file previously carried a comment saying it was deliberately
+plain, citing the CLAUDE.md Section 8 scope fence. D-039 amends that fence: the system
+is now deployed to a public HTTPS URL and is the subject of a demonstration video worth
+15% of the module marks, and usability is one of four named criteria for the Working
+Software System deliverable. A stylesheet is no longer decoration this project cannot
+justify.
+
+WHAT DID NOT CHANGE. The markup is still semantic HTML and still readable with styling
+disabled. Every class here is presentational; none of them carries meaning that is not
+already in the element or the wording.
+
+NAVIGATION IS NOT ACCESS CONTROL. Register is hidden from anonymous visitors because
+showing a link to a page they cannot use is a poor experience, NOT because hiding it
+protects anything. The guard is the @login_required decorator on the view, and an
+anonymous POST straight to /register/ still has to fail on its own merits. The view's
+docstring makes the same point from the other side.
 {% endcomment %}
 <!DOCTYPE html>
 <html lang="en">
@@ -11,26 +27,82 @@ browser defaults is legible, accessible and costs nothing to maintain.
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}QVS{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'qualifications/qvs.css' %}">
 </head>
 <body>
-  <header>
-    <strong>Qualification Verification System</strong>
-    {% if user.is_authenticated %}
-      <p>Signed in as {{ user.get_username }}</p>
-      {% comment %}
-        Logout is a POST, not a link. Django requires it, and the reason is worth
-        knowing: a GET logout can be triggered by any image tag on any page, so a
-        third-party site could sign a user out at will.
-      {% endcomment %}
-      <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit">Sign out</button>
-      </form>
-    {% endif %}
+  <a class="skip-link" href="#content">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container site-header__bar">
+      <a class="brand" href="{% url 'qualifications:verify' %}">
+        <span class="brand__mark">QVS</span>
+        <span class="brand__name">Qualification Verification System</span>
+      </a>
+
+      {% if user.is_authenticated %}
+        <div class="session">
+          <span>Signed in as <strong>{{ user.get_username }}</strong></span>
+          {% comment %}
+            Logout is a POST, not a link. Django requires it, and the reason is worth
+            knowing: a GET logout can be triggered by any image tag on any page, so a
+            third-party site could sign a user out at will.
+          {% endcomment %}
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="linkish" type="submit">Sign out</button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
   </header>
-  <hr>
-  <main>
-    {% block content %}{% endblock %}
+
+  {% comment %}
+    aria-current is set from the resolved URL name rather than from a variable each view
+    has to remember to pass. A view that forgets loses a highlight; it cannot render the
+    wrong page as current.
+  {% endcomment %}
+  <nav class="site-nav" aria-label="Main">
+    <div class="container">
+      <ul class="site-nav__list">
+        <li>
+          <a class="site-nav__link" href="{% url 'qualifications:verify' %}"
+             {% if request.resolver_match.url_name == 'verify' %}aria-current="page"{% endif %}>
+            Verify
+          </a>
+        </li>
+        {% if user.is_authenticated %}
+          <li>
+            <a class="site-nav__link" href="{% url 'qualifications:register' %}"
+               {% if request.resolver_match.url_name == 'register' %}aria-current="page"{% endif %}>
+              Register a qualification
+            </a>
+          </li>
+        {% else %}
+          <li>
+            <a class="site-nav__link" href="{% url 'login' %}"
+               {% if request.resolver_match.url_name == 'login' %}aria-current="page"{% endif %}>
+              Sign in
+            </a>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+  </nav>
+
+  <main class="site-main" id="content">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
   </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>
+        QVS verifies that a qualification record is registered here and has not been
+        altered since it was issued. It does not assess the qualification itself.
+      </p>
+      <p>Built for MIM736. Demonstration system - records are not real credentials.</p>
+    </div>
+  </footer>
 </body>
 </html>
