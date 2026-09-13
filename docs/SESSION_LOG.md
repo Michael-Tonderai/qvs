@@ -2733,3 +2733,171 @@ WSL or any hypervisor component on this machine (D-026).
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+## Session 017 - ACCOUNT HANDOVER - AccountB -> AccountA - 2026-09-14 01:50
+
+Token   : QVS-S017-B2A-7426a5e
+Sprint  : B
+Branch  : develop
+
+Done    :
+  - Reworded REQ-F-009 and REQ-F-010 from "Any user" to "An authenticated user" in
+    docs/REQUIREMENTS.md, preserving the original text in the notes as REQ-N-003's was,
+    and registered D-040 with the argument: built literally they are a public index of
+    who holds which qualification, which defeats REQ-F-001's non-guessable identifier
+    and removes the holder from the consent chain that makes REQ-F-005 defensible.
+  - Corrected a forward-looking claim inside D-037. It expected search to make the fixed
+    demonstration certificate ID unnecessary; behind login it does not, so that ID is
+    the permanent public entry point rather than temporary scaffolding.
+  - Built REQ-F-009 and REQ-F-010. New qualifications/search.py holds the matching rule
+    (one box against certificate ID, holder name and institution; MAX_RESULTS 50). New
+    views search_records and record_detail, both @login_required. New routes /search/
+    and /records/<certificate_id>/. New templates search.html and record_detail.html.
+  - Added results-table and notice rules to qvs.css, and a "Search records" nav item in
+    the authenticated branch of base.html.
+  - Added qualifications/static/qualifications/favicon.svg and declared it in base.html.
+    /favicon.ico had been answering 404 on every page load.
+  - 15 tests in tests/test_search.py. Suite now 93 tests at 96.95% coverage, with
+    search.py and views.py both at 100%.
+  - Regenerated docs/evidence/traceability.md. Gaps went from 3 to 1; REQ-F-011 is the
+    only one left and is correctly open.
+  - Browser-verified both pages and moved REQ-F-009 and REQ-F-010 to VERIFIED.
+  - Issue #29 opened and closed. PR #30 squash-merged to develop, both CI jobs green on
+    run 34790488993 - quality 41s, image 30s. Self-review comment posted, with findings.
+
+HEAD    : 7426a5e2eec1ae08c8c137197b25946a3ff68b2f  PUSHED
+Tree    : clean
+Issues  : #29 closed. Nothing open.
+
+Open    :
+  - REQ-F-011 is the last functional requirement and the only traceability gap. Tier 3.
+    Audit history for a record, joining on submitted_certificate_id as a string per
+    D-032. Not started; no issue and no branch.
+  - search.find documents a newest-first ordering guarantee that no test pins. A change
+    to Qualification.Meta.ordering would alter behaviour with the suite still green.
+    Raised in the PR #30 self-review, not fixed.
+  - record_detail normalises the certificate ID from the URL and register_done does not.
+    Defensible - register_done is only reached by redirect - but undocumented, and a
+    third such view would have no rule to follow. Also from the self-review.
+  - docs/evidence/ still holds no pipeline evidence, which the assignment requires
+    explicitly. Two candidate runs now: 34786668735 from PR #28 and 34790488993 from
+    PR #30. Transcribe by hand; gh output mangles non-ASCII to ??? and Check-Ascii
+    rejects that under docs/.
+  - Merge conflict management still has no committed evidence. A real conflict happened
+    and D-034's header narrates it; one paragraph in the report's DevOps workflow
+    section citing D-034 closes this. The artefact itself is gitignored.
+  - REQ-F-007 and REQ-F-008 are still BUILT rather than VERIFIED. Neither has been
+    browser-confirmed; the audit trail has never been looked at through a page, because
+    no page shows it. REQ-F-011 is what would change that.
+  - Technical report, demonstration video and individual contribution report are all
+    unstarted. 55% of the marks.
+  - Two bonus categories arguably earned and merely unclaimed: Infrastructure-as-Code
+    (render.yaml, branch protection applied by API) and advanced security (HMAC-SHA256
+    over issued_at, append-only audit enforced at queryset level, deliberate refusal to
+    trust X-Forwarded-For). A paragraph each.
+  - parse_mechanisms() in tools/traceability.py silently accepts any token, so a typo in
+    the Verified by column makes a requirement stop counting as a gap. Eight lines.
+
+Decided :
+  - D-040 registered - search and record retrieval are authenticated, not public.
+  - The detail page does not verify. verification.py's guarantee that every attempt is
+    audited holds because its single caller writes the event; a second caller would
+    inherit that obligation. The page links to the public verification page instead,
+    which is the shape register_done.html already takes. Pinned by
+    test_neither_page_writes_an_audit_event, so a future change re-decides rather than
+    inherits.
+  - A result cap of 50 rather than pagination, with the page saying when it is reached.
+    Pagination is a control surface no requirement asked for on a demonstration dataset.
+  - Every test in test_search.py is marked integration, including the matching-rule
+    tests. pyproject.toml defines unit as no request cycle AND no database, and
+    search.find issues a query. Same call tests/test_verification.py made.
+  - The favicon rode in PR #30 rather than taking its own issue and branch. Named in the
+    commit message and in the self-review rather than buried - it is the one commit on
+    that branch that dilutes the discipline claim.
+
+Watch   :
+  - THE APPEND RULE IS NOT ADVISORY. Write the block to dev_reports and append it with
+    Add-Content. Do not anchor edit_file on prose - every block ends with an identical
+    opening prompt by construction, so the anchor matches an earlier occurrence and the
+    block lands in the middle of the file. Session 016 did this twice.
+  - traceability.py --check exits 1 whenever a suite-verified requirement has no test,
+    and REQ-F-011 has none. The local gate must therefore run it WITHOUT --check, which
+    is what session 016 did. Established this session by reading tools/traceability.py,
+    not inferred - it resolves an apparent contradiction between the register's wording
+    and session 016's claim that the full gate passed.
+  - Check-Ascii.ps1 and Check-Docs.ps1 produce "(no output)" under Invoke-Logged because
+    they use Write-Host, which bypasses stdout redirection. Read the exit code.
+  - A terminal that has not run .\tools\Set-Env.ps1 has no QVS_SECRET_KEY, so settings.py
+    generates a throwaway key per process and every restart signs you out.
+  - The suite now emits 51 staticfiles warnings, up from 41, because test_search.py adds
+    ten more requests. Pre-existing and harmless - STATIC_ROOT has never been created
+    locally - but it is noise in an artefact an assessor may see.
+  - The connector refuses nested directory creation. Create one level at a time.
+
+Next    : Release to production first. Open a pull request from develop to main so
+          Tier B passes D-031's required check and Render redeploys from it. The live
+          site currently demonstrates two of the brief's four capabilities - register
+          and verify - because search and retrieve exist only on develop, and the
+          video and the Working Software System mark are both assessed against that
+          URL. Warm the instance before looking at it; it sleeps after fifteen minutes
+          and takes up to a minute to wake.
+          Then transcribe CI run 34790488993 into docs/evidence/pipeline.md, closing
+          the one assignment-required evidence category holding nothing. Then decide
+          REQ-F-011 against starting the technical report - the recommendation is the
+          report, because 55% of the marks are unstarted and REQ-F-011 is Tier 3.
+
+Opening prompt:
+
+```
+Session 018. Sprint B, or Sprint D if the report is started.
+Closing session ran on: AccountB. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expected.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full, ending with the Section 0.6 opening position.
+
+Token: QVS-S017-B2A-7426a5e
+
+To reconcile at Section 0.5:
+  1. HEAD should sit exactly one commit above 7426a5e, and that commit should be
+     the session 017 close commit carrying this block. More than one is a stop.
+  2. Nine or more feature/chore branches remain undeleted on the remote, including
+     feature/REQ-F-009-search-and-retrieve. That is intentional - branch history is
+     assessed - and is not drift.
+  3. tools/traceability.py reports one GAP, REQ-F-011. That is correct and expected:
+     it is Tier 3 and unbuilt. Run traceability WITHOUT --check in the local gate,
+     or it exits 1 on that gap alone.
+
+Already run:  Tier B is merged. PR #30 squash-merged to develop at 7426a5e, both CI
+              jobs green on run 34790488993, issue #29 closed, self-review comment
+              posted. REQ-F-009 and REQ-F-010 are VERIFIED - browser-confirmed, not
+              only tested. The full local gate passed on that commit: ASCII, ruff
+              check, ruff format, bandit, 93 tests at 96.95% coverage, traceability,
+              Check-Docs. Do not re-run it to confirm - read this block.
+
+Not yet run:  REQ-F-011. Anything in Sprint D. No issue and no branch exists for
+              either.
+
+Next action: Release Tier B to production. Open a PR from develop to main, let
+D-031's required check run, merge it, and confirm Render has redeployed and serves
+/search/ behind login. The deployed system currently offers only two of the brief's
+four capabilities, and the video is filmed against it. Warm the URL first - the free
+instance sleeps after fifteen minutes.
+Then transcribe CI run 34790488993 into docs/evidence/pipeline.md by hand - gh output
+mangles non-ASCII to ??? and Check-Ascii rejects that under docs/. Pipeline evidence
+is named in the assignment brief and docs/evidence/ currently has none.
+Then put the REQ-F-011 question to Sir Ton against starting the technical report;
+the recommendation is the report, since 55% of the marks are unstarted.
+
+Run .\tools\Set-Env.ps1 in every fresh terminal, then QVS_DEBUG=0 for the suite
+and back to 1 for runserver. Every git and gh command goes through
+.\tools\Invoke-Logged.ps1 (D-022); commit messages and gh bodies via file with -F
+or --body-file, deleted afterwards (D-020, D-024). Do not install Docker Desktop,
+WSL or any hypervisor component on this machine (D-026).
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
