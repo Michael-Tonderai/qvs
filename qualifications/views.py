@@ -211,3 +211,58 @@ def record_detail(request: HttpRequest, certificate_id: str) -> HttpResponse:
         "qualifications/record_detail.html",
         {"qualification": qualification},
     )
+
+
+@login_required
+def record_history(request: HttpRequest, certificate_id: str) -> HttpResponse:
+    """Show every recorded verification attempt against one record.
+
+    REQ-F-011, and with it the first surface in this system that makes REQ-F-007 and
+    REQ-F-008 visible. Both were built, tested and invisible: the trail was written on
+    every verification and could be read by nothing - no page, and no admin
+    registration either. A guarantee nobody can inspect is a claim rather than a
+    feature.
+
+    Behind login under D-040. The reasoning transfers exactly: verification is public
+    because a holder chose to hand somebody a certificate, and nothing in that choice
+    extends to showing a stranger who else has been checking it. This page is closer to
+    the audit trail than the search page is to the register, so if anything it is the
+    clearer case.
+
+    Like record_detail, this view does NOT verify. Loading a history page is not a
+    verification attempt, and auditing it would make the trail grow every time somebody
+    read it - a trail that records its own inspection buries the events it exists to
+    show. The obligation described in verification.py is inherited by any caller of
+    verify(), and this view is deliberately not one; a test pins that so a later change
+    re-decides rather than drifts.
+
+    The record is fetched first and its canonical certificate ID is what the history
+    query uses, rather than the raw string from the URL. Two reasons. A hand-typed
+    lower-case address resolves, as it does on the detail page. And an identifier this
+    system never issued gets a 404 from the record lookup rather than an empty history
+    page - "no attempts recorded" and "no such record" are different answers, and a
+    page that renders the first for the second is quietly lying.
+    """
+    qualification = get_object_or_404(
+        Qualification,
+        certificate_id=verification.normalise_certificate_id(certificate_id),
+    )
+
+    # One row beyond the cap, so a full page can be told from a truncated one without a
+    # second COUNT query. Same shape as search_records above, and deliberately so - two
+    # pages that cap a list should not cap it two different ways.
+    events = list(
+        audit.history_for(qualification.certificate_id)[: audit.MAX_HISTORY_EVENTS + 1]
+    )
+    truncated = len(events) > audit.MAX_HISTORY_EVENTS
+
+    return render(
+        request,
+        "qualifications/record_history.html",
+        {
+            "qualification": qualification,
+            "events": events[: audit.MAX_HISTORY_EVENTS],
+            "truncated": truncated,
+            "max_events": audit.MAX_HISTORY_EVENTS,
+        },
+    )

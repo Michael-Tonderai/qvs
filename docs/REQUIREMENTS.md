@@ -50,11 +50,11 @@ other mechanism is not expected to have a test and is not counted as a gap.
 | REQ-F-004 | An unauthenticated user cannot register or edit records | 1 | VERIFIED | suite |
 | REQ-F-005 | Any user can verify a record by certificate ID, receiving VERIFIED, NOT FOUND or TAMPERED | 1 | VERIFIED | suite |
 | REQ-F-006 | A record altered after issue fails verification | 1 | VERIFIED | suite |
-| REQ-F-007 | Every verification attempt writes an audit event | 1 | BUILT | suite |
+| REQ-F-007 | Every verification attempt writes an audit event | 1 | VERIFIED | suite |
 | REQ-F-008 | Audit events are append-only - no update or delete path exists | 1 | BUILT | suite |
 | REQ-F-009 | An authenticated user can search records by certificate ID, holder name or institution | 2 | VERIFIED | suite |
 | REQ-F-010 | An authenticated user can retrieve the detail of a single record | 2 | VERIFIED | suite |
-| REQ-F-011 | An authorised user can view the audit history for a record | 3 | OPEN | suite |
+| REQ-F-011 | An authorised user can view the audit history for a record | 3 | VERIFIED | suite |
 | REQ-F-012 | A visitor arriving at the site root is taken to the public verification page | 2 | VERIFIED | suite |
 
 ## Non-functional
@@ -153,6 +153,28 @@ table, and the detail page's verification link returned VERIFIED on the public p
 Two confirmations came from the server log rather than from the screen and are stronger
 for it: `?q=John+Doe` and `?q=john+doe` returned byte-identical responses, and
 `/records/<id>/` resolved identically with the identifier's middle group in lower case.
+
+**REQ-F-011 was built and moved to VERIFIED on 2026-09-14**, in session 018, and it
+took REQ-F-007 with it. Both had been BUILT since Sprint B: every verification attempt
+wrote an audit event, the append-only guarantee was enforced at queryset level, and
+nothing in the system could display a single event - there is no `admin.py` in the app,
+so neither model appeared in the Django admin either. The record history page is the
+first surface that shows the trail, so it is the first thing that could make REQ-F-007
+browser-confirmable. Confirmed against the development server: a certificate verified at
+`/verify/` appeared as a row on that record's history page, and a record registered and
+never verified reported no attempts rather than rendering an empty table. D-041 records
+the design and its limitation.
+
+**REQ-F-008 deliberately stays BUILT, and will.** Its claim is a negative - that no
+update or delete path exists - and a browser cannot confirm an absence. What can be
+shown is that the history page offers no control that edits or removes an event, which
+is consistent with the requirement without evidencing it. The real evidence is the suite:
+`AuditEvent.save()` refuses a second save, `delete()` always raises, and
+`AuditEventQuerySet` overrides `update()` and `delete()`. This project's own definition
+of VERIFIED asks for browser confirmation, and rather than stretch that word, the status
+stays BUILT and the gap is named. D-033 already records the sharper half of the same
+point: the guarantee holds against every path the application offers and against none
+outside it, so a direct SQL update would succeed. Both belong in the critical evaluation.
 
 ---
 

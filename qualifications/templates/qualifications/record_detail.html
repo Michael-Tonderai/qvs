@@ -18,6 +18,9 @@ shape for the same reason.
 That separation is not a limitation to apologise for. Retrieval answers "what does the
 register say"; verification answers "is this still what was signed". Two questions, two
 pages, one place where the second one is answered.
+
+REQ-F-011 adds a third question - "who has been checking this, and what were they told"
+- and it gets its own page for the same reason the other two do.
 {% endcomment %}
 
 {% block title %}{{ qualification.certificate_id }} - QVS{% endblock %}
@@ -52,6 +55,20 @@ pages, one place where the second one is answered.
         Verify this certificate ID
       </a>
       <a class="btn btn--quiet" href="{% url 'qualifications:search' %}">Back to search</a>
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Who has checked this record?</h2>
+    <p>
+      Every verification attempt against this certificate ID is recorded permanently and
+      cannot be edited or deleted.
+    </p>
+    <p>
+      <a class="btn btn--quiet"
+         href="{% url 'qualifications:record_history' qualification.certificate_id %}">
+        View verification history
+      </a>
     </p>
   </div>
 {% endblock %}
