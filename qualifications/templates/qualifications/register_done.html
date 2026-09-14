@@ -8,28 +8,38 @@ the public verification page, and leaving this one open would ship an unauthenti
 record lookup that no requirement asked for.
 
 The signature is shown as evidence that one was issued, not as something to copy. What
-a holder needs to quote is the certificate ID.
+a holder needs to quote is the certificate ID, which is why it is the one element on the
+page given its own treatment.
 {% endcomment %}
 
 {% block title %}Qualification registered - QVS{% endblock %}
 
 {% block content %}
-  <h1>Qualification registered</h1>
+  <div class="verdict verdict--verified" role="status">
+    <h1 class="verdict__label">REGISTERED</h1>
+    <p>The record has been signed and stored. Give the holder this certificate ID.</p>
+  </div>
 
-  <p>The record has been signed and stored. Give the holder this certificate ID.</p>
+  <div class="card">
+    <p><span class="cert-id cert-id--issued">{{ qualification.certificate_id }}</span></p>
 
-  <p><strong><code>{{ qualification.certificate_id }}</code></strong></p>
+    <h2>Record</h2>
+    <dl class="record">
+      <dt>Holder</dt><dd>{{ qualification.holder_name }}</dd>
+      <dt>Institution</dt><dd>{{ qualification.institution }}</dd>
+      <dt>Qualification</dt><dd>{{ qualification.qualification_title }}</dd>
+      <dt>Awarded</dt><dd>{{ qualification.award_date|date:"Y-m-d" }}</dd>
+      <dt>Registered</dt><dd>{{ qualification.issued_at|date:"Y-m-d H:i:s" }} UTC</dd>
+      <dt>Registered by</dt><dd>{{ qualification.issued_by.get_username }}</dd>
+      <dt>Signature</dt><dd><code>{{ qualification.signature }}</code></dd>
+    </dl>
 
-  <h2>Record</h2>
-  <dl>
-    <dt>Holder</dt><dd>{{ qualification.holder_name }}</dd>
-    <dt>Institution</dt><dd>{{ qualification.institution }}</dd>
-    <dt>Qualification</dt><dd>{{ qualification.qualification_title }}</dd>
-    <dt>Awarded</dt><dd>{{ qualification.award_date|date:"Y-m-d" }}</dd>
-    <dt>Registered</dt><dd>{{ qualification.issued_at|date:"Y-m-d H:i:s" }} UTC</dd>
-    <dt>Registered by</dt><dd>{{ qualification.issued_by.get_username }}</dd>
-    <dt>Signature</dt><dd><code>{{ qualification.signature }}</code></dd>
-  </dl>
-
-  <p><a href="{% url 'qualifications:register' %}">Register another</a></p>
+    <p>
+      <a class="btn" href="{% url 'qualifications:register' %}">Register another</a>
+      <a class="btn btn--quiet"
+         href="{% url 'qualifications:verify' %}?certificate_id={{ qualification.certificate_id }}">
+        Check it on the public page
+      </a>
+    </p>
+  </div>
 {% endblock %}

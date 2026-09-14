@@ -710,6 +710,14 @@ D-034.*
   starts empty and the free instance offers no shell to create a user with. The first
   login submission is what settles it.
 
+  **Settled on 2026-09-12, in session 014.** Once the demonstration seed (D-037) gave
+  the deployment an account to sign in as, a sign-in was performed at `/login/` in a
+  browser. It succeeded and redirected to `/register/`. Had the header been wrong,
+  Django's CSRF middleware would have rejected the submission with 403 and
+  `CSRF_TRUSTED_ORIGINS` would have been the place to look. Every fix registered in
+  this decision is now exercised by a real request rather than reasoned about.
+  Evidence in `docs/evidence/seeding.md`.
+
 ## D-037 - One seeded record carries a fixed certificate ID
 
 - **Context:** Under D-036 the deployed database is empty at every container start, so
@@ -752,5 +760,132 @@ D-034.*
   a real user would and the fixed ID becomes unnecessary. It is not deferred here
   because those requirements are Tier 2 and the video is not.
 
+  **That expectation did not survive D-040.** Search is built behind
+  `@login_required`, so an assessor with no account still cannot discover a certificate
+  ID by searching for one. The fixed identifier is therefore not a stopgap that REQ-F-009
+  retires - it is the permanent entry point to the one public page this system has, and
+  the report should describe it as such rather than as temporary scaffolding.
+
   `tests/test_seed_demo.py` pins both halves: that the fixed record verifies through
   `verification.verify`, and that its identifier is one this system could have issued.
+
+  **Deployed and confirmed on 2026-09-12**, in the same session this decision was
+  registered. The container seeded at 23:27:19 UTC during its own start-up, and
+  `QVS-TEST-CASE-2345-6789` returned VERIFIED to an anonymous request. That was the
+  first execution of the seed on its creating path anywhere: locally and in CI it had
+  only ever taken the skip branch, because neither environment carries
+  `QVS_DEMO_PASSWORD`. Evidence in `docs/evidence/seeding.md`.
+
+## D-038 - The traceability matrix is generated from the register, not from the markers
+
+- **Context:** The assignment's *Automated Verification of Requirements* deliverable
+  needs an artefact joining requirements to the tests that verify them. Every test
+  already carries a `req` marker and `docs/REQUIREMENTS.md` already holds the register,
+  so the obvious generator walks the collected markers and writes a row per
+  requirement it finds.
+- **Decision:** Rows come from `docs/REQUIREMENTS.md` and tests are left-joined onto
+  them. `tools/traceability.py` collects markers in-process via `pytest.main` with a
+  plugin object implementing `pytest_collection_modifyitems`, passing `--no-cov` so a
+  collect-only run does not overwrite the real `coverage.xml` with an empty report.
+  The register gains a `Verified by` column naming the mechanism - `suite`, `pipeline`,
+  `protection`, `coverage`, `deployment` - and a missing test is reported as a GAP only
+  where the register named `suite`.
+- **Rejected:** Driving rows from the markers. Such a matrix can only contain
+  requirements that already have tests, so an uncovered requirement disappears from the
+  document entirely and the artefact silently asserts complete coverage - the opposite
+  of what evidence is for. Also rejected: parsing `--collect-only -q` text, whose shape
+  is free to change between pytest releases; and treating every requirement without a
+  test as a defect, which the first run proved wrong.
+- **Consequence:** The first run disproved the register's own opening claim that every
+  ID maps to at least one test. Six had none, and three of those - REQ-N-001, REQ-N-003
+  and REQ-N-004 - carried a status of VERIFIED or BUILT. None was unverified: branch
+  protection and the required check cover REQ-N-001 (D-031), the running deployment
+  covers REQ-N-003 (D-036), and the `fail_under` threshold covers REQ-N-004. What was
+  wrong was the assumption that a pytest test is the only thing that can verify a
+  requirement automatically - which is also the assumption the assignment's own four
+  mechanisms reject. The matrix now reports the mechanism instead of reporting an
+  absence.
+
+  Two live findings the matrix surfaced and did not resolve. REQ-N-002 is `OPEN` with a
+  single test behind it, and that test covers one path rather than the requirement; no
+  secret-scanning gate exists, so the requirement is weaker than its row suggests. And
+  three tests in `tests/test_routing.py` cite no requirement at all - they pin the root
+  redirect to `/verify/`, which is a design decision that was implemented and tested
+  but never written down as a requirement. Both belong in the critical evaluation; the
+  second is also the answer to why the deployed system lands on a public page rather
+  than on a login form.
+
+## D-039 - The scope fence is amended to permit a stylesheet
+
+- **Context:** `CLAUDE.md` Section 8 fenced out "any styled UI beyond legible browser
+  defaults". That fence was written in Sprint A, when the system ran only on localhost
+  and was seen only by the person building it. Three things have changed since. The
+  system is deployed to a public HTTPS URL under D-036 and REQ-N-003. A 10-15 minute
+  demonstration video carrying 15% of the module marks is filmed against these pages.
+  And **usability is one of four named assessment criteria** for the Working Software
+  System deliverable, which carries 25%.
+- **Decision:** The fence is amended to permit one hand-written stylesheet at
+  `qualifications/static/qualifications/qvs.css`, and the presentational markup in the
+  templates that carries its classes. Nothing else about Section 8 moves: no CSS
+  framework, no JavaScript framework, no build step, no asset pipeline, no dependency
+  added to `requirements.txt`. The stylesheet is served by Django's app-directories
+  finder, so no settings change is needed either.
+- **Rejected:** Leaving the fence intact and arguing usability in the report instead.
+  Section 8's own standard is that a sentence in the critical evaluation earns more
+  than a half-built feature - but that trade holds for features, which cost days. This
+  costs one file and no dependencies, and the criterion it answers is named in the
+  brief rather than invented. Also rejected: a CSS framework, which would bring a
+  payload larger than the entire application and a dependency to audit under D-006;
+  and adding `STATICFILES_DIRS` to `config/settings.py` for a project-level `static/`,
+  when an app-level path is collected with no configuration at all.
+- **Consequence:** The fence now distinguishes between scope and polish. What Section 8
+  exists to prevent is *capability* creep - a REST API, a blockchain, a role hierarchy -
+  each of which adds surface that has to be designed, tested, documented and defended.
+  A stylesheet adds no surface: delete it and every requirement is still met, every
+  test still passes, and every page still says the same thing. That distinction is the
+  reason this amendment is narrow enough to be safe, and it is the line any future
+  proposal to widen Section 8 has to clear.
+
+  One property is preserved deliberately and must survive any later edit. The three
+  verification outcomes are stated **in the body text** of `verify.html`, and the
+  verdict colours are additional to that wording rather than a substitute for it. A
+  reader who is colour blind, using a screen reader, or looking at a printed page gets
+  the same answer as everyone else. This was true of the page before it was styled, and
+  styling is exactly the change that would silently break it.
+
+## D-040 - Search and record retrieval are authenticated, not public
+
+- **Context:** REQ-F-009 and REQ-F-010 were written in Sprint A reading "Any user", by
+  symmetry with REQ-F-005, which is public by design and argued for at length in
+  `views.py`. Neither was examined again until Tier B came to build against them. Read
+  literally, the two requirements specify a public index of every record the system
+  holds, searchable by a person's name and by the institution that awarded their
+  qualification.
+- **Decision:** Both capabilities sit behind `@login_required`. `docs/REQUIREMENTS.md`
+  is reworded to "An authenticated user", with the original text preserved in the notes
+  below the table exactly as REQ-N-003's was on 2026-09-12.
+- **Rejected:** Building them public as written. It defeats REQ-F-001 - a non-guessable
+  certificate ID buys nothing once the record it names can be found by typing a holder's
+  name - and it breaks the consent chain that makes REQ-F-005 defensible. Verification
+  is public because a holder chose to hand their certificate to somebody; a searchable
+  index removes the holder from that transaction entirely. The public capability is
+  checking a credential you were given, not discovering credentials you were not. Also
+  rejected: building behind login while leaving the register saying "Any user", which is
+  precisely how a governance document stops describing the system it governs - the
+  failure D-015 exists to prevent, arriving through wording rather than through drift.
+- **Consequence:** The system's public surface is now settled and is deliberately
+  narrow: the root redirect (REQ-F-012), the health endpoint (REQ-N-005) and
+  verification by certificate ID (REQ-F-005). Everything else requires an account. That
+  asymmetry is the most interesting security property this system has and belongs in the
+  report as a designed position rather than being left for a reader to notice.
+
+  Two costs, both real. An assessor must sign in to exercise search, so the
+  demonstration seed's account (D-037) becomes load-bearing for the video rather than
+  merely convenient. And the register now contains a requirement whose wording was
+  changed after the fact, which is the second such change after REQ-N-003 - a pattern
+  worth naming honestly in the critical evaluation as requirements written early against
+  a system nobody had built yet.
+
+  One further consequence is recorded against D-037 rather than here, because it
+  invalidates a forward-looking claim that entry made: search behind login does not make
+  the fixed demonstration certificate ID unnecessary.

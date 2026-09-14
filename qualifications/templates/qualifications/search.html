@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% comment %}
+qualifications/templates/qualifications/search.html
+
+REQ-F-009 - search registered records by certificate ID, holder name or institution.
+
+Behind login. D-040 is the reason, and it is worth stating where a reader will meet it:
+built as the register originally worded this requirement, the page below would be a
+public directory of who holds which qualification.
+
+Three states, and they are deliberately three rather than two. No query yet is not the
+same as a query that matched nothing, and telling a first-time visitor that their search
+returned no results - when they have not searched - is the kind of small wrongness that
+makes a system feel broken. `results` is None until a query is actually run.
+{% endcomment %}
+
+{% block title %}Search records - QVS{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h1>Search records</h1>
+
+    <p class="lede">
+      Search by certificate ID, holder name or institution. One box - a partial match on
+      any of the three is enough.
+    </p>
+
+    {% comment %}
+      GET, like the verification form, so a result is bookmarkable and shareable and a
+      refresh re-runs the search rather than resubmitting it. No csrf_token, because
+      Django requires one for POST only.
+    {% endcomment %}
+    <form class="inline-form" method="get" action="{% url 'qualifications:search' %}">
+      <div class="inline-form__field">
+        <label for="q">Search</label>
+        <input
+          type="text"
+          id="q"
+          name="q"
+          value="{{ query }}"
+          placeholder="Certificate ID, holder name or institution"
+          autocomplete="off"
+          spellcheck="false"
+          required
+        >
+      </div>
+      <button class="btn" type="submit">Search</button>
+    </form>
+  </div>
+
+  {% if results is not None %}
+    {% if results %}
+      <div class="card">
+        <h2>
+          {{ results|length }} record{{ results|length|pluralize }} matching
+          <q>{{ query }}</q>
+        </h2>
+
+        {% if truncated %}
+          {% comment %}
+            A truncated result set that does not say so is worse than no search at all,
+            because the absence of a record then reads as proof it does not exist.
+          {% endcomment %}
+          <p class="notice">
+            Showing the first {{ max_results }} matches. Narrow the search to see the
+            rest - more records match than are listed here.
+          </p>
+        {% endif %}
+
+        <table class="results">
+          <thead>
+            <tr>
+              <th scope="col">Certificate ID</th>
+              <th scope="col">Holder</th>
+              <th scope="col">Institution</th>
+              <th scope="col">Qualification</th>
+              <th scope="col">Awarded</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for qualification in results %}
+              <tr>
+                <td>
+                  <a href="{% url 'qualifications:record_detail' qualification.certificate_id %}">
+                    <code>{{ qualification.certificate_id }}</code>
+                  </a>
+                </td>
+                <td>{{ qualification.holder_name }}</td>
+                <td>{{ qualification.institution }}</td>
+                <td>{{ qualification.qualification_title }}</td>
+                <td>{{ qualification.award_date|date:"Y-m-d" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    {% else %}
+      {% comment %}
+        Not a verdict panel. The verdict styling belongs to verification, where the three
+        outcomes are a formal answer about a credential; an empty search result is not an
+        answer about anything and should not borrow that weight.
+      {% endcomment %}
+      <div class="card">
+        <h2>No records match <q>{{ query }}</q></h2>
+        <p>
+          Nothing registered here matches that certificate ID, holder name or
+          institution. Check the spelling, or try a shorter part of the term.
+        </p>
+        <p>
+          Searching is not verification. To check whether a certificate is authentic,
+          use the <a href="{% url 'qualifications:verify' %}">verification page</a>.
+        </p>
+      </div>
+    {% endif %}
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,519 @@
+/* qualifications/static/qualifications/qvs.css
+ *
+ * The whole stylesheet. One file, hand written, no framework and no build step.
+ *
+ * WHY NO FRAMEWORK. CLAUDE.md Section 8 fences out any JavaScript framework, and a CSS
+ * framework would bring a build step, a dependency to audit under D-006, and a payload
+ * larger than this entire application. Six pages do not need a design system.
+ *
+ * WHY SYSTEM FONTS. A webfont is a second network request on a free instance that
+ * sleeps after fifteen minutes idle and takes up to a minute to wake. The first
+ * impression an assessor gets should not be unstyled text reflowing when a font
+ * finally arrives.
+ *
+ * WHY CUSTOM PROPERTIES. Every colour is declared once. The verdict colours in
+ * particular are referenced from three places, and a second copy is how one of them
+ * drifts - the same argument D-012 and D-018 make about line endings and encoding.
+ */
+
+:root {
+  --canvas: #f4f6f8;
+  --paper: #ffffff;
+  --ink: #1a1d21;
+  --ink-soft: #4a5159;
+  --rule: #dfe3e8;
+
+  --brand: #12304f;
+  --brand-ink: #ffffff;
+  --accent: #1f6feb;
+
+  /* Verdict colours. These SUPPORT the wording on the verification page, they do not
+   * replace it. verify.html states each outcome in a sentence for exactly this reason:
+   * colour alone fails a colour-blind reader, a screen reader and a printout. */
+  --verified-ink: #14622f;
+  --verified-bg: #e7f4ec;
+  --verified-rule: #9cd0b0;
+
+  --caution-ink: #7a5400;
+  --caution-bg: #fdf4e3;
+  --caution-rule: #e2c583;
+
+  --tamper-ink: #a31d17;
+  --tamper-bg: #fdecea;
+  --tamper-rule: #e9a7a2;
+
+  --measure: 62rem;
+  --radius: 6px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  /* Pushes the footer to the bottom on short pages without any layout hack. */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Skip link -------------------------------------------------------------------
+ *
+ * Hidden until focused. A keyboard user should not have to tab through the whole
+ * navigation on every page to reach the content, and this costs six lines. */
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--accent);
+  color: #ffffff;
+  padding: 0.6rem 1rem;
+  z-index: 10;
+}
+
+.skip-link:focus {
+  left: 0;
+}
+
+/* --- Shell ------------------------------------------------------------------------ */
+
+.container {
+  width: 100%;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.site-header {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+.site-header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.brand {
+  color: var(--brand-ink);
+  text-decoration: none;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.brand__mark {
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.brand__name {
+  font-size: 0.9rem;
+  color: #b9c9d8;
+}
+
+.session {
+  font-size: 0.85rem;
+  color: #b9c9d8;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* The sign-out control is a form because logout must be a POST - a GET logout can be
+ * fired by any image tag on any third-party page. base.html said so before this
+ * stylesheet existed; this rule only stops the form looking like one. */
+.session form {
+  margin: 0;
+}
+
+.linkish {
+  background: none;
+  border: 1px solid #3c5d7f;
+  color: var(--brand-ink);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.linkish:hover {
+  background: #1c4269;
+}
+
+/* --- Navigation ------------------------------------------------------------------- */
+
+.site-nav {
+  background: #0d2439;
+  border-bottom: 1px solid #0a1c2c;
+}
+
+.site-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.site-nav__link {
+  display: block;
+  padding: 0.7rem 1rem;
+  color: #c5d4e2;
+  text-decoration: none;
+  font-size: 0.92rem;
+  border-bottom: 3px solid transparent;
+}
+
+.site-nav__link:hover {
+  color: #ffffff;
+  background: #14304a;
+}
+
+/* Current page. Set with aria-current in the template as well, so the state is
+ * announced by a screen reader rather than only shown. */
+.site-nav__link[aria-current="page"] {
+  color: #ffffff;
+  border-bottom-color: var(--accent);
+}
+
+/* --- Main ------------------------------------------------------------------------- */
+
+.site-main {
+  flex: 1 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+.card {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  margin-bottom: 1.5rem;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.lede {
+  color: var(--ink-soft);
+  margin-top: 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+code,
+.cert-id {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
+  font-size: 0.95em;
+}
+
+.cert-id--issued {
+  display: inline-block;
+  background: var(--canvas);
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius);
+  padding: 0.6rem 1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  /* The certificate ID is the one string a registrar reads aloud or copies by hand,
+   * so a double click selects all of it rather than one hyphenated group. */
+  user-select: all;
+}
+
+/* --- Forms ------------------------------------------------------------------------
+ *
+ * Django's {{ form.as_p }} emits <p><label>..</label> <input></p>, so the paragraph is
+ * the field wrapper here. Styling that shape rather than replacing it keeps the
+ * templates free of hand-written field markup that would drift from the form class. */
+
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.3rem;
+}
+
+form p {
+  margin: 0 0 1.1rem;
+}
+
+input[type="text"],
+input[type="password"],
+input[type="date"],
+input[type="email"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  max-width: 26rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #c4ccd4;
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus,
+a:focus {
+  outline: 3px solid #9ec5fe;
+  outline-offset: 1px;
+}
+
+.helptext {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin-top: 0.25rem;
+}
+
+.errorlist {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--tamper-bg);
+  border-left: 3px solid var(--tamper-rule);
+  color: var(--tamper-ink);
+  font-size: 0.88rem;
+}
+
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0.6rem 1.4rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn:hover {
+  background: #1858bd;
+}
+
+.btn--quiet {
+  background: var(--paper);
+  color: var(--accent);
+  border-color: #c4ccd4;
+}
+
+.btn--quiet:hover {
+  background: var(--canvas);
+}
+
+/* The verification form sits on one line on a wide screen and stacks on a narrow one,
+ * without a media query. */
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.inline-form__field {
+  flex: 1 1 20rem;
+}
+
+/* --- Verdict ---------------------------------------------------------------------- */
+
+.verdict {
+  border: 1px solid var(--rule);
+  border-left-width: 6px;
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.verdict__label {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  letter-spacing: 0.08em;
+}
+
+.verdict p:last-child {
+  margin-bottom: 0;
+}
+
+.verdict--verified {
+  background: var(--verified-bg);
+  border-color: var(--verified-rule);
+  color: var(--verified-ink);
+}
+
+.verdict--not-found {
+  background: var(--caution-bg);
+  border-color: var(--caution-rule);
+  color: var(--caution-ink);
+}
+
+.verdict--tampered {
+  background: var(--tamper-bg);
+  border-color: var(--tamper-rule);
+  color: var(--tamper-ink);
+}
+
+/* --- Record ----------------------------------------------------------------------- */
+
+.record {
+  margin: 0;
+  display: grid;
+  grid-template-columns: minmax(9rem, 14rem) 1fr;
+  gap: 0.1rem 1.25rem;
+}
+
+.record dt {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--rule);
+}
+
+.record dd {
+  margin: 0;
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--rule);
+  /* A signature is 64 hex characters with no break opportunity in it. Without this it
+   * widens the grid column and pushes the layout sideways on a narrow screen. */
+  overflow-wrap: anywhere;
+}
+
+/* One column below the grid breakpoint. This is the only media query in the
+ * stylesheet: the definition list is the one element that cannot fall back on
+ * flex-wrap. */
+@media (max-width: 34rem) {
+  .record {
+    grid-template-columns: 1fr;
+  }
+
+  .record dd {
+    border-top: 0;
+    padding-top: 0;
+  }
+}
+
+/* --- Results table ----------------------------------------------------------------
+ *
+ * The only table in the application. A search result set is genuinely tabular - the
+ * same five fields for every row, compared down columns - so a table is the honest
+ * element and a screen reader announces it as one.
+ *
+ * No fixed column widths. The certificate ID is a known width and the other four are
+ * free text of wildly varying length, so the browser's own table algorithm does a
+ * better job than any set of percentages guessed here. */
+
+.results {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.results th,
+.results td {
+  text-align: left;
+  padding: 0.55rem 0.75rem 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: top;
+}
+
+.results thead th {
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-soft);
+  border-bottom-width: 2px;
+}
+
+.results tbody tr:hover {
+  background: var(--canvas);
+}
+
+.results tbody td:first-child {
+  white-space: nowrap;
+}
+
+/* A table is the one element that cannot wrap, so on a narrow screen it scrolls
+ * sideways inside its card rather than widening the page. */
+.card > .results {
+  display: block;
+  overflow-x: auto;
+}
+
+/* --- Notice ------------------------------------------------------------------------
+ *
+ * For a statement about the result set rather than about a record - currently only the
+ * truncation warning. Deliberately NOT a verdict panel: verdict styling belongs to the
+ * three verification outcomes, and borrowing it here would give an advisory note the
+ * same visual weight as a formal answer about a credential. */
+
+.notice {
+  background: var(--caution-bg);
+  border-left: 3px solid var(--caution-rule);
+  color: var(--caution-ink);
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
+/* --- Footer ----------------------------------------------------------------------- */
+
+.site-footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 0.82rem;
+  padding: 1.25rem 0;
+}
+
+.site-footer p {
+  margin: 0.2rem 0;
+}

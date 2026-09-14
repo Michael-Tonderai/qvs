@@ -7,20 +7,32 @@ REQ-F-003. The form is the whole page. There is no certificate ID field and no
 signature field, and that is not an omission - both are editable=False on the model, so
 ModelForm never builds them. What a registrar states and what the system attests are
 kept apart in the model layer, not by remembering to leave inputs out of a template.
+
+{{ form.as_p }} is kept rather than replaced with hand-written field markup. The
+stylesheet targets the paragraph-and-label shape Django emits, so a field added to
+QualificationForm appears here styled and without anyone editing this file. Hand-written
+markup would be a second declaration of the form that drifts from the first.
 {% endcomment %}
 
 {% block title %}Register a qualification - QVS{% endblock %}
 
 {% block content %}
-  <h1>Register a qualification</h1>
+  <div class="card">
+    <h1>Register a qualification</h1>
 
-  {% if form.non_field_errors %}
-    <div role="alert">{{ form.non_field_errors }}</div>
-  {% endif %}
+    <p class="lede">
+      The record is signed at the moment it is stored. QVS issues the certificate ID -
+      it cannot be chosen - and the holder quotes it to have the qualification verified.
+    </p>
 
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Register</button>
-  </form>
+    {% if form.non_field_errors %}
+      <div role="alert">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="btn" type="submit">Register</button>
+    </form>
+  </div>
 {% endblock %}
