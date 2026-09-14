@@ -68,4 +68,13 @@ urlpatterns = [
         views.record_detail,
         name="record_detail",
     ),
+    # REQ-F-011. Nested under the record rather than given a route of its own, because
+    # the audit history this system offers is scoped to a record: there is no
+    # `/history/` page listing the whole trail, and the URL should not imply one. The
+    # address also reads as the question it answers - the history of this record.
+    path(
+        "records/<str:certificate_id>/history/",
+        views.record_history,
+        name="record_history",
+    ),
 ]

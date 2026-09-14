@@ -11,10 +11,10 @@ Rows come from `docs/REQUIREMENTS.md`; tests come from the `req` markers pytest 
 | Measure | Value |
 |---|---|
 | Requirements in the register | 17 |
-| Requirements with at least one test | 13 |
+| Requirements with at least one test | 14 |
 | Requirements verified outside the test suite | 3 |
-| Gaps - named `suite`, no test | 1 |
-| Tests collected | 93 |
+| Gaps - named `suite`, no test | 0 |
+| Tests collected | 107 |
 | Tests carrying no req marker | 0 |
 
 ## Matrix
@@ -30,11 +30,11 @@ separately. A test may carry neither, and is still counted in Tests.
 | REQ-F-004 | 1 | VERIFIED | suite | 7 | 1 / 6 |
 | REQ-F-005 | 1 | VERIFIED | suite | 11 | 3 / 8 |
 | REQ-F-006 | 1 | VERIFIED | suite | 7 | 0 / 7 |
-| REQ-F-007 | 1 | BUILT | suite | 12 | 1 / 11 |
+| REQ-F-007 | 1 | VERIFIED | suite | 12 | 1 / 11 |
 | REQ-F-008 | 1 | BUILT | suite | 5 | 0 / 5 |
 | REQ-F-009 | 2 | VERIFIED | suite | 10 | 0 / 10 |
 | REQ-F-010 | 2 | VERIFIED | suite | 5 | 0 / 5 |
-| REQ-F-011 | 3 | OPEN | suite | GAP | 0 / 0 |
+| REQ-F-011 | 3 | VERIFIED | suite | 14 | 0 / 14 |
 | REQ-F-012 | 2 | VERIFIED | suite | 3 | 0 / 3 |
 | REQ-N-001 | 1 | VERIFIED | protection, pipeline | n/a | 0 / 0 |
 | REQ-N-002 | 1 | OPEN | suite | 1 | 0 / 1 |
@@ -131,7 +131,7 @@ Tier 1. Status VERIFIED. Verified by suite.
 
 ### REQ-F-007 - Every verification attempt writes an audit event
 
-Tier 1. Status BUILT. Verified by suite.
+Tier 1. Status VERIFIED. Verified by suite.
 
 - `tests/test_audit.py::test_a_signed_in_attempt_records_the_username` (integration)
 - `tests/test_audit.py::test_a_successful_verification_is_recorded` (integration)
@@ -183,9 +183,22 @@ Tier 2. Status VERIFIED. Verified by suite.
 
 ### REQ-F-011 - An authorised user can view the audit history for a record
 
-Tier 3. Status OPEN. Verified by suite.
+Tier 3. Status VERIFIED. Verified by suite.
 
-- GAP. This requirement names `suite` and no test cites it.
+- `tests/test_audit_history.py::test_a_lower_case_certificate_id_in_the_url_still_resolves` (integration)
+- `tests/test_audit_history.py::test_a_record_with_no_attempts_says_so_rather_than_showing_an_empty_table` (integration)
+- `tests/test_audit_history.py::test_a_truncated_history_admits_it` (integration)
+- `tests/test_audit_history.py::test_an_anonymous_attempt_is_shown_as_anonymous` (integration)
+- `tests/test_audit_history.py::test_an_unknown_certificate_id_is_a_404_rather_than_an_empty_history` (integration)
+- `tests/test_audit_history.py::test_anonymous_history_is_redirected_to_login` (integration)
+- `tests/test_audit_history.py::test_history_does_not_match_a_submitted_string_that_merely_contains_the_id` (integration)
+- `tests/test_audit_history.py::test_history_excludes_attempts_against_a_different_certificate_id` (integration)
+- `tests/test_audit_history.py::test_history_finds_attempts_that_presented_this_certificate_id` (integration)
+- `tests/test_audit_history.py::test_history_is_newest_first` (integration)
+- `tests/test_audit_history.py::test_history_normalises_the_certificate_id_it_is_given` (integration)
+- `tests/test_audit_history.py::test_the_page_lists_real_attempts_made_through_the_verification_page` (integration)
+- `tests/test_audit_history.py::test_the_record_page_links_to_the_history` (integration)
+- `tests/test_audit_history.py::test_viewing_the_history_writes_no_audit_event` (integration)
 
 ### REQ-F-012 - A visitor arriving at the site root is taken to the public verification page
 
