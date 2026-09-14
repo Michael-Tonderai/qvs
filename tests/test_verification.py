@@ -310,7 +310,7 @@ def test_normalisation_of_an_already_tidy_id_is_idempotent():
     A stray transformation that only shows up on the second pass would slip past
     a test that normalises once. If a certificate verifies today, its ID must
     still normalise to itself tomorrow - a record cannot be silently moved out
-    from under an ID that was already correct.
+    from under an ID that was already correct '.
     """
     tidy_id = "QVS-2345-6789-ABCD-EFGH"
 
