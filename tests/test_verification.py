@@ -300,3 +300,22 @@ def test_an_empty_certificate_id_is_not_found_rather_than_an_error():
 
     assert result.outcome == verification.NOT_FOUND
     assert result.qualification is None
+
+
+@pytest.mark.unit
+@pytest.mark.req("REQ-F-005")
+def test_normalisation_of_an_already_tidy_id_is_idempotent():
+    """Normalising a clean ID twice must not change it a second time.
+
+    A stray transformation that only shows up on the second pass would slip past
+    a test that normalises once. If a certificate verifies today, its ID must
+    still normalise to itself tomorrow - a record cannot be silently moved out
+    from under an ID that was already correct.
+    """
+    tidy_id = "QVS-2345-6789-ABCD-EFGH"
+
+    once = verification.normalise_certificate_id(tidy_id)
+    twice = verification.normalise_certificate_id(once)
+
+    assert once == tidy_id
+    assert twice == once
