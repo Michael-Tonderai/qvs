@@ -32,7 +32,7 @@ The first visit may take up to a minute while the free Render server wakes up. A
 - Docker for containerisation.
 - Render for public deployment over HTTPS.
 
-The pipeline automatically runs tests, code quality checks, security scans, requirements traceability checks and the Docker build.
+The pipeline automatically runs tests, code quality checks, security scans,and the Docker build.
 
 ## How the Code Is Organised
 
@@ -40,7 +40,6 @@ The pipeline automatically runs tests, code quality checks, security scans, requ
 - develop is the branch where completed work is integrated.
 - Each change is developed on a separate feature or fix branch.
 - Changes are submitted through pull requests.
-- Pull requests are reviewed before they are merged.
 - Required CI checks must pass before changes can reach main.
 
 This workflow provides evidence of collaboration through commits, branches, pull requests, code reviews, issue tracking and pipeline executions.
