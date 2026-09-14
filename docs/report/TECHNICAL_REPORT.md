@@ -247,10 +247,9 @@ the arrangement here optimises for exactly that: a merge to `main` is a deployme
 
 One piece of local tooling shaped the evidence base. Every version-control and platform
 CLI command runs through a wrapper script that writes full output to a dated artefact
-file. The rule applies to quiet commands as well as noisy ones, because an exception
-list is a second rule that drifts out of sync with the first. Every such operation
-therefore left a readable record of what was run and what it returned, which terminal
-scrollback was never going to provide.
+file, quiet commands included, because an exception list is a second rule that drifts out
+of sync with the first. Every operation therefore left a readable record of what was run
+and what it returned, which terminal scrollback was never going to provide.
 
 ## 6. Testing strategy
 
@@ -323,12 +322,17 @@ generated matrix together with transcribed pipeline evidence.
 
 ## 8. Critical evaluation
 
-The most consequential weakness is structural. Every pull request in this repository was
-merged without a second reviewer, so the review gate is the pipeline rather than a
-person. That substitution is defensible as far as it goes - an automated gate is
-impartial, runs every time, and cannot be talked round - but it catches only what it was
-told to look for. A human reviewer asks whether a design is right; a status check asks
-whether the tests pass. Every claim in this report about process rigour should be read
+The most consequential weakness is structural. For most of this project's life the
+implementation had a single author, and every pull request that author opened was merged
+on the strength of a self-review and a green pipeline rather than a second person's
+judgement. The review gate is the pipeline, not a reviewer. That substitution is
+defensible as far as it goes - an automated gate is impartial, runs every time, and
+cannot be talked round - but it catches only what it was told to look for. A human
+reviewer asks whether a design is right; a status check asks whether the tests pass. Two
+pull requests from other group members arrived in the closing days and did receive
+substantive review, one with changes requested and subsequently addressed, so genuine
+peer review exists in this repository - but it arrived far too late to have shaped any
+design decision in it. Every claim in this report about process rigour should be read
 with that distinction in mind.
 
 Related to it, merge conflict management is a named assessment criterion this project
@@ -358,10 +362,9 @@ here of a requirement whose row in the matrix looks stronger than the requiremen
 the first thing that would be fixed.
 
 The quality gate has never stopped anything. Both transcribed pipeline runs are
-successes, and no change in this project's history has been blocked by a red check. A
-gate is best evidenced by something it caught, so the strength of this one rests on its
-configuration rather than on a demonstrated save. The same caution applies to the
-coverage figure, for the reason given in Section 6.
+successes and no change has been blocked by a red check, so the strength of this gate
+rests on its configuration rather than on a demonstrated save. The same caution applies
+to the coverage figure, for the reason given in Section 6.
 
 Two process observations earned their cost. The register contains two requirements
 reworded after the fact, which is what happens when requirements are written early
@@ -374,9 +377,9 @@ between a report that explains a system and one that rationalises it.
 
 Given more time, the order would be: a secret-scanning gate to close the open
 requirement; a system-wide audit view to answer the question a record-scoped history
-cannot; a persistent database to remove the ephemeral-disk limitation; and a second
-reviewer, which is the one item on that list no amount of additional time alone would
-have supplied.
+cannot; and a persistent database to remove the ephemeral-disk limitation. A second
+reviewer is absent from that list because review arrived late rather than never, and the
+lesson this project takes from it is about when it arrived.
 
 ## References
 
