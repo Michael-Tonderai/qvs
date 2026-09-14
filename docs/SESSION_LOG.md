@@ -3257,3 +3257,200 @@ WSL or any hypervisor component on this machine (D-026).
 
 Give me commands in separate labelled blocks, one command per block.
 ```
+
+## Session 020 - ACCOUNT HANDOVER - AccountB -> AccountA - 2026-09-14 16:55
+
+Token   : QVS-S020-B2A-58d474a
+Sprint  : D (deliverables)
+Branch  : develop
+Context : Opened on AccountB. Section 0 ran in full. The census returned LOG VERDICT
+          STALE, which was diagnosed as a false positive rather than acted on, and
+          two reconciliation points from the session 019 opening prompt turned out to
+          be wrong and were settled against primary evidence before any work started.
+
+Done    :
+  - **The STALE log verdict was diagnosed, not obeyed.** `Session-Open.ps1` matches
+    `^HEAD\s*:\s*([0-9a-fA-F]{7,40})` across the whole log and takes the newest hit.
+    Session 019's block wrote `HEAD : develop, this close commit.`, which the regex
+    cannot match, so the check fell back to session 018's `3de690c` and counted two
+    commits above it. Both of those commits are described by blocks - `006e704` closes
+    session 018 and `58d474a` closes session 019 - so no unlogged work exists. The
+    session 019 block was left unrewritten under HANDOVER.md Section 1.4; the fix is
+    that this block's HEAD field is a bare sha, which returns the verdict to `current`
+    at the next open with no edit to history.
+  - **Local `main` resolved.** It is `06ab3dc`, which `git log` identifies as
+    `feat: scaffold Django foundation with lint, test and coverage gates` - the D-021
+    root commit. `.git\logs\refs\heads\main` holds exactly one entry, the session 008
+    clone of 2026-09-08 20:30 local, so the ref has never moved in this checkout. The
+    `6ad6f41` recorded in session 018 and the `714c48e` recorded in session 019 are
+    both readings of `origin/main` and are consistent with each other. Not drift.
+  - **Branch count settled by asking origin directly.** `git ls-remote --heads origin`
+    returns thirteen refs: eleven topic branches (three `chore/`, seven `feature/`,
+    one `docs/`) plus `develop` at `58d474a` and `main` at `714c48e`. The "twelve or
+    more" in the session 019 opening prompt was wrong. Eleven is the figure.
+  - **Established that no CI run existed on `docs/technical-report`, and that none
+    could.** `gh run list --branch docs/technical-report` returned `[]`.
+    `.github/workflows/ci.yml` triggers on pushes to `main` and `develop` only, and on
+    pull requests targeting those two branches - a deliberate design its own comment
+    defends, because checking pushes on topic branches as well would run every commit
+    twice and make it ambiguous which run produced the tick. The session 019 block was
+    correct and was being misread: `Check-Docs` and `Check-Ascii` are local pre-commit
+    gates, and `Check-Docs` is explicitly excluded from CI because it asserts machine
+    facts a runner does not have.
+  - **PR #36 opened**: `docs/technical-report` into `develop`, titled
+    `docs: add the technical report for the MIM736 submission`, body written to
+    `dev_reports\issue_body.txt` and passed with `--body-file` under D-024, then
+    deleted. Carries `Closes #35`. Opening it is what creates the pipeline run.
+
+HEAD    : 58d474a324c0a4e55b12f40736155c423b71037c  PUSHED
+Tree    : clean
+Issues  : #35 open, closes when PR #36 merges.
+PRs     : #36 OPEN and UNMERGED, `docs/technical-report` (`db376f9`) into `develop`.
+
+Decided :
+  - **CI evidence for a topic branch is cited in the self-review comment, not in the
+    pull-request body.** The PR is what creates the run, so a body citing one would be
+    citing something that does not exist - a fabricated claim inside the assessed Git
+    deliverable. The body states the local gate results and explains why the branch has
+    no run of its own; the self-review names the run by id and conclusion once it has
+    reported. Deliberately **not** registered as a D-number: it is a consequence of
+    `ci.yml`'s existing trigger design rather than a position with rejected
+    alternatives, the same reasoning that left the `docs/` branch prefix unregistered.
+  - **The four unverified references are a carried-forward open item, not a merge
+    blocker.** Merging is not submitting. The report is structurally complete and
+    inside its word budget, and a reference correction is a one-line edit on a later
+    branch if any of the four proves wrong. Stated in the PR body rather than left
+    silent.
+  - The account opening session 021 is Sir Ton's choice and is undetermined at close.
+    The token reads `B2A` as intent only; the opening session states the account it is
+    actually on at Section 0.6, and that statement wins.
+
+Open    :
+  - **PR #36 is open and unmerged, and its CI run has not been read.** The run was
+    created by opening the PR and will have completed by the next session. Nothing has
+    been posted to the PR beyond its body - no self-review, and #35 is still open.
+  - `docs/technical-report` was cut from `006e704`, and `develop` has since moved to
+    `58d474a`. The two commits touch different files - `docs/report/TECHNICAL_REPORT.md`
+    against `docs/SESSION_LOG.md` - so no conflict is expected, but the merge is not a
+    fast-forward.
+  - **Four references remain unverified against primary records**: Driessen (2010),
+    Fowler (2006), Humble and Farley (2010), Forsgren, Humble and Kim (2018). Verify
+    before submission.
+  - REQ-N-002 remains OPEN and is the one open Tier 1 requirement. A secret-scanning
+    job in `ci.yml` is roughly an hour.
+  - The demonstration video and the individual contribution report are unstarted and
+    together carry 30% of the module marks. The video is the priority after the merge.
+  - Sir Ton intends to delegate the video and other tasks to group members, and would
+    like real commits from them if time allows, so collaboration is evidenced at the
+    repository level rather than asserted.
+
+Watch   :
+  - SECTION 1.2's HEAD FIELD MUST BE A BARE SHA. Session 019 wrote
+    "HEAD : develop, this close commit." and the currency regex in Session-Open.ps1
+    skipped the block entirely, producing a false STALE verdict at the next open.
+    Prose in that field silently breaks the check.
+  - CI DOES NOT RUN ON A TOPIC BRANCH PUSH. ci.yml triggers on push to main and
+    develop, and on pull_request targeting those two. A topic branch has no run of its
+    own until its PR is opened. Never write a PR body that cites a run which does not
+    yet exist - and do not mistake Check-Docs or Check-Ascii for CI evidence, they are
+    local gates and Check-Docs is deliberately absent from the pipeline.
+  - LOCAL main IS THE D-021 ROOT COMMIT 06ab3dc AND HAS NEVER MOVED. Its reflog holds
+    one entry, the session 008 clone. origin/main is the authoritative ref and is what
+    D-036 deploys from. A census reporting local main behind origin is not drift.
+  - ELEVEN topic branches on origin, thirteen refs in total. Earlier prompts said
+    twelve or more, which was wrong. Undeleted branches are intentional - branch
+    history is assessed.
+  - THE APPEND RULE IS NOT ADVISORY. Write the block to dev_reports and append it with
+    Add-Content. Do not anchor edit_file on prose - every block ends with an identical
+    opening prompt by construction, so the anchor matches an earlier occurrence and the
+    block lands in the middle of the file.
+  - gh pr merge WRITES ITS CONFIRMATION TO STDERR. Exit 0 with "(no output)" has twice
+    meant the merge landed. Always verify with
+    `gh pr view <n> --json state,mergedAt,mergeCommit`.
+  - WORD COUNTING THE MARKDOWN OVERSTATES THE REPORT. Count prose only: skip `## `
+    lines, the References section and blank lines. The brief's 3,000-4,000 is a prose
+    figure; the whole file reports about 4,135 against 3,945 of prose.
+  - Check-Ascii.ps1 and Check-Docs.ps1 produce "(no output)" under Invoke-Logged
+    because they use Write-Host, which bypasses stdout redirection. Run them directly
+    and read the exit code.
+  - traceability.py --check exits 1 on any suite-verified requirement with no test.
+    There are currently no gaps; run it without --check in the local gate anyway.
+  - The connector refuses nested directory creation. Create one level at a time.
+  - A terminal that has not run .\tools\Set-Env.ps1 has no QVS_SECRET_KEY, so
+    settings.py generates a throwaway key per process and every restart signs you out.
+
+Next    : Read the CI run on PR #36, post the self-review citing it by id and
+          conclusion, merge, and verify with `gh pr view 36 --json`. That closes #35
+          and lands the 25% technical report on `develop`. Then the demonstration
+          video, which is 15%, unstarted, and now the largest single block of marks
+          still open - 10 to 15 minutes covering system functionality, Git workflow,
+          CI/CD pipeline, automated testing and the verification process. Warm the
+          live URL before recording; the free instance sleeps after fifteen minutes
+          idle and takes up to a minute to wake.
+
+Opening prompt:
+
+```
+Session 021. Sprint D.
+Closing session ran on: AccountB. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expected.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full, ending with the Section 0.6 opening position.
+
+Token: QVS-S020-B2A-58d474a
+
+To reconcile at Section 0.5:
+  1. On develop, HEAD should sit exactly one commit above 58d474a, and that commit
+     should be the session 020 close commit carrying this block. More than one is
+     a stop. The log verdict should read current again - session 019's block broke
+     the currency regex by writing prose in its HEAD field, and session 020's block
+     writes a bare sha, which is the fix.
+  2. PR #36 is OPEN and UNMERGED: docs/technical-report at db376f9 into develop,
+     carrying Closes #35. Its CI run was created by opening it and has not been
+     read. That is where session 020 stopped on purpose. It is not drift.
+  3. Local main is at 06ab3dc, the D-021 root commit, and has never moved since the
+     session 008 clone - its reflog holds exactly one entry. origin/main is at
+     714c48e and is the authoritative ref. This is not drift and needs no fix.
+  4. Origin carries eleven topic branches, thirteen refs including develop and main.
+     Undeleted branches are intentional - branch history is assessed.
+
+Already run:  Section 0 in full for session 020, and the three questions it settled:
+              the false STALE verdict, local main, and the branch count. PR #36 is
+              open, with a body already delivered via --body-file and the body file
+              deleted. Tier C is released and main is at 714c48e; the live site
+              serves all four of the brief's capabilities. The technical report is
+              drafted at db376f9 - 3,945 words of prose, eight sections, eight
+              Harvard references, both local gates green on that commit. Do not
+              re-verify the report and do not re-open the PR - read this block.
+
+Not yet run:  The CI run on PR #36 has not been read. No self-review is posted, #35
+              is still open, and the merge has not happened. The demonstration video
+              and the individual contribution report are unstarted, together 30% of
+              the marks. No secret-scanning gate, so REQ-N-002 is still the one OPEN
+              Tier 1 requirement.
+
+Next action: Read the CI run on PR #36 with gh, post the self-review comment citing
+it by id and conclusion, merge, and verify with gh pr view 36 --json - gh pr merge
+writes its confirmation to stderr and returns exit 0 with no output, so never take
+the merge on the command's word. Then move to the demonstration video: 10-15 minutes
+covering system functionality, Git workflow, CI/CD pipeline, automated testing and
+the verification process. Warm the live URL first - the free instance sleeps after
+fifteen minutes idle and takes up to a minute to wake, which is not something to
+discover while recording.
+
+Before submission, verify four references against primary records: Driessen
+(2010), Fowler (2006), Humble and Farley (2010), and Forsgren, Humble and Kim
+(2018). The other four in the list were verified in session 019; these were not.
+
+Run .\tools\Set-Env.ps1 in every fresh terminal, then QVS_DEBUG=0 for the suite
+and back to 1 for runserver. Every git and gh command goes through
+.\tools\Invoke-Logged.ps1 (D-022); commit messages and gh bodies via file with -F
+or --body-file, deleted afterwards (D-020, D-024). Do not install Docker Desktop,
+WSL or any hypervisor component on this machine (D-026).
+
+Give me commands in separate labelled blocks, one command per block.
+```
