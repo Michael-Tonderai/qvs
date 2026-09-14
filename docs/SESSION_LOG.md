@@ -2901,3 +2901,185 @@ WSL or any hypervisor component on this machine (D-026).
 Give me commands in separate labelled blocks, one command per block.
 ```
 
+
+## Session 018 - ACCOUNT HANDOVER - AccountB -> AccountA - 2026-09-14 03:00
+
+Token   : QVS-S018-B2A-3de690c
+Sprint  : B
+Branch  : develop
+
+Done    :
+  - Released Tier B to production. PR #31 merged develop into main as a merge commit
+    at 6ad6f41, through D-031's required check, both jobs green on run 34791241238.
+    Render autodeployed. The live site now serves /search/ and /records/<id>/ behind
+    login, confirmed by curl (302 to /login/?next=/search/) and in a browser. The
+    deployed instance re-seeded at 00:04:27 UTC, 49 seconds after the merge, which
+    dates the running code to this release without the platform dashboard.
+  - Wrote docs/evidence/pipeline.md - the first pipeline evidence in the repository,
+    and the last assignment-required evidence category that held nothing. Two runs
+    transcribed by hand from `gh run view --json`: 34790488993 (CI on a feature pull
+    request) and 34791241238 (the quality gate on the release to main), each with a
+    step table, plus a mapping from steps to the assignment's assessed criteria and a
+    section on what the evidence does not establish.
+  - Built REQ-F-011, the last open functional requirement. audit.history_for(),
+    views.record_history behind @login_required, route records/<id>/history/,
+    record_history.html, a third card on record_detail.html linking to it, and 14
+    tests in tests/test_audit_history.py. No model change, no migration, no CSS change.
+  - Registered D-041 - audit history is scoped to a record, matched exactly, read-only.
+  - REQ-F-011 and REQ-F-007 moved to VERIFIED, both browser-confirmed on the
+    development server. REQ-F-008 deliberately left BUILT, with the reason written into
+    docs/REQUIREMENTS.md.
+  - Issue #32 opened and closed. PR #33 squash-merged to develop, both CI jobs green on
+    run 34794054690. Self-review posted, with three findings raised and not fixed.
+  - Suite 93 -> 107 tests, coverage 96.95% -> 97.04%, audit.py and views.py at 100%.
+    Traceability 1 gap -> 0 gaps, and 0 tests citing no requirement.
+  - All four capabilities in the assignment's functional brief now exist in code.
+
+HEAD    : 3de690ce950d4381f25f9f77cdb5ce1b3f934173  PUSHED
+Tree    : clean
+Issues  : #32 closed. Nothing open.
+
+Open    :
+  - TIER C IS NOT RELEASED TO MAIN. The audit history page exists on develop only. The
+    live site serves three of the four brief capabilities; it has no /history/ page.
+    Releasing is one pull request from develop to main, D-031's check, a merge commit,
+    and Render redeploys - about five minutes including the build. Deliberately not
+    done at 03:00 rather than forgotten. Do it before the demonstration video is filmed.
+  - test_history_is_newest_first relies on two consecutive inserts receiving distinct
+    auto_now_add timestamps. AuditEvent.Meta.ordering is -occurred_at with no
+    tie-breaker, so same-microsecond events would order arbitrarily. Flake risk, raised
+    in the PR #33 self-review, unfixed - the fix touches a model shipped earlier.
+  - submitted_certificate_id carries no database index and history_for() filters on it.
+    Correct at demonstration scale, wrong at any other. A report sentence, not an index.
+  - search.find documents a newest-first ordering guarantee that no test pins. From #30.
+  - record_detail and record_history normalise the certificate ID from the URL and
+    register_done does not. Defensible, undocumented, and now three views rather than
+    two - a rule would be cheaper than a third exception.
+  - Merge conflict management still has no committed evidence. A real conflict happened
+    and D-034's header narrates it; one paragraph in the report's DevOps workflow
+    section citing D-034 closes this. The artefact itself is gitignored.
+  - REQ-N-002 is OPEN with a single test that covers one path rather than the
+    requirement. No secret-scanning gate exists.
+  - parse_mechanisms() in tools/traceability.py silently accepts any token, so a typo in
+    the Verified by column makes a requirement stop counting as a gap. Eight lines.
+  - Technical report, demonstration video and individual contribution report are all
+    unstarted. 55% of the marks, and the whole of the next session.
+  - Two bonus categories arguably earned and merely unclaimed: Infrastructure-as-Code
+    (render.yaml, branch protection applied by API) and advanced security (HMAC-SHA256
+    over issued_at, append-only audit enforced at queryset level, deliberate refusal to
+    trust X-Forwarded-For). A paragraph each.
+
+Decided :
+  - D-041 registered. Exact match rather than icontains, because a substring match would
+    mix two records' audit trails on one page. The view does not verify, pinned by
+    test_viewing_the_history_writes_no_audit_event. An unknown identifier is a 404 rather
+    than an empty history, because "no attempts recorded" and "no such record" are
+    different answers. No verdict styling on the outcome column.
+  - REQ-F-008 stays BUILT rather than being moved to VERIFIED. Its claim is a negative
+    and a browser cannot confirm an absence; stretching VERIFIED to cover it would weaken
+    the word everywhere else in the register.
+  - Registering AuditEvent in the Django admin was rejected as the cheap alternative to
+    building the page: it would have handed an assessor a changelist carrying update and
+    delete controls that the model raises on, making a deliberate guarantee look broken.
+  - docs/evidence/pipeline.md carries two runs rather than the one the last block named,
+    because the assignment names CI pipelines and CI/CD quality gates separately.
+  - The release pull request to main carried no issue, on the reasoning that it promotes
+    work that already has issues rather than introducing a change. Written into the PR
+    body so the deviation from D-009 is visible rather than silent.
+  - Claude reversed the session 017 recommendation mid-session. That prompt recommended
+    starting the report over building REQ-F-011. Reading the repository showed there is
+    no admin.py in the app, so the audit trail was invisible in every surface the system
+    had - which made REQ-F-011 the difference between demonstrating three and four of the
+    brief's capabilities. Sir Ton chose to build it.
+
+Watch   :
+  - THE APPEND RULE IS NOT ADVISORY. Write the block to dev_reports and append it with
+    Add-Content. Do not anchor edit_file on prose - every block ends with an identical
+    opening prompt by construction, so the anchor matches an earlier occurrence and the
+    block lands in the middle of the file. Session 016 did this twice.
+  - gh pr merge WRITES ITS CONFIRMATION TO STDERR. Invoke-Logged captures "(no output)"
+    and exit 0. That is not confirmation the merge landed - verify with
+    `gh pr view <n> --json state,mergedAt,mergeCommit`. Cost one round trip this session.
+  - traceability.py --check exits 1 on any suite-verified requirement with no test. There
+    are currently no gaps, so --check would pass today - but run it WITHOUT --check in
+    the local gate anyway, because the next unbuilt requirement re-creates the trap.
+  - Check-Ascii.ps1 and Check-Docs.ps1 produce "(no output)" under Invoke-Logged because
+    they use Write-Host, which bypasses stdout redirection. Read the exit code.
+  - Hand-written Python will not match `ruff format` output. Run `ruff format` before
+    `ruff check` locally; CI only ever checks, and a job that reformats hides the problem.
+  - runserver holds the terminal. Ctrl+C before issuing the next command block.
+  - A terminal that has not run .\tools\Set-Env.ps1 has no QVS_SECRET_KEY, so settings.py
+    generates a throwaway key per process and every restart signs you out.
+  - The suite now emits 60 staticfiles warnings, up from 51, because test_audit_history
+    adds nine more requests. Pre-existing and harmless - STATIC_ROOT has never been
+    created locally - but it is noise in an artefact an assessor may see.
+  - The connector refuses nested directory creation. Create one level at a time.
+
+Next    : Sprint D. Start the technical report - 3,000 to 4,000 words, 25% of the module
+          marks, and the largest unstarted deliverable. docs/DECISIONS.md is the source
+          for its Design decisions section and holds forty-one entries written at the
+          moment each choice was made; docs/REQUIREMENTS.md is the source for Problem
+          analysis and Requirements; docs/evidence/ now holds pipeline, deployment,
+          seeding and traceability evidence for the DevOps workflow, Testing strategy and
+          Verification strategy sections. The critical evaluation has more material than
+          any other section and the Open list above is most of it.
+          Release Tier C to main first if the video is close; it is five minutes and it
+          is the only thing standing between the live site and all four capabilities.
+
+Opening prompt:
+
+```
+Session 019. Sprint D.
+Closing session ran on: AccountB. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expected.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full, ending with the Section 0.6 opening position.
+
+Token: QVS-S018-B2A-3de690c
+
+To reconcile at Section 0.5:
+  1. HEAD should sit exactly one commit above 3de690c, and that commit should be
+     the session 018 close commit carrying this block. More than one is a stop.
+  2. Ten or more feature/chore branches remain undeleted on the remote, including
+     feature/REQ-F-011-audit-history. That is intentional - branch history is
+     assessed - and is not drift.
+  3. develop is ahead of main by the REQ-F-011 squash commit and the close commit.
+     That is expected: Tier C was deliberately not released. It is not drift.
+  4. tools/traceability.py now reports ZERO gaps. Run it WITHOUT --check in the
+     local gate anyway - the next unbuilt requirement re-creates the trap.
+
+Already run:  Tier B is released to production; main is at 6ad6f41 and the live
+              site serves search and record detail behind login. REQ-F-011 is
+              built, merged to develop at 3de690c via PR #33, both CI jobs green
+              on run 34794054690, issue #32 closed, self-review posted. The full
+              local gate passed on that commit: ruff format, ruff check, ASCII,
+              bandit, 107 tests at 97.04% coverage, traceability with zero gaps,
+              Check-Docs. docs/evidence/pipeline.md is written and committed. Do
+              not re-run any of it to confirm - read this block.
+
+Not yet run:  The release of Tier C to main, so the live site has no audit
+              history page. The technical report, the demonstration video and the
+              individual contribution report - all unstarted, 55% of the marks.
+
+Next action: Start the technical report. 3,000-4,000 words covering problem
+analysis, requirements, system architecture, design decisions, DevOps workflow,
+testing strategy, verification strategy and critical evaluation. Agree an outline
+and a section word budget with Sir Ton first, then draft against it. The sources
+are already written: docs/DECISIONS.md (41 entries), docs/REQUIREMENTS.md,
+docs/evidence/ (pipeline, deployment, seeding, traceability) and docs/SESSION_LOG.md.
+Do not invent history - every claim in the report should trace to one of those.
+Release Tier C to main first if the video is close; one PR, one check, five minutes.
+
+Run .\tools\Set-Env.ps1 in every fresh terminal, then QVS_DEBUG=0 for the suite
+and back to 1 for runserver. Every git and gh command goes through
+.\tools\Invoke-Logged.ps1 (D-022); commit messages and gh bodies via file with -F
+or --body-file, deleted afterwards (D-020, D-024). Do not install Docker Desktop,
+WSL or any hypervisor component on this machine (D-026).
+
+Give me commands in separate labelled blocks, one command per block.
+```
+

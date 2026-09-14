@@ -889,3 +889,44 @@ D-034.*
   One further consequence is recorded against D-037 rather than here, because it
   invalidates a forward-looking claim that entry made: search behind login does not make
   the fixed demonstration certificate ID unnecessary.
+
+## D-041 - Audit history is scoped to a record, matched exactly, and read-only
+
+- **Context:** REQ-F-007 and REQ-F-008 were BUILT and unverifiable. Every verification
+  attempt was recorded, append-only enforcement was pinned at queryset level, and no
+  surface in the system could display a single event - no page, and no `admin.py` in the
+  app either, so the Django admin showed neither model. The assignment's fourth
+  capability is "maintain an auditable history of verification activities": the
+  maintaining was done and the history could not be looked at, which meant it could be
+  asserted in the demonstration video but never shown.
+- **Decision:** A page at `records/<certificate_id>/history/`, behind `@login_required`
+  under D-040, reached from the record detail page. `audit.history_for()` joins on
+  `submitted_certificate_id` with an **exact** match on the normalised identifier, capped
+  at `MAX_HISTORY_EVENTS` of 100 with the page saying when the cap is reached. The view
+  does not call `verification.verify()`.
+- **Rejected:** `icontains` matching, as `search.find` uses. A substring match would pull
+  any other certificate whose ID contained this one into the page, mixing two records'
+  audit trails - the one thing an audit page must never do. Also rejected: registering
+  `AuditEvent` in the Django admin instead of building a page, which would have been
+  minutes of work and would have handed an assessor a generic changelist carrying update
+  and delete controls that the model raises on, making a deliberate guarantee look like a
+  broken screen. Also rejected: a whole-trail page listing every event in the system,
+  which no requirement asks for and which would put every identifier ever submitted on
+  one screen.
+- **Consequence:** REQ-F-007 and REQ-F-008 become verifiable through a page for the first
+  time, and REQ-F-011 closes the last traceability gap.
+
+  The cost is a real limitation rather than a technicality, and the report should say so
+  rather than let a reader assume otherwise: **a record's history is not the whole
+  trail.** Attempts that presented an identifier this system never issued - the NOT FOUND
+  events, which are precisely the ones an investigator would care most about - are
+  recorded just as permanently and belong to no record, so no record's history page can
+  show them. That is correct for a page scoped to a record, and it means this system can
+  audit what happened to a credential but cannot answer "what has been attempted against
+  this system". The page states that limitation in its own body text rather than leaving
+  it to be discovered.
+
+  A second property is pinned by test rather than left to convention: loading the history
+  writes no audit event. `verification.py`'s guarantee that every verification attempt is
+  audited holds because `verify()` has a single caller, and a trail that recorded its own
+  inspection would bury the events it exists to show.

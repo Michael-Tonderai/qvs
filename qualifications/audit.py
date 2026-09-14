@@ -1,6 +1,7 @@
 # qualifications/audit.py
 #
 # REQ-F-007 - every verification attempt writes an audit event.
+# REQ-F-011 - an authorised user can view the audit history for a record.
 #
 # This module exists to keep two things apart that would otherwise be tangled in the
 # view. models.py knows nothing about HTTP, and verification.py is documented as
@@ -11,10 +12,31 @@
 # It is also the module a second caller would reach for. If verification ever grows an
 # API or a management command, the audit write is already a function rather than a
 # fragment of a view.
+#
+# REQ-F-011 reads the trail this module writes, so the query lives here beside the
+# write rather than in a module of its own. What an audit event means and how it is
+# found are the same piece of knowledge, and splitting them would put the join key in
+# one file and the reason for it in another.
 
+from django.db.models import QuerySet
 from django.http import HttpRequest
 
 from qualifications.models import SUBMITTED_CERTIFICATE_ID_MAX_LENGTH, AuditEvent
+from qualifications.verification import normalise_certificate_id
+
+# The most events one history page will render.
+#
+# Same reasoning as search.MAX_RESULTS, and the same failure it closes: a certificate ID
+# that has been checked by an automated caller thousands of times would otherwise render
+# every one of those rows into a single page. A cap is one integer; pagination is a
+# control surface no requirement asks for.
+#
+# Higher than the search cap on purpose. Fifty records matching one search term means
+# the term was too broad, and narrowing it is the answer. A hundred verification
+# attempts against one certificate is not a mistake by the person reading the page - it
+# is what a popular credential looks like - so the cap is set where it stops being
+# readable rather than where it stops being plausible.
+MAX_HISTORY_EVENTS = 100
 
 
 def actor_username(request: HttpRequest) -> str:
@@ -80,4 +102,41 @@ def record_attempt(
         outcome=outcome,
         actor_username=actor_username(request),
         remote_address=remote_address(request),
+    )
+
+
+def history_for(certificate_id: str) -> QuerySet[AuditEvent]:
+    """Return every recorded attempt that presented `certificate_id`, newest first.
+
+    REQ-F-011. The join is on the submitted string, not on a foreign key, because
+    D-032 gave AuditEvent no foreign keys at all - a NOT FOUND attempt has no
+    qualification to point at, and nullable keys would be null on exactly the events
+    most worth auditing. This function is where that decision is paid for and where it
+    pays back: the query is one filter on an indexed-by-nothing CharField, and it
+    returns attempts regardless of whether the record they named still exists.
+
+    Exact match, not `icontains`. search.find matches fragments because a registrar has
+    a partial string in their hand and does not know which field it belongs to. Here the
+    caller is a page that already knows precisely which record it is showing, and a
+    substring match would pull in the history of any other certificate whose ID happened
+    to contain this one - mixing two records' audit trails on one page, which is the one
+    thing an audit page must never do.
+
+    Normalised first, so the stored form and the looked-up form cannot disagree.
+    views.verify normalises before recording, so every event written by this system
+    carries the canonical form; normalising here means a caller that passes a
+    hand-typed identifier still finds them.
+
+    WHAT THIS DOES NOT RETURN, and it is a real limitation rather than a technicality:
+    attempts that presented an identifier this system never issued. Those events exist
+    and are permanent, but they belong to no record, so no record's history page can
+    show them. A page scoped to a record cannot be a complete view of the trail, and
+    the report says so rather than leaving a reader to assume otherwise.
+
+    Ordering comes from AuditEvent.Meta, which is `-occurred_at`. Stated here because
+    callers depend on it and a future edit to the model would change it silently - the
+    same note search.find carries for the same reason.
+    """
+    return AuditEvent.objects.filter(
+        submitted_certificate_id=normalise_certificate_id(certificate_id)
     )

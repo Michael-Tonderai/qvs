@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% comment %}
+qualifications/templates/qualifications/record_history.html
+
+REQ-F-011 - view the audit history for a record.
+
+This is the page that makes REQ-F-007 and REQ-F-008 visible. Both were built and tested
+long before anything could display them: every verification attempt was recorded,
+append-only enforcement was pinned by tests, and no surface in the system could show a
+single event. A guarantee nobody can inspect is a claim.
+
+Behind login, like the search and detail pages, under D-040.
+
+NO VERDICT STYLING ON THE OUTCOMES. The three outcome words appear here as plain text in
+a table cell, not in the coloured panel verification uses. That panel is a formal answer
+about a credential, given to somebody who asked the question now; these are historical
+facts about answers already given. Borrowing the styling would make a page of old events
+look like a page of live verdicts, and would put three differently coloured panels on one
+screen saying nothing about the record's current state.
+
+D-039's accessibility rule holds here for free, and deliberately so: the outcome is
+carried entirely by the word in the cell, so nothing about this table depends on colour.
+{% endcomment %}
+
+{% block title %}History - {{ qualification.certificate_id }} - QVS{% endblock %}
+
+{% block content %}
+  <div class="card">
+    <h1>Verification history</h1>
+
+    <p><span class="cert-id cert-id--issued">{{ qualification.certificate_id }}</span></p>
+
+    <p class="lede">
+      Every time this certificate ID was submitted for verification, the system recorded
+      the attempt. Those records cannot be edited or deleted.
+    </p>
+
+    <dl class="record">
+      <dt>Holder</dt><dd>{{ qualification.holder_name }}</dd>
+      <dt>Institution</dt><dd>{{ qualification.institution }}</dd>
+    </dl>
+  </div>
+
+  {% if events %}
+    <div class="card">
+      <h2>
+        {{ events|length }} recorded attempt{{ events|length|pluralize }}
+      </h2>
+
+      {% if truncated %}
+        {% comment %}
+          Same rule as the search page: a truncated list that does not admit it is worse
+          than no list at all, because what is missing then reads as what never happened.
+          On an audit page that is a stronger objection than on a search page.
+        {% endcomment %}
+        <p class="notice">
+          Showing the {{ max_events }} most recent attempts. More are recorded than are
+          listed here.
+        </p>
+      {% endif %}
+
+      <table class="results">
+        <thead>
+          <tr>
+            <th scope="col">When (UTC)</th>
+            <th scope="col">Outcome</th>
+            <th scope="col">Submitted by</th>
+            <th scope="col">From address</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in events %}
+            <tr>
+              <td>{{ event.occurred_at|date:"Y-m-d H:i:s" }}</td>
+              <td>{{ event.outcome }}</td>
+              <td>{{ event.actor_username|default:"anonymous" }}</td>
+              <td>{{ event.remote_address|default:"not recorded" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  {% else %}
+    {% comment %}
+      "Nothing has happened yet" is a different statement from "no such record", and the
+      view keeps them apart: an identifier this system never issued gets a 404 from the
+      record lookup and never reaches this template.
+    {% endcomment %}
+    <div class="card">
+      <h2>No attempts recorded</h2>
+      <p>
+        This record has been registered but never submitted for verification. The first
+        time somebody checks it, the attempt will appear here.
+      </p>
+    </div>
+  {% endif %}
+
+  <div class="card">
+    <h2>What this page does and does not show</h2>
+    <p>
+      It lists attempts that presented <strong>this</strong> certificate ID. Attempts
+      that presented an identifier this system never issued are recorded just as
+      permanently, but they belong to no record, so no record's history can show them.
+    </p>
+    <p>
+      Addresses are recorded as the request arrived. Where the system runs behind a
+      proxy, that is the proxy's address rather than the visitor's - the system does not
+      trust a forwarded-for header, because any caller can set one and an audit trail
+      dictated by the subject of the audit is worse than no address at all.
+    </p>
+    <p>
+      <a class="btn"
+         href="{% url 'qualifications:record_detail' qualification.certificate_id %}">
+        Back to the record
+      </a>
+      <a class="btn btn--quiet" href="{% url 'qualifications:search' %}">Back to search</a>
+    </p>
+  </div>
+{% endblock %}
