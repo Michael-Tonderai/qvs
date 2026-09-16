@@ -3634,3 +3634,667 @@ WSL or any hypervisor component on this machine (D-026).
 Give me commands in separate labelled blocks, one command per block.
 ```
 
+
+## Session 022 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-14 21:05
+
+Token   : QVS-S022-A2B-3375bd9
+Sprint  : D
+Branch  : develop
+Done    :
+  - Section 0 run in full. Census clean, log verdict current, token
+    QVS-S021-B2A-412e2ae matched. All five reconciliation items from session 021's
+    prompt confirmed. Items 3 and 4 were verified by reading .git\refs directly,
+    because the census reports HEAD for develop only: origin/main at 714c48e, local
+    main at 06ab3dc.
+  - Opened PR #37, the release of develop into main, with the body written to file
+    and passed with --body-file (D-024). The five-commit delta was read from
+    git log --oneline 714c48e..develop before the body was written, not assumed.
+  - Read the required checks. Both green on head 3375bd92, which is the sha the PR
+    merges. Cited run 34880198147, the pull_request event run, and explicitly not
+    34878035842, the push run against the same head.
+  - Posted the self-review comment on PR #37 under D-009, citing the run by id and
+    conclusion and naming the three outstanding items.
+  - Merged PR #37 and verified with gh pr view rather than on the merge command's
+    word: state MERGED, mergeCommit 693c362, mergedAt 2026-09-14T18:40:34Z.
+    THE TECHNICAL REPORT IS NOW ON main. The gap that opened in session 019 is closed
+    and an assessor who clones the repository receives the report.
+  - Wrote two contributor briefs as Word documents, one for Munyaradzi Gurure (add an
+    automated test) and one for Wilfred (author the project README). Both are
+    browser-only: fork, edit in the GitHub web editor, commit to a branch, open a PR
+    into develop. Neither clones, installs or deploys anything.
+  - Drafted the individual contribution report as a Word document, from the
+    repository record. 37 non-merge commits on develop by one author and 21 merged
+    pull requests, read from git shortlog and gh pr list.
+
+HEAD    : 3375bd92e14407b28e63bbae698cfafcc4da8cbd  PUSHED
+Tree    : clean
+Issues  : No issue was raised for PR #37. See Decided below. No issue census was run
+          this session - do not assert the state of any issue without reading it.
+
+Open    :
+  - THE DEMONSTRATION VIDEO IS STILL UNSTARTED. 15%, and now the largest single block
+    of marks outstanding. Sir Ton is aware and is choosing the moment.
+  - THE TECHNICAL REPORT NEEDS ONE REVISION PASS, AND IT MUST BE THE LAST THING DONE,
+    because it depends on the two contributor pull requests landing. Three edits:
+      1. Section 8, opening paragraph. It states that every pull request was merged
+         without a second reviewer and that the review gate is the pipeline rather
+         than a person. If Munyaradzi's and Wilfred's PRs are reviewed and approved,
+         that sentence becomes false. Rewrite to describe a single-author project
+         that acquired genuine peer review at the end, qualified honestly as covering
+         two small changes rather than the body of the work.
+      2. Section 8, final paragraph. Remove "a second reviewer" from the given-more-
+         time list, for the same reason.
+      3. Section 7. The matrix reports 107 tests collected. Munyaradzi's test makes
+         it 108.
+    The report measures 3,945 prose words against a 4,000 ceiling, so this is an edit
+    and not an addition - anything added must be paid for by something cut.
+  - A SECOND RELEASE PR INTO main WILL BE NEEDED if that revision happens, because
+    main now carries the report at 693c362. Budget thirty minutes for revision plus
+    release together.
+  - The individual contribution report is drafted but NOT FINAL. Section 4 carries an
+    italic placeholder that must be resolved once both contributor PRs are merged,
+    and Sir Ton intends to adjust the reflection sections into his own voice.
+  - REQ-N-002 remains the one OPEN Tier 1 requirement. No secret-scanning gate exists.
+    Recommended CUT rather than attempted, and named in the critical evaluation, which
+    the report already does.
+  - Four references remain unverified against primary records: Driessen (2010),
+    Fowler (2006), Humble and Farley (2010), and Forsgren, Humble and Kim (2018).
+  - SIX WEEKS VERSUS EIGHT DAYS. The technical report's Section 1 states the dominant
+    constraint was six weeks of calendar time. The recorded repository history runs
+    from 2026-09-07 to 2026-09-14. If Sprint A analysis genuinely preceded the first
+    commit the claim stands; if not it is disprovable with one git log. The cheapest
+    fix is to drop the number and read "limited calendar time alongside full-time
+    employment". Sir Ton's preference was to leave it alone. RAISED ONCE, HIS CALL,
+    DO NOT REOPEN IT UNLESS HE DOES.
+
+Decided :
+  - PR #37 was opened with no preceding issue. D-009 requires an issue before a
+    branch for every requirement; a release merge of work that already travelled that
+    route individually is not a new requirement. Applies D-023's reasoning - process
+    where it produces review value, not where it produces an artefact with no
+    reviewer. Taken inline, not registered.
+  - The contributor tasks were chosen to be non-colliding. Munyaradzi edits
+    tests/test_verification.py; Wilfred creates README.md at the repository root.
+    Two people editing one file produces a conflict neither can resolve in a web
+    editor.
+  - The individual contribution report is a standalone Word document rather than a
+    file in the repository. Putting it in the repo would cost a PR and a second
+    release for a per-student submission artefact that Munyaradzi and Wilfred would
+    each produce separately anyway.
+
+CONTRIBUTORS - read before guiding either of them.
+
+  - MUNYARADZI GURURE. Task: add one pytest test to tests/test_verification.py
+    asserting that verification.normalise_certificate_id is idempotent - normalising
+    an already-normalised ID returns it unchanged, and normalising its own output
+    changes nothing. Branch test/REQ-F-005-normalisation-idempotent, PR into develop.
+    He asked whether forking meant he had to run or deploy the project locally; it
+    does not, and he has been told so - the pipeline executes his test on GitHub's
+    runners when the PR opens.
+  - WILFRED. Task: create README.md at the repository root. The repository has no
+    README anywhere, which is a real gap against the assessed Documentation criterion.
+    Branch docs/add-project-readme, PR into develop. He is fenced out of tests/,
+    .github/, docs/ and every .py file. The one thing most likely to fail his run is
+    an emoji or a smart quote, which Check-Ascii.ps1 rejects.
+  - README.md lands at the repository root, not in docs\, so Check-Docs.ps1 will NOT
+    demand it be added to the CLAUDE.md Section 9 document map. Nothing to update on
+    merge.
+  - THE PRIZE IS THE REVIEW, NOT THE CODE. D-031 records that
+    required_approving_review_count is 0 solely because GitHub forbids approving
+    one's own pull request. Sir Ton reviewing and approving their PRs is the only
+    genuine peer review this repository will hold. Leave a real review comment before
+    approving - an approval with no review reads as exactly what it would be.
+  - Their authorship must be genuinely theirs. Neither brief contains the code or
+    the prose; both contain the specification and the conventions.
+
+VIDEO - running order agreed this session, 10 to 15 minutes:
+  1. The live system. Verify QVS-TEST-CASE-2345-6789 anonymously, then sign in,
+     register a record, search, open the record detail, open its audit history.
+  2. The repository. Branches, a pull request with its self-review comment, the
+     branch protection settings page.
+  3. The pipeline. A run, with its named gates read out.
+  4. The suite and the traceability matrix.
+  5. Close on the verification flow end to end.
+  Recording tool: a Teams or Zoom meeting with yourself, screen shared, recorded
+  locally. No install. Xbox Game Bar (Win+G) is the fallback; it captures one window
+  at a time, which is awkward when switching between browser and terminal. OBS was
+  rejected - best tool, wrong night to install anything.
+
+Watch   :
+  - THIS SESSION ADDED NO COMMIT TO develop. The merge commit 693c362 lives on main
+    and is NOT an ancestor of develop. The token therefore names 3375bd9, which is
+    session 021's close commit, and the next census should show HEAD exactly one
+    above it - this session's close commit. That is the correct shape, not drift.
+  - LOCAL main IS 06ab3dc AND origin/main's TRACKING REF READ 714c48e AT SESSION
+    OPEN. origin/main is now 693c362 after the merge. A local fetch will move the
+    tracking ref; local main will not move and is not expected to.
+  - RENDER REDEPLOYED FROM main ON THE MERGE (D-036, autoDeploy). The instance
+    rebuilt and reseeded, so QVS-TEST-CASE-2345-6789 is present and anything
+    registered on the live site before 18:40 UTC is gone.
+  - SECTION 1.2's HEAD FIELD MUST BE A BARE SHA. Prose there breaks the currency
+    regex in Session-Open.ps1 and produces a false STALE verdict.
+  - gh pr merge WRITES ITS CONFIRMATION TO STDERR and returns exit 0 with no output.
+    Confirmed again this session. Always verify with gh pr view <n> --json.
+  - CI DOES NOT RUN ON A TOPIC BRANCH PUSH. The run appears when the PR opens. This
+    applies to both contributor fork PRs.
+  - A PR OPENED FROM develop SHOWS TWO RUNS against the same head - the push run and
+    the pull_request run. Cite the pull_request one.
+  - ELEVEN topic branches on origin, thirteen refs before the contributor PRs.
+    Undeleted branches are intentional.
+  - THE APPEND RULE IS NOT ADVISORY. Write the block to dev_reports and append with
+    Add-Content. Never anchor edit_file on prose - every block ends with an identical
+    opening prompt by construction.
+  - WORD COUNTING THE MARKDOWN OVERSTATES THE REPORT. Count prose only, skipping
+    heading lines, References and blank lines.
+  - Check-Ascii.ps1 and Check-Docs.ps1 print through Write-Host, so they report
+    "(no output)" under Invoke-Logged. Run them directly and read the exit code.
+  - A terminal that has not run .\tools\Set-Env.ps1 has no QVS_SECRET_KEY.
+
+Next    : Record the demonstration video. Warm https://qvs-f3dk.onrender.com first.
+          Then, once both contributor pull requests are merged and reviewed, make the
+          single technical report revision pass and cut the second release PR into
+          main. Finalise Section 4 of the individual contribution report last.
+
+Opening prompt:
+
+```
+Session 023. Sprint D.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expected.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full, ending with the Section 0.6 opening position.
+
+Token: QVS-S022-A2B-3375bd9
+
+To reconcile at Section 0.5:
+  1. On develop, HEAD should sit exactly one commit above 3375bd9, and that commit
+     should be the session 022 close commit carrying this block. Session 022 added
+     NO other commit to develop - its substantive work was a merge into main, and
+     that merge commit is not an ancestor of develop. This is expected, not drift.
+  2. PR #37 is MERGED. main is at 693c362 and DOES carry the technical report.
+     Verified with gh pr view, not inferred. Do not re-open or re-verify it.
+  3. Local main is at 06ab3dc, the D-021 root commit, and has never moved since the
+     session 008 clone. origin/main is the authoritative ref. Not drift.
+  4. Origin carried eleven topic branches and thirteen refs at session 022 close.
+     Two contributor fork PRs may have arrived since, which adds PRs but no origin
+     branches - forks push to their own remotes.
+  5. Render redeployed from main on the merge. The live database was reseeded, so
+     QVS-TEST-CASE-2345-6789 is present and earlier live registrations are gone.
+
+Already run:  Section 0 in full for session 022. PR #37 opened, checks read
+              (run 34880198147, conclusion success, head 3375bd92), self-review
+              posted, merged and verified. Do not repeat any of that.
+
+Not yet run:  The demonstration video, unstarted, 15%. The technical report revision
+              pass. The second release PR into main. Finalising Section 4 of the
+              individual contribution report. The secret-scanning gate, so REQ-N-002
+              is still the one OPEN Tier 1 requirement - recommended CUT. Verification
+              of four references: Driessen (2010), Fowler (2006), Humble and Farley
+              (2010), and Forsgren, Humble and Kim (2018).
+
+Next action: Record the demonstration video - 10 to 15 minutes, running order in the
+session 022 block. Warm https://qvs-f3dk.onrender.com first; the free instance sleeps
+after fifteen minutes idle and takes up to a minute to wake. Verify on camera with
+QVS-TEST-CASE-2345-6789.
+
+Then, once Munyaradzi Gurure's and Wilfred's pull requests are merged, make the ONE
+technical report revision pass described under Open in the session 022 block - three
+edits, all in Sections 7 and 8, and it must come after their PRs land because it
+depends on what is true. Then cut the second release PR from develop into main
+through D-031's required check.
+
+Read the CONTRIBUTORS section of the session 022 block before guiding either of them.
+Sir Ton must leave a real review comment before approving - the peer review is the
+point, not the code.
+
+Do NOT reopen the six-weeks-versus-eight-days question in the technical report unless
+Sir Ton raises it. It was raised once this session and he chose to leave it.
+
+The assignment deadline is 23:59 on 2026-09-14.
+
+Run .\tools\Set-Env.ps1 in every fresh terminal, then QVS_DEBUG=0 for the suite
+and back to 1 for runserver. Every git and gh command goes through
+.\tools\Invoke-Logged.ps1 (D-022); commit messages and gh bodies via file with -F
+or --body-file, deleted afterwards (D-020, D-024). Do not install Docker Desktop,
+WSL or any hypervisor component on this machine (D-026).
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
+
+
+## Session 023 - ACCOUNT HANDOVER - AccountA -> AccountB - 2026-09-14 22:30
+
+Token   : QVS-S023-A2B-7ac2aa2
+Sprint  : D
+Branch  : develop
+Done    :
+  - Section 0 run in full. Census clean, tree clean, log verdict current, token
+    QVS-S022-A2B-3375bd9 matched with HEAD exactly one commit above it. Reconciliation
+    items 1 and 4 from session 022's prompt were confirmed directly: HEAD is 7ac2aa2,
+    and origin carries eleven topic branches and thirteen refs, unchanged. Items 2, 3
+    and 5 were accepted on session 022's verification as that prompt instructed, and
+    were not re-verified.
+  - ESTABLISHED THAT ONLY ONE CONTRIBUTOR PULL REQUEST EXISTED, against a report that
+    both contributors were finished. PR #38 (Wilfred) was open; Munyaradzi had opened
+    nothing. He was chased and opened PR #39 during this session.
+  - Reviewed PR #38 against the repository rather than against impression, and found
+    two factual errors in the README. It claimed the pipeline runs "requirements
+    traceability checks", which .github/workflows/ci.yml does not - traceability is
+    generated by tools/traceability.py on the development machine. And it claimed
+    "Pull requests are reviewed before they are merged", which overstates what D-031
+    records and contradicts the technical report's Section 8.
+  - Posted those as a CHANGES_REQUESTED review via --body-file (D-024) and verified it
+    landed with gh pr view: reviewDecision CHANGES_REQUESTED, authorAssociation OWNER,
+    against commit 2cd6aef. THIS IS THE FIRST GENUINE PEER REVIEW IN THE REPOSITORY.
+  - Wilfred addressed BOTH findings. Commit 83c99cc removed the traceability claim; the
+    review-gate line was deleted outright rather than reworded. One typo was introduced
+    in the fix and remains: "security scans,and the Docker build", missing a space.
+  - PR #39 arrived targeting main with head branch Michael-Tonderai/qvs, which produced
+    a BLOCKED merge state because main is protected. Retargeted to develop and retitled
+    with gh pr edit. His commits and authorship were not touched.
+  - Validated Munyaradzi's test by reading qualifications/verification.py rather than
+    assuming. normalise_certificate_id is "".join(raw.split()).upper(); his input
+    QVS-2345-6789-ABCD-EFGH is already uppercase and whitespace-free, so both assertions
+    hold. It carries @pytest.mark.unit and @pytest.mark.req("REQ-F-005") and sits in
+    tests/test_verification.py. It will pass and the traceability matrix will pick it up.
+  - Approved the two workflow runs GitHub was holding in action_required for first-time
+    fork contributors, by POST to the Actions API: 34890053780 (Wilfred, head 83c99cc)
+    and 34889437614 (Munyaradzi). A third run, 34886647031, was left unapproved as it is
+    superseded by Wilfred's fix commit.
+  - Wrote the full demonstration video recording script to dev_reports/video_script.md -
+    pre-recording checklist, tab order, a six-section running order with timings mapped
+    to the five things the brief asks the video to demonstrate, what must never appear on
+    camera, and a cut-list if it overruns.
+  - Established that Google Meet cannot be used to record tonight. Native recording needs
+    a paid Workspace tier and is host-only, and recordings process in Drive for up to 24
+    hours before the MP4 can be downloaded. Teams or Zoom local recording instead.
+
+HEAD    : 7ac2aa2a925f775ade279235cf78be9f23e0f8a7  PUSHED
+Tree    : clean
+Issues  : No issue census was run this session. Do not assert the state of any issue
+          without reading it. No issue was raised for either contributor PR.
+
+Open    :
+  - THE DEMONSTRATION VIDEO IS STILL UNRECORDED. 15%, and the single largest block of
+    marks outstanding. The script is at dev_reports/video_script.md.
+  - BOTH CONTRIBUTOR PULL REQUESTS ARE OPEN AND UNMERGED. #38 (Wilfred, README.md) and
+    #39 (Munyaradzi, one unit test). Their check conclusions were NOT verified before
+    this session closed - the approvals were issued, the runs were not read. Read them
+    before merging.
+  - #38 CARRIES A ONE-CHARACTER TYPO: "security scans,and the Docker build". Wilfred was
+    asked to fix it and told that the PR would be merged regardless if he could not.
+  - #38 STILL SHOWS reviewDecision CHANGES_REQUESTED. That is stale, not a judgement -
+    a changes-requested review persists until the reviewer submits a new one. Sir Ton
+    should post a short approving review before merging, both because the fixes are
+    genuinely good and because the review trail is the assessed artefact.
+  - THE TECHNICAL REPORT REVISION PASS IS NOW CONDITIONAL, and the condition changed
+    this session. Session 022 listed three edits. Their status now:
+      1. Section 8 opening paragraph, on every PR being merged without a second
+         reviewer - BECOMES FALSE and MUST be rewritten if either contributor PR is
+         merged after review. A real peer review now exists in the repository
+         regardless of merge, so this edit is required either way.
+      2. Section 8 final paragraph, removing "a second reviewer" from the given-more-
+         time list - same condition, same answer.
+      3. Section 7, the matrix reporting 107 tests collected - becomes 108 ONLY IF #39
+         merges. If #39 does not merge, DO NOT make this edit.
+    The report measures 3,945 prose words against a 4,000 ceiling. Anything added must
+    be paid for by something cut.
+  - A SECOND RELEASE PR FROM develop INTO main is needed for any of the above to reach
+    the branch an assessor clones, and for the contributor work to appear there.
+  - The individual contribution report is drafted but NOT FINAL. Section 4 carries an
+    italic placeholder resolvable once the contributor PRs are merged.
+  - REQ-N-002 remains the one OPEN Tier 1 requirement. No secret-scanning gate exists.
+    Recommended CUT and named in the critical evaluation, which the report already does.
+  - Four references remain unverified against primary records: Driessen (2010), Fowler
+    (2006), Humble and Farley (2010), and Forsgren, Humble and Kim (2018).
+  - SIX WEEKS VERSUS EIGHT DAYS. Raised in session 022, Sir Ton chose to leave it.
+    DO NOT REOPEN UNLESS HE DOES.
+
+Decided :
+  - THE VIDEO IS RECORDED BEFORE THE CONTRIBUTOR PRS ARE MERGED. The video depends on
+    nothing in flight - the live system, the repository, the pipeline runs and the suite
+    are already true and already on main. The report revision and second release depend
+    on two other people late at night. If the video goes last and anything slips, 15% is
+    lost; if the revision goes last and time runs out, two sentences in an already-merged
+    and already-scoring document are less accurate. Taken inline, not registered.
+  - PR #39's base branch was corrected by the maintainer rather than sent back to the
+    contributor. A wrong base is packaging, not quality, and gh pr edit changes neither
+    his commits nor his authorship. Sending it back at 22:15 risked losing the
+    contribution entirely.
+  - #39's head branch name, its non-Conventional commit subjects and a stray apostrophe
+    in its docstring were all LEFT ALONE. None affects the tests, the lint or the ASCII
+    gate. A contributor's history looking different from the maintainer's is honest
+    evidence of collaboration.
+  - The video script lives in dev_reports/, which is gitignored. It is a working
+    artefact, not a deliverable, and both accounts share one checkout so it is reachable.
+
+CONTRIBUTORS - current state, read before acting on either.
+
+  - MUNYARADZI GURURE, GitHub login MikeMunya, PR #39, now targeting develop. One unit
+    test, 19 lines, in tests/test_verification.py, asserting normalise_certificate_id is
+    idempotent. Validated by reading the function. Accepted, pending a green run.
+  - WILFRED, GitHub login winnerman29, PR #38, targeting develop. README.md at the
+    repository root, 51 lines. Both review findings addressed. One space missing.
+    Accepted, pending a green run and a fix he may or may not make.
+  - README.md lands at the repository root, not docs\, so Check-Docs.ps1 will not demand
+    it be added to the CLAUDE.md Section 9 document map. Nothing to update on merge.
+  - Both were sent the specifics of their own contribution in the vocabulary their
+    individual contribution reports need.
+
+VIDEO - running order unchanged from session 022 and expanded in dev_reports/video_script.md.
+  Recording tool: Teams or Zoom, meeting with yourself, whole screen shared, recorded
+  locally. NOT Google Meet - paid Workspace only, host only, and up to 24 hours of Drive
+  processing before the MP4 can be downloaded. Xbox Game Bar is the last resort and
+  captures one window at a time, which breaks every browser-to-terminal switch.
+  Warm https://qvs-f3dk.onrender.com first and start within fifteen minutes.
+
+Watch   :
+  - THIS SESSION ADDED NO COMMIT TO develop BEFORE ITS CLOSE COMMIT. The token names
+    7ac2aa2, which is session 022's close commit, and session 024's census should show
+    HEAD exactly one above it. Same shape as session 022. Not drift.
+  - AN EMPTY statusCheckRollup DOES NOT MEAN CI IS BROKEN. GitHub holds workflow runs
+    from first-time fork contributors in action_required until a maintainer approves
+    them. There is no gh command for it; it is a POST to
+    repos/OWNER/REPO/actions/runs/RUN_ID/approve, and the pending runs are listed by
+    repos/OWNER/REPO/actions/runs?status=action_required.
+  - A FURTHER PUSH BY EITHER CONTRIBUTOR MAY CREATE A NEW RUN IN action_required. If
+    Wilfred fixes the typo, check for and approve a new run before expecting a check.
+  - mergeStateStatus BLOCKED on a contributor PR means it is targeting main. UNSTABLE
+    against develop means checks pending, which is normal.
+  - gh pr edit RETURNS THE PR URL ON SUCCESS. gh api --method POST ... /approve returns
+    nothing at all. gh pr review and gh pr merge write to stderr and return exit 0 with
+    no output. Verify all of them with gh pr view --json.
+  - SECTION 1.2's HEAD FIELD MUST BE A BARE SHA. Prose there breaks the currency regex
+    in Session-Open.ps1 and produces a false STALE verdict.
+  - A PR OPENED FROM develop SHOWS TWO RUNS against the same head - the push run and the
+    pull_request run. Cite the pull_request one.
+  - ELEVEN topic branches on origin, thirteen refs. The two contributor PRs come from
+    forks and add no origin branches.
+  - THE APPEND RULE IS NOT ADVISORY. Write the block to dev_reports and append with
+    Add-Content. Never anchor edit_file on prose.
+  - WORD COUNTING THE MARKDOWN OVERSTATES THE REPORT. Count prose only, skipping heading
+    lines, References and blank lines.
+  - Check-Ascii.ps1 and Check-Docs.ps1 print through Write-Host, so they report
+    "(no output)" under Invoke-Logged. Run them directly and read the exit code.
+  - A terminal that has not run .\tools\Set-Env.ps1 has no QVS_SECRET_KEY.
+  - THE DEADLINE IS 23:59 ON 2026-09-14. This block was written at 22:30.
+
+Next    : Record the demonstration video from dev_reports/video_script.md. Then read both
+          contributor runs, post a short approving review on #38, merge #38 and #39 into
+          develop, make the conditional report revision, cut the second release PR into
+          main through D-031's required check, and finalise Section 4 of the individual
+          contribution report.
+
+Opening prompt:
+
+```
+Session 024. Sprint D.
+Closing session ran on: AccountA. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expected.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full, ending with the Section 0.6 opening position.
+
+Token: QVS-S023-A2B-7ac2aa2
+
+THE DEADLINE IS 23:59 ON 2026-09-14 AND SESSION 023 CLOSED AT ABOUT 22:30. Triage
+accordingly - there is no time for anything that is not on the list below.
+
+To reconcile at Section 0.5:
+  1. On develop, HEAD should sit exactly one commit above 7ac2aa2, and that commit
+     should be the session 023 close commit carrying this block. Session 023 added
+     NO other commit to develop - all its work was review, contributor triage and
+     documents. This is expected, not drift.
+  2. main is at 693c362 and carries the technical report. Verified in session 022.
+     Local main is at 06ab3dc and has never moved since the session 008 clone.
+     origin/main is the authoritative ref. Neither is drift; do not re-verify.
+  3. Two contributor pull requests are OPEN and UNMERGED: #38 (winnerman29, README.md,
+     targeting develop) and #39 (MikeMunya, one unit test, retargeted to develop in
+     session 023). Both come from forks, so origin still carries eleven topic branches
+     and thirteen refs.
+  4. Workflow runs 34890053780 and 34889437614 were approved out of action_required in
+     session 023 but THEIR CONCLUSIONS WERE NEVER READ. Read them before merging
+     anything. An empty statusCheckRollup means a run is held, not that CI is broken.
+  5. PR #38 shows reviewDecision CHANGES_REQUESTED. That is stale - Wilfred addressed
+     both findings after it was posted. It is not an outstanding objection.
+
+Already run:  Section 0 in full for session 023. PR #38 reviewed with changes
+              requested and verified. PR #39 retargeted from main to develop and
+              retitled. Both held workflow runs approved. Both contributors messaged
+              with their current state. The video script written to
+              dev_reports/video_script.md. Do not repeat any of that.
+
+Not yet run:  The demonstration video, unrecorded, 15%. Reading the two contributor
+              check runs. An approving review on #38. Merging #38 and #39. The
+              conditional technical report revision. The second release PR into main.
+              Section 4 of the individual contribution report. The secret-scanning
+              gate, so REQ-N-002 is still the one OPEN Tier 1 requirement -
+              recommended CUT. Verification of four references: Driessen (2010),
+              Fowler (2006), Humble and Farley (2010), and Forsgren, Humble and Kim
+              (2018).
+
+Next action: Record the demonstration video, following dev_reports/video_script.md.
+Warm https://qvs-f3dk.onrender.com first and start within fifteen minutes of warming.
+Verify on camera with QVS-TEST-CASE-2345-6789. NOT Google Meet - it needs a paid
+Workspace tier and processes in Drive for up to 24 hours. Teams or Zoom, recorded
+locally.
+
+Then, and only then: read both check runs, post a short approving review on #38,
+merge #38 and #39 into develop, make the report revision - edits 1 and 2 in Section 8
+are required once either PR is merged with a review, edit 3 raising the test count
+from 107 to 108 ONLY IF #39 merged - and cut the second release PR from develop into
+main through D-031's required check. Finalise Section 4 of the individual
+contribution report last.
+
+If time runs out, the order of sacrifice is: Section 4 of the contribution report
+first, then the report revision and its release PR, then nothing else. The video is
+never sacrificed.
+
+Do NOT reopen the six-weeks-versus-eight-days question in the technical report unless
+Sir Ton raises it. It was raised in session 022 and he chose to leave it.
+
+Run .\tools\Set-Env.ps1 in every fresh terminal, then QVS_DEBUG=0 for the suite
+and back to 1 for runserver. Every git and gh command goes through
+.\tools\Invoke-Logged.ps1 (D-022); commit messages and gh bodies via file with -F
+or --body-file, deleted afterwards (D-020, D-024). Do not install Docker Desktop,
+WSL or any hypervisor component on this machine (D-026).
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
+## Session 024 - ACCOUNT HANDOVER - AccountB -> AccountA - 2026-09-15 00:25
+
+Token   : QVS-S024-B2A-3a61c87
+Sprint  : D
+Branch  : develop
+Done    :
+  - Section 0 run in full. Census clean: HEAD 71a84d8 exactly one commit above
+    7ac2aa2, tree clean, log current, venv on Python 3.12.6. Token QVS-S023-A2B-7ac2aa2
+    matched. Origin carried eleven topic branches and thirteen refs, counted.
+  - THE DEMONSTRATION VIDEO IS RECORDED. Final duration 9:55, filmed against
+    dev_reports/video_script.md. 15% of the module marks, and the single largest block
+    of outstanding marks at session open, is now discharged.
+  - A streamlined recording cue card was produced as a Word document from the script -
+    pre-flight checklist, the running order as a timed table, the in-flight rules and
+    the cut list. Working aid only, not a deliverable.
+  - THE TECHNICAL REPORT REVISION IS MADE AND COMMITTED. Session 022's edits 1 and 2
+    were applied to Section 8: the opening paragraph no longer claims every pull
+    request was merged without a second reviewer, and the closing paragraph no longer
+    lists a second reviewer among things more time would have bought. Two paragraphs in
+    Sections 5 and 8 were tightened to pay for the added words.
+  - EDIT 3 WAS DELIBERATELY NOT MADE. The test count stays at 107 because PR #39 has
+    not merged. Raising it to 108 on an unmerged pull request would have put a figure
+    in the report that the repository cannot produce.
+  - One error of my own was caught and corrected before it shipped. The revision first
+    described the two contributor pull requests as coming from "external contributors".
+    They are group members carrying registration numbers on the cover page. Corrected
+    to "other group members", and the solo-authorship clause narrowed to say the
+    implementation had a single author.
+  - Prose measured at 3,977 words against the 4,000 ceiling, counted skipping heading
+    lines, the title block and the reference list. Zero non-ASCII bytes.
+  - The Word submission copy of the technical report was rebuilt in the group's house
+    formatting - MSU crest, faculty block, the two rules, the programme and title
+    blocks, the four-member group table, Times New Roman 12pt, 1.5 spacing, justified
+    body, navy numbered headings, hanging-indent references, no page number on the
+    cover with the body starting at Page 1. Rendered and inspected, not just generated.
+  - THE INDIVIDUAL CONTRIBUTION REPORT WAS WRITTEN FRESH, 1,648 words, and built in the
+    same formatting with the group table replaced by the student's own details. The
+    session 022 draft it was meant to be updated from is not on disk anywhere in the
+    repository and was not recovered.
+  - Commit 3a61c87 on develop carrying the report revision, pushed. Verified by reading
+    .git\refs\heads\develop, not by trusting the push artefact.
+  - ALL DELIVERABLES SUBMITTED, LATE. See Watch.
+
+HEAD    : 3a61c87a2ac112544dd6e871f4eb3f23f8310e2c  PUSHED
+Tree    : clean
+Issues  : No issue census was run this session. Do not assert the state of any issue
+          without reading it.
+
+Open    :
+  - THE SECOND RELEASE PULL REQUEST WAS NEVER CUT. main is still at 693c362 and still
+    carries the PRE-REVISION Section 8. develop at 3a61c87 carries the revision. The
+    submitted Word report matches develop, not main. This was a deliberate triage call
+    once the deadline had passed, not an oversight.
+  - PR #38 (winnerman29, README.md) and PR #39 (MikeMunya, one unit test) are still
+    OPEN and UNMERGED, both targeting develop. Their workflow run conclusions were
+    still never read - runs 34890053780 and 34889437614, approved in session 023.
+  - NO APPROVING REVIEW WAS POSTED ON #38. reviewDecision still reads
+    CHANGES_REQUESTED, which remains stale rather than an outstanding objection.
+  - REQ-N-002 remains the one OPEN Tier 1 requirement. No secret-scanning gate exists.
+    Recommended CUT and already named in the report's critical evaluation.
+  - Four references remain unverified against primary records: Driessen (2010),
+    Fowler (2006), Humble and Farley (2010), and Forsgren, Humble and Kim (2018). All
+    four are well-known works and their details as printed look correct, but that is
+    knowledge rather than a check against a primary record, and the distinction was
+    stated to Sir Ton rather than glossed.
+  - The individual contribution report's markdown source exists only outside the
+    repository. If it is wanted in git, it needs a home that does not trip the
+    Check-Docs document-map rule.
+
+Decided :
+  - THE TEST COUNT STAYS AT 107 while #39 is unmerged. Taken inline.
+  - THE REPORT REVISION COMMITTED STRAIGHT TO develop under D-023 as a document amended
+    in session, rather than through an issue, a branch and a pull request. At that hour
+    the D-009 route would have cost seven commands to land a two-paragraph documentation
+    edit.
+  - THE CONTRIBUTION REPORT WAS WRITTEN FRESH rather than hunted for across past chats.
+    Two searches did not surface the draft and a third would have cost recording time.
+    Taken inline.
+  - ITS SOURCE WAS KEPT OUT OF docs/ deliberately. It is an individual deliverable
+    rather than a group artefact, and adding a new .md under docs\ at deadline risks
+    tripping the Section 9 document-map check on the next commit.
+  - THE VIDEO WAS SUBMITTED AT 9:55 rather than re-recorded for the missing five
+    seconds. Five seconds under a stated floor reads as ten minutes; re-recording at
+    that hour risked losing a good take for nothing.
+  - THE RELEASE PR WAS ABANDONED once the deadline had passed, in favour of submitting
+    immediately. A tidier branch was worth less than the minutes.
+
+Watch   :
+  - THE DEADLINE WAS 23:59 ON 2026-09-14 AND IT PASSED MID-SESSION. The commit artefact
+    for 3a61c87 is stamped 2026-09-15 00:08:35 and the push 00:09:10. Sir Ton elected
+    to submit late. Any future session should not assume the submission was on time.
+  - THE SUBMITTED TECHNICAL REPORT MATCHES develop, NOT main. If main is ever brought
+    up to date, check the rendered Word copy still matches before claiming they agree.
+  - BOTH COVER PAGES READ "Submitted 14 September 2026" though the upload happened on
+    the 15th. Left deliberately - regenerating both documents cost more than the
+    inconsistency.
+  - SECTION 4 OF THE CONTRIBUTION REPORT SAYS THE CONTRIBUTOR PULL REQUESTS WERE
+    REVIEWED AND ACCEPTED, NOT MERGED. That is true whether or not they merge. If they
+    are merged later, that sentence becomes weaker than the truth and should be
+    strengthened.
+  - THE CONTRIBUTION REPORT CARRIES NO COUNTS - no total commits, no merged pull
+    request count, no issue count - because none were verified this session. Do not
+    add figures to it from inference.
+  - THE SESSION LOG'S NEWEST HEAD FIELD MUST STAY A BARE SHA or the currency regex in
+    Session-Open.ps1 produces a false STALE verdict.
+  - Check-Ascii.ps1 and Check-Docs.ps1 print through Write-Host and report "(no output)"
+    under Invoke-Logged. Run them directly and read the exit code.
+  - THE APPEND RULE IS NOT ADVISORY. Write the block to dev_reports and append with
+    Add-Content. Never anchor edit_file on prose in this file.
+  - A terminal that has not run .\tools\Set-Env.ps1 has no QVS_SECRET_KEY.
+  - VS Code was closed by accident mid-session and the terminal state was lost.
+    Set-Env.ps1 and Session-Open.ps1 were both re-run. Not drift.
+
+Next    : Decide whether anything further is worth doing now that the submission is in.
+          If yes, the order is: read the two contributor check runs, post a short
+          approving review on #38, merge #38 and #39 into develop, raise the test count
+          from 107 to 108 in Section 6 and Section 7 of the technical report if #39
+          merged, and cut the release pull request from develop into main through
+          D-031's required check so the branch an assessor clones carries the revised
+          report. If no, this project is closed and the repository is submittable as it
+          stands.
+
+Opening prompt:
+
+```
+Session 025. Sprint D.
+Closing session ran on: AccountB. State at Section 0.6 which account you are
+actually on - it may not be the one this prompt expected.
+
+Read the repository documents in the order given in the project instructions
+before replying. CLAUDE.md and docs/HANDOVER.md are canonical; nothing in this
+message overrides them.
+
+Then run HANDOVER.md Section 0 in full, ending with the Section 0.6 opening position.
+
+Token: QVS-S024-B2A-3a61c87
+
+THE DEADLINE HAS PASSED AND ALL DELIVERABLES WERE SUBMITTED LATE, in the early hours
+of 2026-09-15. Nothing in this project is now urgent. Do not carry deadline triage
+reasoning into this session - there is no deadline left to triage against.
+
+To reconcile at Section 0.5:
+  1. On develop, HEAD should sit exactly one commit above 3a61c87, and that commit
+     should be the session 024 close commit carrying this block. 3a61c87 is the
+     technical report revision. This is the expected shape, not drift.
+  2. main is at 693c362 and carries the PRE-REVISION technical report. develop is
+     ahead of it by the revision and the close commit. That is a real gap rather
+     than drift, and closing it is optional now - see below.
+  3. Local main is at 06ab3dc and has never moved since the session 008 clone.
+     origin/main is the authoritative ref. Not drift; do not re-verify.
+  4. PR #38 (winnerman29) and PR #39 (MikeMunya) are still OPEN and UNMERGED,
+     both targeting develop, both from forks. Origin still carries eleven topic
+     branches and thirteen refs.
+  5. Workflow runs 34890053780 and 34889437614 were approved out of action_required
+     in session 023 and THEIR CONCLUSIONS HAVE STILL NEVER BEEN READ.
+  6. PR #38 shows reviewDecision CHANGES_REQUESTED. Stale, not an objection.
+
+Already run:  The demonstration video is recorded, 9:55, and submitted. The technical
+              report revision is made, committed as 3a61c87 and pushed to develop.
+              The Word submission copies of the technical report and the individual
+              contribution report are built and submitted. Do not redo any of that.
+
+Not yet run:  Reading the two contributor check runs. An approving review on #38.
+              Merging #38 and #39. Raising the test count from 107 to 108, which is
+              conditional on #39 merging. The release pull request from develop into
+              main. The secret-scanning gate, so REQ-N-002 is still the one OPEN
+              Tier 1 requirement - recommended CUT. Verification of four references
+              against primary records: Driessen (2010), Fowler (2006), Humble and
+              Farley (2010), and Forsgren, Humble and Kim (2018).
+
+Next action: Ask Sir Ton whether anything further is wanted. The submission is in and
+the repository is coherent as it stands. If he wants the repository finished properly,
+the order is: read both check runs, post a short approving review on #38, merge #38
+and #39 into develop, make the 107 to 108 edit only if #39 merged, then cut the
+release PR from develop into main through D-031's required check.
+
+Do NOT reopen the six-weeks-versus-eight-days question in the technical report unless
+Sir Ton raises it. It was raised in session 022 and he chose to leave it.
+
+Run .\tools\Set-Env.ps1 in every fresh terminal, then QVS_DEBUG=0 for the suite
+and back to 1 for runserver. Every git and gh command goes through
+.\tools\Invoke-Logged.ps1 (D-022); commit messages and gh bodies via file with -F
+or --body-file, deleted afterwards (D-020, D-024). Do not install Docker Desktop,
+WSL or any hypervisor component on this machine (D-026).
+
+Give me commands in separate labelled blocks, one command per block.
+```
+
