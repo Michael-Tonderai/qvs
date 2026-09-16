@@ -133,10 +133,19 @@ def history_for(certificate_id: str) -> QuerySet[AuditEvent]:
     show them. A page scoped to a record cannot be a complete view of the trail, and
     the report says so rather than leaving a reader to assume otherwise.
 
-    Ordering comes from AuditEvent.Meta, which is `-occurred_at`. Stated here because
-    callers depend on it and a future edit to the model would change it silently - the
-    same note search.find carries for the same reason.
+    Ordering is set explicitly here, by `-occurred_at` and then `-pk`, rather than
+    inherited from AuditEvent.Meta. Meta orders by `-occurred_at` alone, and two events
+    can carry the same timestamp. When they do, nothing decides between them and the
+    database returns them in whatever order it likes - on SQLite, insertion order,
+    which is oldest first and the reverse of what the history page promises. This was
+    not hypothetical: tests/test_audit_history.py failed on the Windows development
+    machine for exactly this reason while passing on Linux CI, whose clock is fine
+    enough that two back-to-back writes rarely collide. The primary key is assigned in
+    the order events are written, so it breaks a tie by write order. Set in the query
+    rather than in Meta so that no migration is needed, and so that the guarantee sits
+    beside the caller that depends on it.
     """
-    return AuditEvent.objects.filter(
+    events = AuditEvent.objects.filter(
         submitted_certificate_id=normalise_certificate_id(certificate_id)
     )
+    return events.order_by("-occurred_at", "-pk")
