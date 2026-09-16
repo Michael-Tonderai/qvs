@@ -253,7 +253,7 @@ and what it returned, which terminal scrollback was never going to provide.
 
 ## 6. Testing strategy
 
-The suite holds 107 tests, run under pytest with the Django plugin. Every test carries
+The suite holds 108 tests, run under pytest with the Django plugin. Every test carries
 two kinds of marker: one declaring whether it is a unit or an integration test, and one
 naming the requirement it verifies. The brief assesses unit and integration tests
 separately, and the requirement marker is what makes automated traceability possible.
@@ -308,7 +308,7 @@ branch protection, a pipeline job, the coverage threshold or the running deploym
 listed with no test because that is correct rather than because something is absent.
 
 The matrix currently reports seventeen requirements, fourteen with at least one test,
-three verified outside the suite, zero gaps, 107 tests collected and zero tests citing
+three verified outside the suite, zero gaps, 108 tests collected and zero tests citing
 no requirement. That last figure was not always zero: three routing tests originally
 cited nothing, because they pinned a behaviour that had been implemented and tested but
 never written down as a requirement. Writing the requirement down was the fix.
