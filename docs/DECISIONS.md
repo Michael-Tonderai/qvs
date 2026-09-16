@@ -930,3 +930,33 @@ D-034.*
   writes no audit event. `verification.py`'s guarantee that every verification attempt is
   audited holds because `verify()` has a single caller, and a trail that recorded its own
   inspection would bury the events it exists to show.
+
+## D-042 - The report's six-week figure means available calendar, and the report is not amended
+
+- **Context:** The technical report gives the dominant constraint as "six weeks of
+  calendar time alongside full-time employment" (Section 1) and speaks of "a six-week
+  budget" (Section 4). `CLAUDE.md`, `docs/HANDOVER.md` and this register use the same
+  figure. The commit history does not show six weeks of work. The root commit, 06ab3dc,
+  is dated 2026-09-07 20:50; the report revision the submitted copy matches, 3a61c87, is
+  dated 2026-09-15 00:08. That is just over seven days elapsed, across eight calendar
+  days. The question was raised in session 022 and left, dropped from the session 024
+  record by mistake, and reopened by Sir Ton after session 024 closed.
+- **Decision:** The figure is read as six weeks of available calendar, not six weeks of
+  elapsed effort. On that reading both sentences are accurate as written, and both are
+  already worded as calendar and budget rather than as work done. The report is not
+  amended. The compression of the build into roughly a week is recorded as a finding
+  about how the project ran, not as an inconsistency to explain away.
+- **Rejected:** Amending the report to name the shorter figure. The report is submitted
+  and marked, and rewording its framing now would open a divergence between the marked
+  document and the repository over a claim that is not false. That is the distinction
+  from the test count, which session 025 did change from 107 to 108: that figure was
+  made false in the repository by a pull request merged after submission, while this
+  one was never false. Also rejected: leaving the question unregistered, which is how it
+  fell out of the session 024 block and had to be reopened.
+- **Consequence:** A viva question about the timeline has a written answer. The budget
+  was six weeks; the commits fall in roughly its last week; and the governance record in
+  this repository - the session log, this register and the handover protocol - is the
+  evidence of how the work was organised to fit. The compression is also the context the
+  report's critical evaluation most needs and does not state: several decisions here,
+  among them D-026, D-031, D-036 and D-037, were taken under time pressure that the
+  six-week figure on its own does not convey.

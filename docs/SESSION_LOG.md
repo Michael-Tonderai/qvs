@@ -4298,3 +4298,151 @@ WSL or any hypervisor component on this machine (D-026).
 Give me commands in separate labelled blocks, one command per block.
 ```
 
+
+## Session 025 - PROJECT CLOSE - AccountB - 2026-09-16 16:30
+
+THIS PROJECT IS CLOSED. This is the last working session. No future session should open
+this repository looking for work to do. Everything still open below is open on purpose
+and is recorded rather than scheduled.
+
+Sprint  : D
+Branch  : develop
+Done    :
+  - Section 0 run fresh on 2026-09-16, as the amendment to the follow-up prompt required.
+    Census clean: HEAD 985da8e exactly one commit above 3a61c87, tree clean, log current,
+    venv on Python 3.12.6. Token QVS-S024-B2A-3a61c87 matched. Account stated as
+    AccountB by Sir Ton; B2A in the token is a naming artefact per HANDOVER 1.3.
+  - STEP 0, THE LIVE SYSTEM, BEFORE ANYTHING ELSE. Claude could not probe it directly -
+    the site's robots.txt refuses automated fetches - so it ran from the development
+    machine through curl.exe. /health/ answered 200 after a 44-second cold start. The
+    ephemeral disk HAD been reset during the two idle days and the boot-time seed rebuilt
+    the demonstration record during that wake: Registered 2026-09-16 13:06:44 UTC.
+    QVS-TEST-CASE-2345-6789 returned VERIFIED to curl and to Sir Ton's browser.
+  - Contributor check runs read at last. 34890053780 (#38) and 34889437614 (#39) both
+    concluded success on both jobs, and each ran on the head its pull request still
+    pointed at - 83c99cc and 814814e.
+  - PR #38 reviewed against its diff and its review history. Both findings from the
+    session 023 review were addressed. Approving review posted; reviewDecision moved from
+    a stale CHANGES_REQUESTED to APPROVED. Merged as 6cb2790. The repository has a README.
+  - PR #39 reviewed against its diff; its fixture ID was checked character by character
+    against signing.CERTIFICATE_ID_ALPHABET. Approving review posted. Merged as 6be2e04.
+  - THE LOCAL SUITE WAS RED AFTER THE MERGES: 108 collected, 107 passed, 1 failed.
+    tests/test_audit_history.py::test_history_is_newest_first, twice in succession. Two
+    audit events written back to back carried the same timestamp and came back oldest
+    first. Not caused by either contributor PR. A real latent defect in REQ-F-011:
+    history_for() inherited ordering from AuditEvent.Meta on -occurred_at alone, with no
+    tie-breaker. Green on Linux CI throughout, which is why it had never been seen.
+  - Issue #40 opened. Fix on fix/REQ-F-011-history-order: history_for() orders by
+    -occurred_at then -pk, set in the query so no migration is needed (makemigrations
+    --check confirmed). Local suite 108 passed, coverage 97.05 per cent; ruff check,
+    ruff format --check, bandit -ll, Check-Ascii and Check-Docs all clean. PR #41 with a
+    self-review comment, CI green on 135b2ee, merged into develop as d92239a.
+  - Traceability matrix regenerated: 17 requirements, 108 tests collected, 0 gaps, 0
+    citing nothing. Technical report Sections 6 and 7 raised from 107 to 108. Committed
+    straight to develop as 83e8b7c under D-023.
+  - RELEASE PR #42 FROM develop INTO main, merged through D-031's required check as
+    b979b24. origin/main moved from 693c362 to b979b24. main now carries the revised
+    report the submitted copy matches, the README, the contributor test and the fix.
+    Issue #40 closed on that merge at 14:09:18 UTC.
+  - STEP 7, THE LIVE SYSTEM AFTER THE REDEPLOY. /health/ 200 at 14:15:27 UTC.
+    QVS-TEST-CASE-2345-6789 returned VERIFIED to curl and to Sir Ton's browser, with
+    Registered 2026-09-16 14:10:03 UTC - a container start 46 seconds after the merge.
+  - D-042 registered: the report's six-week figure reads as available calendar, and the
+    report is not amended.
+
+HEAD    : 83e8b7c69b7f7978c9f6cfac53d8a1d55b4c3719  PUSHED
+Tree    : clean
+main    : b979b242d3b9c2ed00d1f0a5d9b48eff24813070  (release PR #42)
+Issues  : #40 closed. No other issue census was run; do not assert any other issue's
+          state from this block.
+
+Open, and open on purpose :
+  - REQ-N-002 STAYS OPEN, DELIBERATELY. No secret-scanning gate exists. It was NOT
+    reclassified, cut or deferred, because the submitted report names it as the one open
+    Tier 1 requirement, and changing the register now would make the repository disagree
+    with the marked document.
+  - Four references remain unverified against primary records: Driessen (2010), Fowler
+    (2006), Humble and Farley (2010), and Forsgren, Humble and Kim (2018). All four are
+    well-known works whose printed details look correct, but that is knowledge rather
+    than a check against a primary record. Sacrificed under the session's stated order
+    and recorded rather than resolved.
+  - That the post-release container start at 14:10:03 was the release build is
+    CONSISTENT WITH the evidence but not proven from outside: nothing on the public page
+    differs between the two builds. The Render dashboard would name the deployed commit;
+    it was not read.
+  - Three small text flaws were noted in approving reviews and deliberately not fixed:
+    README.md "security scans,and" missing a space; README.md pointing to docs/report for
+    supporting evidence that lives in docs/evidence; a stray apostrophe at the end of the
+    docstring of test_normalisation_of_an_already_tidy_id_is_idempotent.
+  - The individual contribution report's markdown source remains outside the repository,
+    on purpose. It is an individual deliverable, and a new .md under docs\ trips the
+    Section 9 document-map rule.
+
+Decided :
+  - D-042. Six weeks is available calendar; the report stands; the compression into
+    roughly a week is a finding.
+  - The ordering defect was FIXED, not recorded-and-left. Claude first recommended
+    recording it as a Windows-only flake, on condition that a rerun passed. The rerun
+    failed identically, the condition was stated to Sir Ton rather than absorbed, and he
+    chose the fix.
+  - The test count moved to 108 in the repository report. The submitted Word copy reads
+    107 and cannot change. A repository report contradicting its own repository was
+    judged worse than a one-number difference from the marked document, and the commit
+    message for 83e8b7c says so. D-042 records why that edit was right and a six-weeks
+    edit would not be.
+  - The report and the regenerated matrix went in one commit, because they record the
+    same fact.
+  - Contributor PRs merged with merge commits, not squashed, so both contributors'
+    commits remain in the history.
+  - No contributor was named by full name in any review. The repository does not state
+    which group member holds which GitHub account.
+
+Watch   :
+  - ORIGIN NOW CARRIES TWELVE TOPIC BRANCHES AND FOURTEEN BRANCH REFS, not eleven and
+    thirteen. fix/REQ-F-011-history-order is retained under the same rule as the others.
+    Counted from git ls-remote --heads origin. Do not delete any of them.
+  - develop carries this close commit and main does not. main in turn carries its release
+    merge commit b979b24, as it has after every release. The close commit is a record, not
+    a change to the system, and it does not need a release.
+  - The report's "most recent full local run measured 97.04 per cent" was true when
+    written. The run on 2026-09-16 measured 97.05. Left alone; it is a dated statement.
+  - On this Windows machine the full suite has been seen green only from d92239a onward.
+    At 6be2e04 it failed test_history_is_newest_first twice. Earlier checkouts that carry
+    that test may fail the same way, and that would be the defect, not the environment.
+  - Local main still sits at 06ab3dc and was not touched. origin/main is authoritative.
+  - Check-Ascii.ps1 and Check-Docs.ps1 run under Invoke-Logged print "(no output)" but DO
+    record EXITCODE in the artefact. Read the exit code from disk instead of asking for
+    the console verdict.
+  - gh only honours "Closes #n" in a pull request that merges into the default branch,
+    which here is main. #41's closing keyword did nothing on its merge into develop; #40
+    closed because the release PR body carried it.
+
+Next    : Nothing. The project is closed and the repository is complete as it stands.
+
+Opening prompt:
+
+```
+QVS is CLOSED. Session 025 was the last working session.
+Closing session ran on: AccountB.
+
+There is no next action. Do not open this repository looking for work.
+
+If a session is opened anyway - for example to answer a viva question from the
+record - read the repository documents in the order given in the project
+instructions and run docs/HANDOVER.md Section 0 in full before saying anything
+about the repository's state. CLAUDE.md and docs/HANDOVER.md are canonical.
+
+Expected at Section 0.5: develop one commit above 83e8b7c, that commit being the
+session 025 close. origin/main at b979b24. Twelve topic branches on origin,
+fourteen branch refs. None of that is drift.
+
+Open on purpose and not to be picked up: REQ-N-002 (no secret-scanning gate),
+four references unverified against primary records, three small text flaws in
+README.md and one test docstring. See the session 025 block.
+
+Do not edit, rebuild or regenerate any submitted document. Do not delete any
+branch. Do not install Docker Desktop, WSL or any hypervisor component on this
+machine (D-026).
+
+Give me commands in separate labelled blocks, one command per block.
+```
